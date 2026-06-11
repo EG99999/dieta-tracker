@@ -2,7 +2,7 @@
   "name": "Dieta Elia",
   "short_name": "Dieta",
   "description": "Tracker dieta personalizzata",
-  "start_url": "/",
+  "start_url": "/dieta-tracker/",
   "display": "standalone",
   "background_color": "#eef1ee",
   "theme_color": "#2d7a3a",

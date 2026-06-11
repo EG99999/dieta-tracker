@@ -1,5 +1,5 @@
 const CACHE = 'dieta-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const ASSETS = ['/dieta-tracker/', '/dieta-tracker/index.html', '/dieta-tracker/manifest.json', '/dieta-tracker/sw.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
