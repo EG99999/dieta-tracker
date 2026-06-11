@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2d7a3a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Dieta Elia">
+  <title>Dieta Elia</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --green: #2d7a3a;
+      --green-light: #4caf50;
+      --green-bg: #e8f5e9;
+      --orange: #e65100;
+      --orange-bg: #fff3e0;
+      --red: #c62828;
+      --red-bg: #ffebee;
+      --blue: #1565c0;
+      --blue-bg: #e3f2fd;
+      --gray: #757575;
+      --gray-light: #f5f5f5;
+      --shadow: 0 2px 8px rgba(0,0,0,0.10);
+      --radius: 14px;
+      --radius-sm: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #eef1ee;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding-bottom: 72px;
+    }
+
+    /* ── HEADER ── */
+    .app-header {
+      background: var(--green);
+      color: white;
+      padding: 14px 16px 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .app-title { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+    .date-nav { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .date-btn {
+      background: rgba(255,255,255,0.22);
+      border: none; color: white; width: 32px; height: 32px;
+      border-radius: 50%; cursor: pointer; font-size: 18px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .date-btn:active { background: rgba(255,255,255,0.4); }
+    .date-display { flex: 1; text-align: center; font-size: 14px; font-weight: 600; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: white; border-top: 1px solid #e0e0e0;
+      display: flex; z-index: 100;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.10);
+    }
+    .nav-item {
+      flex: 1; padding: 8px 4px 6px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      cursor: pointer; color: var(--gray); border: none; background: none;
+      position: relative;
+    }
+    .nav-item.active { color: var(--green); }
+    .nav-icon { font-size: 22px; }
+    .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .nav-badge {
+      position: absolute; top: 6px; right: calc(50% - 18px);
+      background: var(--red); color: white;
+      border-radius: 10px; font-size: 10px; font-weight: 700;
+      padding: 1px 5px; min-width: 16px; text-align: center;
+    }
+
+    /* ── VIEWS ── */
+    .view { display: none; }
+    .view.active { display: block; }
+    .main-content { padding: 12px 14px; max-width: 600px; margin: 0 auto; }
+
+    /* ── TOGGLE SWITCH ── */
+    .toggle-switch {
+      width: 50px; height: 28px; background: #ccc;
+      border-radius: 14px; position: relative; cursor: pointer;
+      transition: background 0.25s; flex-shrink: 0;
+    }
+    .toggle-switch.on { background: var(--green-light); }
+    .toggle-switch::after {
+      content: ''; position: absolute;
+      width: 22px; height: 22px; background: white; border-radius: 50%;
+      top: 3px; left: 3px; transition: transform 0.25s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .toggle-switch.on::after { transform: translateX(22px); }
+
+    /* ── TRAINING CARD ── */
+    .training-card {
+      background: white; border-radius: var(--radius);
+      padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow);
+    }
+    .training-row { display: flex; justify-content: space-between; align-items: center; }
+    .training-label { font-weight: 700; font-size: 15px; }
+    .training-types { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .tt-btn {
+      padding: 7px 13px; border: 2px solid #e0e0e0; border-radius: 20px;
+      background: white; cursor: pointer; font-size: 13px; font-weight: 600;
+      transition: all 0.2s;
+    }
+    .tt-btn.active { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+
+    /* ── WATER CARD ── */
+    .water-card {
+      background: var(--blue-bg); border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .water-info { min-width: 90px; }
+    .water-label { font-weight: 700; font-size: 13px; color: var(--blue); }
+    .water-ml { font-size: 12px; color: var(--blue); }
+    .water-bar-wrap { flex: 1; background: rgba(21,101,192,0.15); border-radius: 6px; height: 8px; }
+    .water-bar { background: var(--blue); height: 8px; border-radius: 6px; transition: width 0.35s; max-width: 100%; }
+    .water-btns { display: flex; gap: 4px; }
+    .water-btn {
+      background: var(--blue); color: white; border: none;
+      border-radius: 8px; padding: 5px 9px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .water-btn.minus { background: #90a4ae; }
+
+    /* ── MORNING RITUAL ── */
+    .ritual-card {
+      background: linear-gradient(135deg, #fffde7, #fff9c4);
+      border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px;
+      border-left: 4px solid #f9a825;
+    }
+    .ritual-title { font-weight: 700; font-size: 13px; color: #f57f17; margin-bottom: 4px; }
+    .ritual-text { font-size: 13px; color: #5d4037; }
+
+    /* ── MEAL CARD ── */
+    .meal-card {
+      background: white; border-radius: var(--radius);
+      margin-bottom: 10px; box-shadow: var(--shadow); overflow: hidden;
+    }
+    .meal-header {
+      padding: 13px 14px; display: flex; align-items: center; gap: 10px;
+      cursor: pointer; user-select: none;
+    }
+    .meal-icon { font-size: 20px; width: 26px; text-align: center; flex-shrink: 0; }
+    .meal-title-wrap { flex: 1; min-width: 0; }
+    .meal-title { font-weight: 700; font-size: 14px; }
+    .meal-subtitle { font-size: 11px; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meal-tag {
+      font-size: 11px; padding: 3px 8px; border-radius: 10px;
+      font-weight: 700; flex-shrink: 0;
+    }
+    .meal-tag.logged { background: var(--green-bg); color: var(--green); }
+    .meal-tag.empty { background: var(--gray-light); color: var(--gray); }
+    .meal-chevron { color: #bdbdbd; font-size: 11px; flex-shrink: 0; transition: transform 0.25s; }
+    .meal-card.open .meal-chevron { transform: rotate(180deg); }
+    .meal-body { display: none; padding: 0 12px 12px; }
+    .meal-card.open .meal-body { display: block; }
+
+    /* ── FILTER TABS ── */
+    .filter-tabs {
+      display: flex; gap: 6px; margin-bottom: 10px;
+      overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+    }
+    .filter-tabs::-webkit-scrollbar { display: none; }
+    .filter-tab {
+      white-space: nowrap; padding: 5px 11px; border-radius: 14px;
+      border: 1.5px solid #e0e0e0; background: white;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .filter-tab.active { background: var(--green); color: white; border-color: var(--green); }
+
+    /* ── SUBSECTION LABEL ── */
+    .subsec-label {
+      font-size: 11px; font-weight: 800; color: #9e9e9e;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      margin: 10px 0 6px;
+    }
+
+    /* ── OPTION CARD ── */
+    .meal-options { display: flex; flex-direction: column; gap: 7px; }
+    .opt {
+      border: 2px solid #ebebeb; border-radius: var(--radius-sm);
+      padding: 10px 38px 10px 10px; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s; position: relative;
+    }
+    .opt:active { background: #f9f9f9; }
+    .opt.selected { border-color: var(--green); background: var(--green-bg); }
+    .opt.hidden { display: none; }
+    .opt-header { display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; }
+    .opt-name { font-weight: 700; font-size: 13px; flex: 1; min-width: 120px; }
+    .opt-badges { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+    .badge {
+      font-size: 10px; padding: 2px 6px; border-radius: 9px; font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge.consigliato { background: #fff9c4; color: #f57f17; }
+    .badge.warning-b { background: var(--orange-bg); color: var(--orange); }
+    .badge.limit-b { background: var(--red-bg); color: var(--red); }
+    .badge.carne { background: #fce4ec; color: #ad1457; }
+    .badge.pesce { background: var(--blue-bg); color: var(--blue); }
+    .badge.vegano { background: var(--green-bg); color: var(--green); }
+    .badge.latticini { background: #fff8e1; color: #e65100; }
+    .badge.uova { background: #fff3e0; color: #bf360c; }
+    .opt-desc { font-size: 11px; color: #616161; margin-top: 3px; line-height: 1.4; }
+    .opt-check {
+      position: absolute; top: 10px; right: 10px;
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid #e0e0e0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; transition: all 0.2s;
+    }
+    .opt.selected .opt-check { background: var(--green); border-color: var(--green); color: white; }
+
+    /* ── PASTO LIBERO CARD ── */
+    .free-meal-card {
+      background: #fce4ec; border-radius: var(--radius);
+      padding: 13px 16px; margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .free-meal-label { font-weight: 700; font-size: 14px; color: #ad1457; }
+    .free-meal-sub { font-size: 12px; color: #c2185b; margin-top: 2px; }
+
+    /* ── REGOLE GENERALI ── */
+    .rules-card {
+      background: var(--green-bg); border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 10px; font-size: 12px; color: #2e4a33;
+      cursor: pointer;
+    }
+    .rules-title { font-weight: 800; font-size: 13px; color: var(--green); margin-bottom: 6px; }
+    .rules-body { display: none; }
+    .rules-card.open .rules-body { display: block; }
+    .rule-item { padding: 2px 0; }
+
+    /* ── CALENDAR ── */
+    .cal-container { padding: 12px 14px; max-width: 600px; margin: 0 auto; }
+    .cal-nav { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 12px; }
+    .cal-month-title { font-weight: 800; font-size: 17px; }
+    .cal-btn {
+      background: var(--green); color: white; border: none;
+      border-radius: 10px; padding: 6px 14px; cursor: pointer; font-size: 16px; font-weight: 700;
+    }
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+      background: white; border-radius: var(--radius); padding: 10px; box-shadow: var(--shadow);
+    }
+    .cal-day-name { text-align: center; font-size: 11px; font-weight: 800; color: var(--gray); padding: 4px 0 6px; }
+    .cal-day {
+      aspect-ratio: 1; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 13px; font-weight: 600; position: relative;
+      transition: background 0.15s;
+    }
+    .cal-day:active { background: var(--green-bg); }
+    .cal-day.today { background: var(--green); color: white; }
+    .cal-day.other-m { color: #d0d0d0; pointer-events: none; }
+    .cal-day.has-data::after {
+      content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+      width: 5px; height: 5px; border-radius: 50%; background: var(--green-light);
+    }
+    .cal-day.today.has-data::after { background: rgba(255,255,255,0.7); }
+    .cal-day.trained { box-shadow: inset 0 0 0 2px var(--orange); }
+    .cal-day.today.trained { box-shadow: none; }
+    .train-dot {
+      position: absolute; top: 3px; right: 5px;
+      width: 6px; height: 6px; border-radius: 50%; background: var(--orange);
+    }
+    .cal-day.today .train-dot { background: rgba(255,255,255,0.8); }
+    .day-detail-card {
+      background: white; border-radius: var(--radius); padding: 16px;
+      margin-top: 12px; box-shadow: var(--shadow);
+    }
+    .day-detail-title { font-weight: 800; font-size: 15px; margin-bottom: 10px; }
+    .day-detail-row { padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .day-detail-row:last-child { border-bottom: none; }
+    .day-detail-empty { font-size: 13px; color: var(--gray); }
+
+    /* ── ALERTS ── */
+    .alerts-container { padding: 12px 14px; max-width: 600px; margin: 0 auto; }
+    .alert-section-title { font-weight: 800; font-size: 15px; margin: 12px 0 8px; }
+    .alert-card {
+      background: white; border-radius: var(--radius);
+      padding: 14px; margin-bottom: 9px; box-shadow: var(--shadow);
+      display: flex; gap: 12px; align-items: flex-start;
+      border-left: 4px solid #e0e0e0;
+    }
+    .alert-card.danger { border-left-color: var(--red); }
+    .alert-card.warning { border-left-color: var(--orange); }
+    .alert-card.info { border-left-color: var(--blue); }
+    .alert-card.good { border-left-color: var(--green-light); }
+    .alert-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+    .alert-title { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+    .alert-desc { font-size: 12px; color: #555; line-height: 1.4; }
+
+    /* ── WEEKLY SUMMARY ── */
+    .week-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+      background: white; border-radius: var(--radius); padding: 12px;
+      box-shadow: var(--shadow); margin-bottom: 12px;
+    }
+    .week-cell { text-align: center; }
+    .week-day-name { font-size: 10px; font-weight: 800; color: var(--gray); }
+    .week-dot {
+      width: 28px; height: 28px; border-radius: 50%; margin: 4px auto 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .week-dot.done { background: var(--green-bg); }
+    .week-dot.trained { background: #fff3e0; }
+    .week-dot.empty { background: #f5f5f5; color: #ccc; }
+    .week-dot.today { background: var(--green); color: white; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- HEADER                                          -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="app-header">
+  <div class="header-top">
+    <div class="app-title">🥗 Dieta Elia</div>
+  </div>
+  <div class="date-nav">
+    <button class="date-btn" onclick="changeDay(-1)">‹</button>
+    <div class="date-display" id="dateDisplay">—</div>
+    <button class="date-btn" onclick="changeDay(1)">›</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- BOTTOM NAV                                      -->
+<!-- ══════════════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="showView('oggi')" id="nav-oggi">
+    <span class="nav-icon">📅</span>
+    <span class="nav-label">Oggi</span>
+  </button>
+  <button class="nav-item" onclick="showView('calendario')" id="nav-calendario">
+    <span class="nav-icon">📆</span>
+    <span class="nav-label">Calendario</span>
+  </button>
+  <button class="nav-item" onclick="showView('avvisi')" id="nav-avvisi">
+    <span class="nav-icon">🔔</span>
+    <span class="nav-label">Avvisi</span>
+    <span id="alertBadge" class="nav-badge hidden">0</span>
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- VIEW: OGGI                                      -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="view-oggi" class="view active">
+  <div class="main-content">
+
+    <!-- Rituale mattutino -->
+    <div class="ritual-card">
+      <div class="ritual-title">☀️ Appena sveglio</div>
+      <div class="ritual-text">💧 Bevi 1 bicchiere d'acqua a temperatura ambiente con succo di ½ limone</div>
+    </div>
+
+    <!-- Allenamento -->
+    <div class="training-card">
+      <div class="training-row">
+        <div class="training-label">🏃 Ti sei allenato oggi?</div>
+        <div class="toggle-switch" id="trainingToggle" onclick="toggleTraining()"></div>
+      </div>
+      <div class="training-types hidden" id="trainingTypes">
+        <button class="tt-btn" onclick="selTraining('bici')" id="tt-bici">🚴 Bici</button>
+        <button class="tt-btn" onclick="selTraining('corsa')" id="tt-corsa">🏃 Corsa</button>
+        <button class="tt-btn" onclick="selTraining('nuoto')" id="tt-nuoto">🏊 Nuoto</button>
+        <button class="tt-btn" onclick="selTraining('corpo_libero')" id="tt-corpo_libero">💪 Corpo libero</button>
+        <button class="tt-btn" onclick="selTraining('combinato')" id="tt-combinato">🔀 Combinato</button>
+        <button class="tt-btn" onclick="selTraining('gara')" id="tt-gara">🏆 Gara</button>
+      </div>
+    </div>
+
+    <!-- Acqua -->
+    <div class="water-card">
+      <div class="water-info">
+        <div class="water-label">💧 Acqua</div>
+        <div class="water-ml" id="waterMl">0 / 2500 ml</div>
+      </div>
+      <div class="water-bar-wrap">
+        <div class="water-bar" id="waterBar" style="width:0%"></div>
+      </div>
+      <div class="water-btns">
+        <button class="water-btn" onclick="addWater(250)">+250</button>
+        <button class="water-btn" onclick="addWater(500)">+500</button>
+        <button class="water-btn minus" onclick="addWater(-250)">−</button>
+      </div>
+    </div>
+
+    <!-- Pasti -->
+    <div id="mealsContainer"></div>
+
+    <!-- Pasto libero -->
+    <div class="free-meal-card">
+      <div>
+        <div class="free-meal-label">🎉 Pasto libero</div>
+        <div class="free-meal-sub" id="freeMealSub">Usati questa settimana: 0/2</div>
+      </div>
+      <div class="toggle-switch" id="freeMealToggle" onclick="toggleFreeMeal()"></div>
+    </div>
+
+    <!-- Regole generali -->
+    <div class="rules-card" onclick="this.classList.toggle('open')">
+      <div class="rules-title">📋 Regole generali (tocca per espandere)</div>
+      <div class="rules-body">
+        <div class="rule-item">🫒 2 cucchiai di olio extravergine di oliva a pasto</div>
+        <div class="rule-item">☕ Max 2 caffè al giorno, senza zucchero (no ginseng, no orzo)</div>
+        <div class="rule-item">🥚 Uova: max 4 volte a settimana (bio o allevamento all'aperto)</div>
+        <div class="rule-item">🍷 Si può usare vino bianco per cucinare</div>
+        <div class="rule-item">🚫 No maionese, panna, burro, margarina</div>
+        <div class="rule-item">🚫 No zuccheri aggiunti (leggere sempre le etichette)</div>
+        <div class="rule-item">🚫 No caramelle (ok le gomme senza zucchero)</div>
+        <div class="rule-item">🌿 Ok tisane e tè verde</div>
+        <div class="rule-item">🥗 Ogni pranzo/cena: inizia con insalata mista + 1 cucchiaio olio EVO + limone</div>
+        <div class="rule-item">🌈 Cerca di mangiare tutti e 5 i colori ogni giorno: verde, bianco, arancio, rosso, blu-viola</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- VIEW: CALENDARIO                               -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="view-calendario" class="view">
+  <div class="cal-container">
+    <div class="cal-nav">
+      <button class="cal-btn" onclick="calPrev()">‹</button>
+      <div class="cal-month-title" id="calMonthTitle">—</div>
+      <button class="cal-btn" onclick="calNext()">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div id="dayDetail"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- VIEW: AVVISI                                    -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="view-avvisi" class="view">
+  <div class="alerts-container">
+    <div class="alert-section-title">⚠️ Avvisi attivi</div>
+    <div id="alertsList"></div>
+    <div class="alert-section-title">💡 Suggerimenti per oggi</div>
+    <div id="suggestionsList"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// DATI DIETA
+// ════════════════════════════════════════════════════
+const DIET = {
+  colazione: [
+    { id:'col_fette', nome:'Fette biscottate + Crema', emoji:'🍞',
+      desc:'2-3 fette pan bauletto (kamut/integrale/5 cereali) + marmellata senza zuccheri + burro arachidi 100% o crema 100% frutta secca (nocciole, mandorle, pistacchi)',
+      tags:['vegano'] },
+    { id:'col_toast', nome:'Toast proteico', emoji:'🥪',
+      desc:'2 fette pan bauletto (kamut/integrale/rustico con semi) + 4-5 fette tacchino o prosciutto cotto alta qualità + 1 sottiletta',
+      tags:['carne'] },
+    { id:'col_yogurt', nome:'Yogurt greco', emoji:'🫙',
+      desc:'1 vasetto yogurt greco 0% + 10g semi (chia/girasole/zucca) + [scaglie cocco o cioccolato fondente 85%] + 1 cucchiaino miele',
+      tags:['latticini'] },
+  ],
+  spuntino_mattina: [
+    { id:'sp_mat', nome:'Yogurt proteico', emoji:'🥛',
+      desc:'1 yogurt proteico tipo Milk Pro o Milbona',
+      tags:['latticini'] },
+  ],
+  pranzo_carb: [
+    { id:'pr_c_pane', nome:'Pane integrale + Legumi', emoji:'🍞',
+      desc:'60-80g pane integrale (3-4 fette) + 120-150g legumi',
+      tags:['vegano'] },
+    { id:'pr_c_riso', nome:'Riso basmati', emoji:'🍚',
+      desc:'80g riso basmati',
+      tags:['vegano'] },
+    { id:'pr_c_cereali', nome:'Misto cereali', emoji:'🌾',
+      desc:'80g misto cereali',
+      tags:['vegano'] },
+  ],
+  pranzo_prot: [
+    { id:'pr_p_pesce', nome:'Pesce', emoji:'🐟',
+      desc:'250-300g: nasello, merluzzo, branzino, platessa, coda di rospo, orata, spigola, trota, salmone, tonno, seppie o calamari',
+      tags:['pesce'], foodGroup:'pesce',
+      minWeek:{ count:1, msg:'Dovresti mangiare pesce almeno 1v/sett' } },
+    { id:'pr_p_uova', nome:'Uova (3 intere)', emoji:'🥚',
+      desc:'3 uova (frittata con verdure, strapazzate o à la coque)',
+      tags:['uova'], foodGroup:'uova',
+      maxWeek:{ count:4, msg:'Limite uova settimanale' } },
+    { id:'pr_p_pollo', nome:'Pollo / Tacchino / Maiale', emoji:'🍗',
+      desc:'200-250g petto di pollo, tacchino, lonza o filetto di maiale + olio EVO e limone',
+      tags:['carne'] },
+    { id:'pr_p_manzo', nome:'Manzo / Vitello', emoji:'🥩',
+      desc:'200-250g fettine di manzo o vitello + olio EVO e limone',
+      tags:['carne'] },
+    { id:'pr_p_cavallo', nome:'Cavallo', emoji:'🐴',
+      desc:'200-250g cavallo',
+      tags:['carne'] },
+    { id:'pr_p_roastbeef', nome:'Roast Beef + Grana', emoji:'🥩',
+      desc:'200g roast beef + scaglie di grana',
+      tags:['carne'] },
+    { id:'pr_p_bresaola', nome:'Bresaola + Grana', emoji:'🥩',
+      desc:'100g bresaola + scaglie di grana',
+      tags:['carne'] },
+    { id:'pr_p_tofu', nome:'Tofu / Tempeh', emoji:'🌿',
+      desc:'150-200g tofu/tempeh (saltato con miso, o marinato con porro, sesamo, zenzero, salsa di soia)',
+      tags:['vegano'] },
+    { id:'pr_p_caprino', nome:'Caprino + Affettato Veg', emoji:'🧀',
+      desc:'100g caprino stagionato + 100g affettato veg (Fettallegra / tofu / seitan)',
+      tags:['latticini','vegano'] },
+    { id:'pr_p_burger_veg', nome:'Burger Veg', emoji:'🍔',
+      desc:'150-200g (Unconventional Burger, GreenMe, Beyond Burger, Garden Gourmet, sojasun, valsoia, kioene…)',
+      tags:['vegano'] },
+    { id:'pr_p_ricotta', nome:'Ricotta / Primo sale / Mozzarella', emoji:'🧀',
+      desc:'200g ricotta, fiocchi di latte, primo sale o 1 mozzarella',
+      tags:['latticini'] },
+  ],
+  spuntino_pom: [
+    { id:'sp_pom', nome:'Frutta + Frutta secca', emoji:'🍎',
+      desc:'1 frutto grande o 2 piccoli (o 150-200g frutti rossi) + 1 pugnetto frutta secca mista',
+      tags:['vegano'] },
+  ],
+  cena_all_carb: [
+    { id:'ca_c_pasta', nome:'Pasta integrale / saraceno / kamut', emoji:'🍝',
+      desc:'90-100g + sugo vegetale (pomodoro, pesto o verdura a piacere)',
+      tags:['vegano'] },
+    { id:'ca_c_gnocchi', nome:'Gnocchi di patate', emoji:'🥔',
+      desc:'220-230g + sugo vegetale',
+      tags:['vegano'] },
+    { id:'ca_c_riso', nome:'Riso / Farro / Orzo / Cereali', emoji:'🍚',
+      desc:'90-100g (basmati, rosso, nero, integrale, farro, orzo)',
+      tags:['vegano'] },
+  ],
+  cena_all_prot: [
+    { id:'ca_p_salmone', nome:'Salmone + Avocado', emoji:'🥑',
+      desc:'100g salmone fresco o affumicato + ½ avocado',
+      tags:['pesce'], foodGroup:'pesce' },
+    { id:'ca_p_tonno', nome:'Tonno in scatola', emoji:'🐟',
+      desc:'1 scatoletta grande o 2 piccole',
+      tags:['pesce'], foodGroup:'pesce' },
+    { id:'ca_p_legumi', nome:'Legumi', emoji:'🫘',
+      desc:'160g legumi',
+      tags:['vegano'] },
+    { id:'ca_p_prosceco', nome:'Prosciutto cotto + Ceci', emoji:'🍖',
+      desc:'80g prosciutto cotto a cubetti + 100g ceci',
+      tags:['carne'] },
+    { id:'ca_p_grana', nome:'Grana Padano + Verdura', emoji:'🧀',
+      desc:'40g Grana Padano + verdura a piacere',
+      tags:['latticini'] },
+    { id:'ca_p_ricotta', nome:'Fiocchi di latte / Ricotta', emoji:'🥛',
+      desc:'200g fiocchi di latte o ricotta',
+      tags:['latticini'] },
+  ],
+  cena_no_prot: [
+    { id:'cn_p_uova', nome:'Uova sode (2)', emoji:'🥚',
+      desc:'2 uova sode',
+      tags:['uova'], foodGroup:'uova',
+      maxWeek:{ count:4, msg:'Considera il limite settimanale uova' } },
+    { id:'cn_p_pollo', nome:'Petto di pollo', emoji:'🍗',
+      desc:'250g circa',
+      tags:['carne'] },
+    { id:'cn_p_ricotta', nome:'Ricotta', emoji:'🥛',
+      desc:'200g (vaccina, pecora o capra)',
+      tags:['latticini'] },
+    { id:'cn_p_primosale', nome:'Primo sale / Feta', emoji:'🧀',
+      desc:'150g primo sale o feta',
+      tags:['latticini'] },
+    { id:'cn_p_gamberi', nome:'Gamberi', emoji:'🦐',
+      desc:'150g gamberi',
+      tags:['pesce'], foodGroup:'pesce' },
+    { id:'cn_p_cavallo', nome:'Straccetti di cavallo', emoji:'🐴',
+      desc:'100g straccetti di cavallo',
+      tags:['carne'] },
+    { id:'cn_p_mozz', nome:'Mozzarella', emoji:'🫙',
+      desc:'1 mozzarella',
+      tags:['latticini'] },
+  ],
+  cena_no_carb: [
+    { id:'cn_c_legumi', nome:'Legumi', emoji:'🫘', desc:'130-150g', tags:['vegano'] },
+    { id:'cn_c_pane', nome:'Pane integrale', emoji:'🍞', desc:'40g', tags:['vegano'] },
+    { id:'cn_c_wasa', nome:'Wasa integrali', emoji:'🫓', desc:'3 Wasa integrali', tags:['vegano'] },
+    { id:'cn_c_segale', nome:'Pane di segale', emoji:'🍞', desc:'60g pane integrale di segale', tags:['vegano'] },
+    { id:'cn_c_gallette', nome:'Gallette', emoji:'🫓', desc:'3 gallette farro / grano saraceno / mais', tags:['vegano'] },
+    { id:'cn_c_patata', nome:'Patata piccola', emoji:'🥔', desc:'1 patata piccola', tags:['vegano'] },
+    { id:'cn_c_crackers', nome:'Crackers Galbusera legumi', emoji:'🫓', desc:'1 pacchetto "Buon per tutti" Galbusera con farina di legumi', tags:['vegano'] },
+    { id:'cn_c_vellutata', nome:'Passato / Vellutata', emoji:'🍵', desc:'Passato di verdura o vellutata + pugno di riso o crostini', tags:['vegano'] },
+  ],
+  prenanna: [
+    { id:'pn_yogurt', nome:'Snack post-allenamento', emoji:'🌙',
+      desc:'Yogurt greco + 1 cucchiaio semi girasole + 2-3 cucchiai avena + 1 cucchiaio gocce di cioccolato',
+      tags:['latticini'] },
+  ],
+};
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+let currentDate = (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })();
+let calDate = new Date(currentDate);
+let log = {};
+const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MONTHS_S = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const DAYS = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const TRAINING_LABELS = { bici:'🚴 Bici', corsa:'🏃 Corsa', nuoto:'🏊 Nuoto', corpo_libero:'💪 Corpo libero', combinato:'🔀 Combinato', gara:'🏆 Gara' };
+
+function dateKey(d) { return d.toISOString().split('T')[0]; }
+function today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+
+function loadLog() {
+  try { log = JSON.parse(localStorage.getItem('dietaLog') || '{}'); } catch { log = {}; }
+}
+function saveLog() { localStorage.setItem('dietaLog', JSON.stringify(log)); }
+
+function dayData(d) {
+  const k = dateKey(d);
+  if (!log[k]) log[k] = { allenamento:false, tipoAllenamento:null, acqua:0, pastoLibero:false, pasti:{} };
+  return log[k];
+}
+
+// ════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'calendario') renderCalendar();
+  if (name === 'avvisi') renderAlerts();
+}
+
+function changeDay(delta) {
+  currentDate = new Date(currentDate);
+  currentDate.setDate(currentDate.getDate() + delta);
+  renderDay();
+}
+
+// ════════════════════════════════════════════════════
+// DAY VIEW
+// ════════════════════════════════════════════════════
+function renderDay() {
+  const isToday = dateKey(currentDate) === dateKey(today());
+  const dateStr = isToday
+    ? `Oggi · ${currentDate.getDate()} ${MONTHS_S[currentDate.getMonth()]}`
+    : `${DAYS[currentDate.getDay()]} ${currentDate.getDate()} ${MONTHS_S[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+  document.getElementById('dateDisplay').textContent = dateStr;
+
+  const dd = dayData(currentDate);
+
+  // Training
+  const tog = document.getElementById('trainingToggle');
+  tog.className = 'toggle-switch' + (dd.allenamento ? ' on' : '');
+  const ttypes = document.getElementById('trainingTypes');
+  ttypes.className = 'training-types' + (dd.allenamento ? '' : ' hidden');
+  document.querySelectorAll('.tt-btn').forEach(b => b.classList.remove('active'));
+  if (dd.tipoAllenamento) {
+    const b = document.getElementById('tt-' + dd.tipoAllenamento);
+    if (b) b.classList.add('active');
+  }
+
+  // Water
+  const ml = dd.acqua || 0;
+  document.getElementById('waterMl').textContent = ml + ' / 2500 ml';
+  document.getElementById('waterBar').style.width = Math.min(100, ml / 25) + '%';
+
+  // Free meal
+  const freeCount = weeklyCount(currentDate, 'pastoLibero');
+  document.getElementById('freeMealSub').textContent = `Usati questa settimana: ${freeCount}/2`;
+  document.getElementById('freeMealToggle').className = 'toggle-switch' + (dd.pastoLibero ? ' on' : '');
+
+  // Meals
+  buildMeals(dd);
+  updateBadge();
+}
+
+function buildMeals(dd) {
+  const isTrained = dd.allenamento;
+  const container = document.getElementById('mealsContainer');
+  container.innerHTML = '';
+
+  const sections = [
+    { key:'colazione',        icon:'☀️',  title:'Colazione',         sub:'Alterna le opzioni',
+      groups:[ { label:null, items: DIET.colazione } ] },
+    { key:'spuntino_mattina', icon:'🕙',  title:'Spuntino mattina',  sub:'½ mattina',
+      groups:[ { label:null, items: DIET.spuntino_mattina } ] },
+    { key:'pranzo',           icon:'🍽️', title:'Pranzo',            sub:'Verdure + Carb + Proteina',
+      groups:[ { label:'Carboidrato', items: DIET.pranzo_carb }, { label:'Proteina', items: DIET.pranzo_prot } ] },
+    { key:'spuntino_pom',     icon:'🍎',  title:'Spuntino pomeriggio', sub:'½ pomeriggio',
+      groups:[ { label:null, items: DIET.spuntino_pom } ] },
+    ...(isTrained ? [
+      { key:'cena',           icon:'🌙',  title:'Cena (allenamento)', sub:'Carb + Secondo',
+        groups:[ { label:'Carboidrato', items: DIET.cena_all_carb }, { label:'Secondo', items: DIET.cena_all_prot } ] }
+    ] : [
+      { key:'cena',           icon:'🌙',  title:'Cena (riposo)',      sub:'Verdure + Proteina + Carb leggero',
+        groups:[ { label:'Proteina', items: DIET.cena_no_prot }, { label:'Carboidrato / Contorno', items: DIET.cena_no_carb } ] }
+    ]),
+    ...(isTrained ? [
+      { key:'prenanna',       icon:'😴',  title:'Pre-nanna',         sub:'Post-allenamento',
+        groups:[ { label:null, items: DIET.prenanna } ] }
+    ] : []),
+  ];
+
+  for (const sec of sections) {
+    const sel = dd.pasti[sec.key] || [];
+    const allSelected = [];
+    for (const g of sec.groups) for (const it of g.items) if (sel.includes(it.id)) allSelected.push(it);
+
+    const card = document.createElement('div');
+    card.className = 'meal-card';
+    card.id = 'mc-' + sec.key;
+
+    const isLogged = allSelected.length > 0;
+    const subtitle = isLogged ? allSelected.map(i => i.nome).slice(0,2).join(', ') : sec.sub;
+
+    // Collect all unique tags
+    const allTags = new Set();
+    for (const g of sec.groups) for (const it of g.items) it.tags.forEach(t => allTags.add(t));
+    const hasMultipleTags = allTags.size > 1;
+
+    // Build options HTML
+    let bodyHtml = '';
+    if (hasMultipleTags) {
+      bodyHtml += `<div class="filter-tabs" id="ft-${sec.key}">`;
+      bodyHtml += `<button class="filter-tab active" onclick="filterOpts('${sec.key}','tutti')">Tutti</button>`;
+      const tagLabels = { carne:'🥩 Carne', pesce:'🐟 Pesce', vegano:'🌿 Vegano', latticini:'🧀 Latticini', uova:'🥚 Uova' };
+      for (const t of allTags) {
+        bodyHtml += `<button class="filter-tab" onclick="filterOpts('${sec.key}','${t}')">${tagLabels[t]||t}</button>`;
+      }
+      bodyHtml += `</div>`;
+    }
+
+    for (const g of sec.groups) {
+      if (g.label) bodyHtml += `<div class="subsec-label">${g.label}</div>`;
+      bodyHtml += `<div class="meal-options">`;
+      for (const it of g.items) {
+        const isSelected = sel.includes(it.id);
+        const badges = buildBadges(it, isSelected);
+        bodyHtml += `
+          <div class="opt${isSelected?' selected':''}" id="opt-${it.id}" data-tags="${it.tags.join(',')}"
+               onclick="toggleFood('${sec.key}','${it.id}')">
+            <div class="opt-header">
+              <div class="opt-name">${it.emoji} ${it.nome}</div>
+              <div class="opt-badges">${badges}</div>
+            </div>
+            <div class="opt-desc">${it.desc}</div>
+            <div class="opt-check">${isSelected?'✓':''}</div>
+          </div>`;
+      }
+      bodyHtml += `</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="meal-header" onclick="toggleMeal('${sec.key}')">
+        <div class="meal-icon">${sec.icon}</div>
+        <div class="meal-title-wrap">
+          <div class="meal-title">${sec.title}</div>
+          <div class="meal-subtitle">${subtitle}</div>
+        </div>
+        <span class="meal-tag ${isLogged?'logged':'empty'}">${isLogged?'✓':'—'}</span>
+        <span class="meal-chevron">▼</span>
+      </div>
+      <div class="meal-body">${bodyHtml}</div>`;
+    container.appendChild(card);
+  }
+}
+
+function buildBadges(item, isSelected) {
+  let b = '';
+  if (!isSelected && isRecommended(item)) b += `<span class="badge consigliato">★ Consigliato</span>`;
+  if (item.maxWeek) {
+    const cnt = eggsThisWeek();
+    if (item.foodGroup === 'uova' && cnt >= item.maxWeek.count)
+      b += `<span class="badge limit-b">⚠️ ${cnt}/${item.maxWeek.count}/sett</span>`;
+    else if (item.foodGroup === 'uova' && cnt === item.maxWeek.count - 1)
+      b += `<span class="badge warning-b">⚡ ${cnt}/${item.maxWeek.count}/sett</span>`;
+  }
+  const tagIcons = { carne:'🥩', pesce:'🐟', vegano:'🌿', latticini:'🧀', uova:'🥚' };
+  for (const t of item.tags) b += `<span class="badge ${t}">${tagIcons[t]||t}</span>`;
+  return b;
+}
+
+function toggleMeal(key) {
+  document.getElementById('mc-' + key).classList.toggle('open');
+}
+
+function filterOpts(sectionKey, tag) {
+  const card = document.getElementById('mc-' + sectionKey);
+  card.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  const clicked = [...card.querySelectorAll('.filter-tab')].find(t => t.textContent.includes(tag) || (tag==='tutti' && t.textContent==='Tutti'));
+  if (clicked) clicked.classList.add('active');
+  card.querySelectorAll('.opt').forEach(opt => {
+    const tags = opt.dataset.tags.split(',');
+    opt.classList.toggle('hidden', tag !== 'tutti' && !tags.includes(tag));
+  });
+}
+
+function toggleFood(sectionKey, itemId) {
+  const dd = dayData(currentDate);
+  if (!dd.pasti[sectionKey]) dd.pasti[sectionKey] = [];
+  const idx = dd.pasti[sectionKey].indexOf(itemId);
+  if (idx >= 0) dd.pasti[sectionKey].splice(idx, 1);
+  else dd.pasti[sectionKey].push(itemId);
+  saveLog();
+  renderDay();
+  // Re-open the card that was toggled
+  setTimeout(() => {
+    const card = document.getElementById('mc-' + sectionKey);
+    if (card) card.classList.add('open');
+  }, 10);
+}
+
+// ════════════════════════════════════════════════════
+// TRAINING
+// ════════════════════════════════════════════════════
+function toggleTraining() {
+  const dd = dayData(currentDate);
+  dd.allenamento = !dd.allenamento;
+  if (!dd.allenamento) dd.tipoAllenamento = null;
+  saveLog();
+  renderDay();
+}
+
+function selTraining(type) {
+  const dd = dayData(currentDate);
+  dd.tipoAllenamento = dd.tipoAllenamento === type ? null : type;
+  saveLog();
+  document.querySelectorAll('.tt-btn').forEach(b => b.classList.remove('active'));
+  if (dd.tipoAllenamento) document.getElementById('tt-' + type).classList.add('active');
+}
+
+// ════════════════════════════════════════════════════
+// WATER
+// ════════════════════════════════════════════════════
+function addWater(ml) {
+  const dd = dayData(currentDate);
+  dd.acqua = Math.max(0, (dd.acqua || 0) + ml);
+  saveLog();
+  document.getElementById('waterMl').textContent = dd.acqua + ' / 2500 ml';
+  document.getElementById('waterBar').style.width = Math.min(100, dd.acqua / 25) + '%';
+}
+
+// ════════════════════════════════════════════════════
+// FREE MEAL
+// ════════════════════════════════════════════════════
+function toggleFreeMeal() {
+  const dd = dayData(currentDate);
+  const freeCount = weeklyCount(currentDate, 'pastoLibero');
+  if (!dd.pastoLibero && freeCount >= 2) {
+    alert('Hai già usato entrambi i pasti liberi questa settimana!');
+    return;
+  }
+  dd.pastoLibero = !dd.pastoLibero;
+  saveLog();
+  renderDay();
+}
+
+// ════════════════════════════════════════════════════
+// ALERT LOGIC
+// ════════════════════════════════════════════════════
+function weekStart(d) {
+  const wd = new Date(d);
+  const day = wd.getDay();
+  wd.setDate(wd.getDate() - (day === 0 ? 6 : day - 1));
+  wd.setHours(0,0,0,0);
+  return wd;
+}
+
+function weeklyCount(d, field) {
+  const ws = weekStart(d);
+  let n = 0;
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(ws); day.setDate(day.getDate() + i);
+    const k = dateKey(day);
+    if (log[k] && log[k][field]) n++;
+  }
+  return n;
+}
+
+function weeklyFoodCount(d, ids) {
+  const ws = weekStart(d);
+  let n = 0;
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(ws); day.setDate(day.getDate() + i);
+    const k = dateKey(day);
+    if (!log[k]) continue;
+    if (allLoggedIds(log[k]).some(id => ids.includes(id))) n++;
+  }
+  return n;
+}
+
+function allLoggedIds(dd) {
+  if (!dd || !dd.pasti) return [];
+  return Object.values(dd.pasti).flat();
+}
+
+function eggsThisWeek() {
+  return weeklyFoodCount(currentDate, ['pr_p_uova','cn_p_uova']);
+}
+
+function fishLastDays() {
+  const fishIds = ['pr_p_pesce','ca_p_salmone','ca_p_tonno','cn_p_gamberi'];
+  for (let i = 0; i <= 14; i++) {
+    const d = new Date(currentDate); d.setDate(d.getDate() - i);
+    const k = dateKey(d);
+    if (log[k] && allLoggedIds(log[k]).some(id => fishIds.includes(id))) return i;
+  }
+  return 99;
+}
+
+function repeatedProtein() {
+  const protIds = [];
+  for (const section of ['pranzo_prot','cena_all_prot','cena_no_prot']) {
+    if (DIET[section]) for (const it of DIET[section]) protIds.push(it.id);
+  }
+  const last3 = [];
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date(currentDate); d.setDate(d.getDate() - i);
+    const k = dateKey(d);
+    if (!log[k]) { last3.push([]); continue; }
+    last3.push(allLoggedIds(log[k]).filter(id => protIds.includes(id)));
+  }
+  if (last3.some(a => a.length === 0)) return null;
+  const repeated = last3[0].filter(id => last3[1].includes(id) && last3[2].includes(id));
+  if (!repeated.length) return null;
+  const allItems = Object.values(DIET).flat();
+  const found = allItems.find(it => repeated.includes(it.id));
+  return found ? found.nome : null;
+}
+
+function isRecommended(item) {
+  if (item.tags.includes('pesce')) {
+    if (fishLastDays() > 4) return true;
+  }
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date(currentDate); d.setDate(d.getDate() - i);
+    const k = dateKey(d);
+    if (log[k] && allLoggedIds(log[k]).includes(item.id)) return false;
+  }
+  return false;
+}
+
+function computeAlerts() {
+  const alerts = [];
+  const eggs = eggsThisWeek();
+  if (eggs >= 4) alerts.push({ type:'danger', icon:'🥚', title:'Limite uova raggiunto!', desc:`Hai mangiato uova ${eggs} volte questa settimana (max 4). Evita le uova per il resto della settimana.` });
+  else if (eggs === 3) alerts.push({ type:'warning', icon:'🥚', title:'Quasi al limite uova', desc:`${eggs}/4 uova questa settimana. Hai ancora 1 volta a disposizione.` });
+
+  const fish = fishLastDays();
+  if (fish > 7) alerts.push({ type:'warning', icon:'🐟', title:'Non mangi pesce da troppo tempo', desc:`Ultimo pesce: ${fish} giorni fa. Dovresti mangiarlo almeno 1 volta a settimana.` });
+  else if (fish > 4) alerts.push({ type:'info', icon:'🐟', title:'Prossimamente: pesce', desc:`Ultimo pesce: ${fish} giorni fa. Considera di mangiarlo nei prossimi giorni.` });
+  else if (fish <= 7) alerts.push({ type:'good', icon:'🐟', title:'Pesce: ok', desc:`Hai mangiato pesce ${fish === 0 ? 'oggi' : fish + ' giorni fa'}. Ottimo!` });
+
+  const free = weeklyCount(currentDate, 'pastoLibero');
+  if (free >= 2) alerts.push({ type:'info', icon:'🎉', title:'Pasti liberi esauriti', desc:'Hai usato entrambi i pasti liberi questa settimana.' });
+  else alerts.push({ type:'good', icon:'🎉', title:`Pasti liberi: ${free}/2 usati`, desc:`Ti rimangono ${2-free} pasto${2-free===1?'':'i'} libero${2-free===1?'':'i'} questa settimana.` });
+
+  const water = (dayData(currentDate).acqua || 0);
+  if (water < 1000) alerts.push({ type:'warning', icon:'💧', title:'Bevi di più!', desc:`Oggi hai bevuto solo ${water}ml. Obiettivo: 2500ml/giorno.` });
+  else if (water < 2000) alerts.push({ type:'info', icon:'💧', title:`Acqua: ${water}ml`, desc:`Ancora ${2500-water}ml all'obiettivo (2500ml/giorno).` });
+  else alerts.push({ type:'good', icon:'💧', title:`Acqua: ${water}ml ✓`, desc:'Stai raggiungendo o superando i 2500ml giornalieri.' });
+
+  const rep = repeatedProtein();
+  if (rep) alerts.push({ type:'warning', icon:'🔄', title:'Stessa proteina da 3 giorni', desc:`Hai mangiato "${rep}" negli ultimi 3 giorni consecutivi. Prova a variare!` });
+
+  return alerts;
+}
+
+function computeSuggestions() {
+  const s = [];
+  const dd = dayData(currentDate);
+  const fish = fishLastDays();
+
+  if (fish > 4) {
+    s.push({ type:'info', icon:'🐟', title:'Oggi: mangia pesce!',
+      desc: dd.allenamento
+        ? 'Cena: salmone + ½ avocado, o tonno. Oppure pesce al pranzo (250-300g).'
+        : 'Cena: gamberi 150g. Oppure pesce al pranzo (250-300g).' });
+  }
+
+  // Colazione non ripetuta
+  const recentCol = [];
+  for (let i=1; i<=3; i++) {
+    const d = new Date(currentDate); d.setDate(d.getDate()-i);
+    const k = dateKey(d);
+    if (log[k]?.pasti?.colazione) recentCol.push(...log[k].pasti.colazione);
+  }
+  const freshCol = DIET.colazione.filter(c => !recentCol.includes(c.id));
+  if (freshCol.length > 0 && recentCol.length > 0) {
+    s.push({ type:'info', icon:'☀️', title:`Colazione: prova "${freshCol[0].nome}"`,
+      desc: freshCol[0].desc });
+  }
+
+  // Proteina pranzo non ripetuta
+  const recentProt = [];
+  for (let i=1; i<=2; i++) {
+    const d = new Date(currentDate); d.setDate(d.getDate()-i);
+    const k = dateKey(d);
+    if (log[k]?.pasti?.pranzo) recentProt.push(...log[k].pasti.pranzo);
+  }
+  const freshProt = DIET.pranzo_prot.filter(p => !recentProt.includes(p.id) && !(p.foodGroup==='uova' && eggsThisWeek()>=4));
+  if (freshProt.length > 0 && recentProt.length > 0) {
+    s.push({ type:'info', icon:'🍽️', title:`Pranzo: prova "${freshProt[0].nome}"`,
+      desc: freshProt[0].desc });
+  }
+
+  if (s.length === 0) s.push({ type:'good', icon:'👍', title:'Stai variando bene!', desc:'Continua così, ottima diversificazione.' });
+  return s;
+}
+
+function updateBadge() {
+  const n = computeAlerts().filter(a => a.type==='danger'||a.type==='warning').length;
+  const badge = document.getElementById('alertBadge');
+  badge.textContent = n;
+  badge.className = 'nav-badge' + (n > 0 ? '' : ' hidden');
+}
+
+// ════════════════════════════════════════════════════
+// ALERTS VIEW
+// ════════════════════════════════════════════════════
+function renderAlerts() {
+  const alerts = computeAlerts();
+  document.getElementById('alertsList').innerHTML = alerts.length === 0
+    ? '<div class="alert-card good"><div class="alert-icon">✅</div><div><div class="alert-title">Tutto ok!</div><div class="alert-desc">Nessun avviso per questa settimana.</div></div></div>'
+    : alerts.map(a => `<div class="alert-card ${a.type}"><div class="alert-icon">${a.icon}</div><div><div class="alert-title">${a.title}</div><div class="alert-desc">${a.desc}</div></div></div>`).join('');
+
+  const sugg = computeSuggestions();
+  document.getElementById('suggestionsList').innerHTML = sugg.map(s =>
+    `<div class="alert-card ${s.type}"><div class="alert-icon">${s.icon}</div><div><div class="alert-title">${s.title}</div><div class="alert-desc">${s.desc}</div></div></div>`
+  ).join('');
+}
+
+// ════════════════════════════════════════════════════
+// CALENDAR VIEW
+// ════════════════════════════════════════════════════
+function renderCalendar() {
+  document.getElementById('calMonthTitle').textContent = `${MONTHS[calDate.getMonth()]} ${calDate.getFullYear()}`;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-name'; el.textContent = d; grid.appendChild(el);
+  });
+
+  const first = new Date(calDate.getFullYear(), calDate.getMonth(), 1);
+  const last  = new Date(calDate.getFullYear(), calDate.getMonth()+1, 0);
+  let offset = first.getDay() - 1; if (offset < 0) offset = 6;
+
+  const todayKey = dateKey(today());
+  for (let i = 0; i < offset; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day other-m'; grid.appendChild(el);
+  }
+  for (let d = 1; d <= last.getDate(); d++) {
+    const dt = new Date(calDate.getFullYear(), calDate.getMonth(), d);
+    const k = dateKey(dt);
+    const hasData = log[k] && (allLoggedIds(log[k]).length > 0 || (log[k].acqua||0) > 0);
+    const trained = log[k]?.allenamento;
+    const isToday = k === todayKey;
+
+    const el = document.createElement('div');
+    el.className = `cal-day${isToday?' today':''}${hasData?' has-data':''}${trained?' trained':''}`;
+    el.textContent = d;
+    if (trained) { const dot = document.createElement('div'); dot.className='train-dot'; el.appendChild(dot); }
+    el.onclick = () => showDayDetail(dt);
+    grid.appendChild(el);
+  }
+}
+
+function calPrev() { calDate = new Date(calDate.getFullYear(), calDate.getMonth()-1, 1); renderCalendar(); }
+function calNext() { calDate = new Date(calDate.getFullYear(), calDate.getMonth()+1, 1); renderCalendar(); }
+
+function showDayDetail(dt) {
+  const k = dateKey(dt);
+  const dd = log[k];
+  const title = `${DAYS[dt.getDay()]} ${dt.getDate()} ${MONTHS_S[dt.getMonth()]} ${dt.getFullYear()}`;
+  const allItems = Object.fromEntries(Object.values(DIET).flat().map(i => [i.id, i]));
+  const secLabels = { colazione:'Colazione', spuntino_mattina:'Spuntino mattina', pranzo:'Pranzo', spuntino_pom:'Spuntino pomeriggio', cena:'Cena', prenanna:'Pre-nanna' };
+
+  let html = `<div class="day-detail-card"><div class="day-detail-title">${title}</div>`;
+  if (!dd || (allLoggedIds(dd).length === 0 && !dd.acqua)) {
+    html += '<div class="day-detail-empty">Nessun dato registrato.</div>';
+  } else {
+    if (dd.allenamento) html += `<div class="day-detail-row">🏋️ <strong>Allenamento:</strong> ${TRAINING_LABELS[dd.tipoAllenamento]||'Sì'}</div>`;
+    if (dd.acqua) html += `<div class="day-detail-row">💧 <strong>Acqua:</strong> ${dd.acqua}ml</div>`;
+    if (dd.pastoLibero) html += `<div class="day-detail-row">🎉 Pasto libero</div>`;
+    for (const [sec, ids] of Object.entries(dd.pasti||{})) {
+      if (!ids?.length) continue;
+      const names = ids.map(id => allItems[id] ? `${allItems[id].emoji} ${allItems[id].nome}` : id).join(', ');
+      html += `<div class="day-detail-row"><strong>${secLabels[sec]||sec}:</strong> ${names}</div>`;
+    }
+  }
+  html += `<button onclick="jumpTo(${dt.getTime()})" style="margin-top:12px;background:var(--green);color:white;border:none;border-radius:10px;padding:9px;cursor:pointer;font-size:13px;font-weight:700;width:100%">✏️ Vai a questo giorno</button>`;
+  html += '</div>';
+  document.getElementById('dayDetail').innerHTML = html;
+}
+
+function jumpTo(ts) {
+  currentDate = new Date(ts); currentDate.setHours(0,0,0,0);
+  showView('oggi');
+  renderDay();
+}
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+loadLog();
+renderDay();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
