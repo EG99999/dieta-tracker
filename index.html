@@ -385,6 +385,12 @@
       </div>
     </div>
 
+    <!-- Integratori allenamento -->
+    <div id="supplCard" class="hidden ritual-card" style="border-left-color:#e65100;">
+      <div class="ritual-title" style="color:#e65100;">💊 Integratori allenamento</div>
+      <div id="supplBody" class="ritual-text"></div>
+    </div>
+
     <!-- Acqua -->
     <div class="water-card">
       <div class="water-info">
@@ -427,6 +433,8 @@
         <div class="rule-item">🌿 Ok tisane e tè verde</div>
         <div class="rule-item">🥗 Ogni pranzo/cena: inizia con insalata mista + 1 cucchiaio olio EVO + limone</div>
         <div class="rule-item">🌈 Cerca di mangiare tutti e 5 i colori ogni giorno: verde, bianco, arancio, rosso, blu-viola</div>
+        <div class="rule-item">💊 Integratore serale: Magnesio Supremo NaturalPoint (poi Basentabs)</div>
+        <div class="rule-item">💧 Idratazione: 2 bicchieri prima di colazione + 1 a metà mattina + 2 a pranzo + 1 a metà pomeriggio + 2 a cena + 1 prima di dormire</div>
       </div>
     </div>
 
@@ -530,9 +538,21 @@ const DIET = {
       tags:['latticini'] },
   ],
   spuntino_pom: [
-    { id:'sp_pom', nome:'Frutta + Frutta secca', emoji:'🍎',
-      desc:'1 frutto grande o 2 piccoli (o 150-200g frutti rossi) + 1 pugnetto frutta secca mista',
+    { id:'sp_pom_pancake', nome:'Pancake', emoji:'🥞',
+      desc:'40g farina di riso + 1 uovo intero + 50-70ml bevanda vegetale senza zuccheri + ½ banana matura. Garnish: marmellata, sciroppo d\'acero o crema spalmabile',
+      tags:['uova'] },
+    { id:'sp_pom_tacchino', nome:'Paninetto tacchino / Philadelphia', emoji:'🥪',
+      desc:'1 paninetto con 40g tacchino oppure 100g Philadelphia',
+      tags:['carne'] },
+    { id:'sp_pom_hummus', nome:'Paninetto hummus', emoji:'🫓',
+      desc:'1 paninetto con 100g hummus',
       tags:['vegano'] },
+    { id:'sp_pom_yoeggs', nome:'Yoeggs', emoji:'🥚',
+      desc:'1 Yoeggs',
+      tags:['uova'] },
+    { id:'sp_pom_yogurt', nome:'Yogurt greco + Avena', emoji:'🫙',
+      desc:'1 yogurt greco + 2 cucchiai di avena',
+      tags:['latticini'] },
   ],
   cena_all_carb: [
     { id:'ca_c_pasta', nome:'Pasta integrale / saraceno / kamut', emoji:'🍝',
@@ -546,11 +566,8 @@ const DIET = {
       tags:['vegano'] },
   ],
   cena_all_prot: [
-    { id:'ca_p_salmone', nome:'Salmone + Avocado', emoji:'🥑',
-      desc:'100g salmone fresco o affumicato + ½ avocado',
-      tags:['pesce'], foodGroup:'pesce' },
     { id:'ca_p_tonno', nome:'Tonno in scatola', emoji:'🐟',
-      desc:'1 scatoletta grande o 2 piccole',
+      desc:'1 scatoletta grande o 2 piccole di tonno',
       tags:['pesce'], foodGroup:'pesce' },
     { id:'ca_p_legumi', nome:'Legumi', emoji:'🫘',
       desc:'160g legumi',
@@ -564,40 +581,22 @@ const DIET = {
     { id:'ca_p_ricotta', nome:'Fiocchi di latte / Ricotta', emoji:'🥛',
       desc:'200g fiocchi di latte o ricotta',
       tags:['latticini'] },
-  ],
-  cena_no_prot: [
-    { id:'cn_p_uova', nome:'Uova sode (2)', emoji:'🥚',
-      desc:'2 uova sode',
+    { id:'ca_p_mozz', nome:'Mozzarella light', emoji:'🫙',
+      desc:'125g mozzarella light',
+      tags:['latticini'] },
+    { id:'ca_p_uova', nome:'Uova + Albume', emoji:'🥚',
+      desc:'2 uova + 100g di albume',
       tags:['uova'], foodGroup:'uova',
-      maxWeek:{ count:4, msg:'Considera il limite settimanale uova' } },
-    { id:'cn_p_pollo', nome:'Petto di pollo', emoji:'🍗',
-      desc:'250g circa',
+      maxWeek:{ count:4, msg:'Limite uova settimanale' } },
+    { id:'ca_p_pollo', nome:'Pollo / Tacchino', emoji:'🍗',
+      desc:'100g petto di pollo o tacchino',
       tags:['carne'] },
-    { id:'cn_p_ricotta', nome:'Ricotta', emoji:'🥛',
-      desc:'200g (vaccina, pecora o capra)',
-      tags:['latticini'] },
-    { id:'cn_p_primosale', nome:'Primo sale / Feta', emoji:'🧀',
-      desc:'150g primo sale o feta',
-      tags:['latticini'] },
-    { id:'cn_p_gamberi', nome:'Gamberi', emoji:'🦐',
-      desc:'150g gamberi',
-      tags:['pesce'], foodGroup:'pesce' },
-    { id:'cn_p_cavallo', nome:'Straccetti di cavallo', emoji:'🐴',
-      desc:'100g straccetti di cavallo',
-      tags:['carne'] },
-    { id:'cn_p_mozz', nome:'Mozzarella', emoji:'🫙',
-      desc:'1 mozzarella',
-      tags:['latticini'] },
-  ],
-  cena_no_carb: [
-    { id:'cn_c_legumi', nome:'Legumi', emoji:'🫘', desc:'130-150g', tags:['vegano'] },
-    { id:'cn_c_pane', nome:'Pane integrale', emoji:'🍞', desc:'40g', tags:['vegano'] },
-    { id:'cn_c_wasa', nome:'Wasa integrali', emoji:'🫓', desc:'3 Wasa integrali', tags:['vegano'] },
-    { id:'cn_c_segale', nome:'Pane di segale', emoji:'🍞', desc:'60g pane integrale di segale', tags:['vegano'] },
-    { id:'cn_c_gallette', nome:'Gallette', emoji:'🫓', desc:'3 gallette farro / grano saraceno / mais', tags:['vegano'] },
-    { id:'cn_c_patata', nome:'Patata piccola', emoji:'🥔', desc:'1 patata piccola', tags:['vegano'] },
-    { id:'cn_c_crackers', nome:'Crackers Galbusera legumi', emoji:'🫓', desc:'1 pacchetto "Buon per tutti" Galbusera con farina di legumi', tags:['vegano'] },
-    { id:'cn_c_vellutata', nome:'Passato / Vellutata', emoji:'🍵', desc:'Passato di verdura o vellutata + pugno di riso o crostini', tags:['vegano'] },
+    { id:'ca_p_tofu', nome:'Tofu', emoji:'🌿',
+      desc:'150g tofu',
+      tags:['vegano'] },
+    { id:'ca_p_tempeh', nome:'Tempeh', emoji:'🌿',
+      desc:'100g tempeh',
+      tags:['vegano'] },
   ],
   prenanna: [
     { id:'pn_yogurt', nome:'Snack post-allenamento', emoji:'🌙',
@@ -616,6 +615,14 @@ const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio'
 const MONTHS_S = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
 const DAYS = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
 const TRAINING_LABELS = { bici:'🚴 Bici', corsa:'🏃 Corsa', nuoto:'🏊 Nuoto', corpo_libero:'💪 Corpo libero', combinato:'🔀 Combinato', gara:'🏆 Gara' };
+const TRAINING_SUPPLEMENTS = {
+  bici:         { durante: null, post: '1 misurino Recovery Per4m (cod. veronica10 per 10% sconto)' },
+  corsa:        { durante: '1 gel Enervit ogni 40\' con acqua (per corsa lunga/variata)', post: 'Corsa lunga: 2 mis. Recovery Per4m — Lavoro di corsa: 2 mis. Amino Essential Yamamoto' },
+  nuoto:        { durante: '1 borraccia con 1 misurino Isotonic Enervit', post: '2 misurini Amino Essential Yamamoto' },
+  corpo_libero: { durante: null, post: null },
+  combinato:    { durante: null, post: 'Segui le indicazioni dello sport prevalente' },
+  gara:         { durante: 'Idratazione: 500ml 2-3h prima + 250ml 20min prima + 100-150ml ogni 15-20min durante', post: 'Segui le indicazioni della disciplina principale' }
+};
 
 function dateKey(d) { return d.toISOString().split('T')[0]; }
 function today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
@@ -672,6 +679,9 @@ function renderDay() {
     if (b) b.classList.add('active');
   }
 
+  // Supplements
+  renderSupplCard(dd);
+
   // Water
   const ml = dd.acqua || 0;
   document.getElementById('waterMl').textContent = ml + ' / 2500 ml';
@@ -701,17 +711,10 @@ function buildMeals(dd) {
       groups:[ { label:'Carboidrato', items: DIET.pranzo_carb }, { label:'Proteina', items: DIET.pranzo_prot } ] },
     { key:'spuntino_pom',     icon:'🍎',  title:'Spuntino pomeriggio', sub:'½ pomeriggio',
       groups:[ { label:null, items: DIET.spuntino_pom } ] },
-    ...(isTrained ? [
-      { key:'cena',           icon:'🌙',  title:'Cena (allenamento)', sub:'Carb + Secondo',
-        groups:[ { label:'Carboidrato', items: DIET.cena_all_carb }, { label:'Secondo', items: DIET.cena_all_prot } ] }
-    ] : [
-      { key:'cena',           icon:'🌙',  title:'Cena (riposo)',      sub:'Verdure + Proteina + Carb leggero',
-        groups:[ { label:'Proteina', items: DIET.cena_no_prot }, { label:'Carboidrato / Contorno', items: DIET.cena_no_carb } ] }
-    ]),
-    ...(isTrained ? [
-      { key:'prenanna',       icon:'😴',  title:'Pre-nanna',         sub:'Post-allenamento',
-        groups:[ { label:null, items: DIET.prenanna } ] }
-    ] : []),
+    { key:'cena',             icon:'🌙',  title:'Cena',              sub:'Carb + Secondo',
+      groups:[ { label:'Carboidrato', items: DIET.cena_all_carb }, { label:'Secondo', items: DIET.cena_all_prot } ] },
+    { key:'prenanna',         icon:'😴',  title:'Pre-nanna',         sub:'Yogurt greco + semi girasole + avena + gocce cioccolato',
+      groups:[ { label:null, items: DIET.prenanna } ] },
   ];
 
   for (const sec of sections) {
@@ -839,7 +842,21 @@ function selTraining(type) {
   dd.tipoAllenamento = dd.tipoAllenamento === type ? null : type;
   saveLog();
   document.querySelectorAll('.tt-btn').forEach(b => b.classList.remove('active'));
-  if (dd.tipoAllenamento) document.getElementById('tt-' + type).classList.add('active');
+  if (dd.tipoAllenamento) document.getElementById('tt-' + dd.tipoAllenamento).classList.add('active');
+  renderSupplCard(dd);
+}
+
+function renderSupplCard(dd) {
+  const card = document.getElementById('supplCard');
+  const body = document.getElementById('supplBody');
+  const tipo = dd.tipoAllenamento;
+  if (!tipo) { card.classList.add('hidden'); return; }
+  const s = TRAINING_SUPPLEMENTS[tipo] || {};
+  let html = '<strong>Salt Caps:</strong> 1 cps ogni ora di attività';
+  if (s.durante) html += `<br><strong>Durante:</strong> ${s.durante}`;
+  if (s.post)    html += `<br><strong>Post:</strong> ${s.post}`;
+  body.innerHTML = html;
+  card.classList.remove('hidden');
 }
 
 // ════════════════════════════════════════════════════
@@ -908,11 +925,11 @@ function allLoggedIds(dd) {
 }
 
 function eggsThisWeek() {
-  return weeklyFoodCount(currentDate, ['pr_p_uova','cn_p_uova']);
+  return weeklyFoodCount(currentDate, ['pr_p_uova','ca_p_uova']);
 }
 
 function fishLastDays() {
-  const fishIds = ['pr_p_pesce','ca_p_salmone','ca_p_tonno','cn_p_gamberi'];
+  const fishIds = ['pr_p_pesce','ca_p_tonno'];
   for (let i = 0; i <= 14; i++) {
     const d = new Date(currentDate); d.setDate(d.getDate() - i);
     const k = dateKey(d);
@@ -923,7 +940,7 @@ function fishLastDays() {
 
 function repeatedProtein() {
   const protIds = [];
-  for (const section of ['pranzo_prot','cena_all_prot','cena_no_prot']) {
+  for (const section of ['pranzo_prot','cena_all_prot']) {
     if (DIET[section]) for (const it of DIET[section]) protIds.push(it.id);
   }
   const last3 = [];
@@ -986,9 +1003,7 @@ function computeSuggestions() {
 
   if (fish > 4) {
     s.push({ type:'info', icon:'🐟', title:'Oggi: mangia pesce!',
-      desc: dd.allenamento
-        ? 'Cena: salmone + ½ avocado, o tonno. Oppure pesce al pranzo (250-300g).'
-        : 'Cena: gamberi 150g. Oppure pesce al pranzo (250-300g).' });
+      desc: 'Cena: tonno in scatola (1 scatoletta grande). Oppure pesce al pranzo (250-300g).' });
   }
 
   // Colazione non ripetuta
