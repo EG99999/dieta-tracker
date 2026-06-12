@@ -449,6 +449,15 @@
         <button class="tt-btn" onclick="selTraining('combinato')" id="tt-combinato">🔀 Combinato</button>
         <button class="tt-btn" onclick="selTraining('gara')" id="tt-gara">🏆 Gara</button>
       </div>
+      <div id="burnedRow" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0;">
+        <div style="font-size:12px;font-weight:700;color:#757575;margin-bottom:5px;">🔥 Calorie bruciate (Garmin)</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="number" id="burnedInput" min="0" max="9999" step="10"
+            style="flex:1;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:16px;font-weight:700;color:#1a1a1a;background:white;"
+            placeholder="es. 450" oninput="setBurned(+this.value)">
+          <span style="font-size:13px;color:#9e9e9e;font-weight:700;">kcal</span>
+        </div>
+      </div>
     </div>
 
     <!-- Integratori allenamento -->
@@ -484,6 +493,7 @@
         <div class="kcal-of" id="kcalOf">/ 2200 kcal</div>
       </div>
       <div class="kcal-bar-wrap"><div class="kcal-bar" id="kcalBar" style="width:0%"></div></div>
+      <div id="kcalBilancio" class="hidden" style="font-size:12px;color:#5d4037;margin-bottom:4px;font-weight:600;"></div>
       <div class="kcal-breakdown" id="kcalBreakdown">— Nessun pasto registrato</div>
     </div>
 
@@ -847,6 +857,15 @@ function renderDay() {
   // Supplements
   renderSupplCard(dd);
 
+  // Burned calories input
+  const burnedRow = document.getElementById('burnedRow');
+  if (dd.allenamento) {
+    burnedRow.classList.remove('hidden');
+    document.getElementById('burnedInput').value = dd.kcalBruciate > 0 ? dd.kcalBruciate : '';
+  } else {
+    burnedRow.classList.add('hidden');
+  }
+
   // Water
   const ml = dd.acqua || 0;
   document.getElementById('waterMl').textContent = ml + ' / 2500 ml';
@@ -889,6 +908,17 @@ function updateKcalCard(dd) {
     parts.push(`${secIcons[sec] || sec} ${k} kcal`);
   }
   if (dd.pastoLibero && dd.kcalLibero > 0) parts.push(`🎉 ${dd.kcalLibero} kcal`);
+  // Bilancio bruciate
+  const burned = dd.kcalBruciate || 0;
+  const bilancioEl = document.getElementById('kcalBilancio');
+  if (burned > 0) {
+    const net = total - burned;
+    bilancioEl.innerHTML = `🏋️ Bruciate: <strong>−${burned}</strong> kcal &nbsp;·&nbsp; Bilancio netto: <strong>${net > 0 ? '+' : ''}${net}</strong> kcal`;
+    bilancioEl.classList.remove('hidden');
+  } else {
+    bilancioEl.classList.add('hidden');
+  }
+
   document.getElementById('kcalBreakdown').textContent = parts.join('  ·  ') || '— Nessun pasto registrato';
 
   const freeRow = document.getElementById('freeMealKcalRow');
@@ -915,6 +945,13 @@ function editTarget() {
     localStorage.setItem('kcalTarget', kcalTarget);
     updateKcalCard(dayData(currentDate));
   }
+}
+
+function setBurned(val) {
+  const dd = dayData(currentDate);
+  dd.kcalBruciate = Math.max(0, Math.round(val) || 0);
+  saveLog();
+  updateKcalCard(dd);
 }
 
 function buildMeals(dd) {
@@ -1539,10 +1576,27 @@ function renderGrafico() {
   const avg = lg.length ? Math.round(lg.reduce((s, d) => s + d.kcal, 0) / lg.length) : 0;
   const max = lg.length ? Math.max(...lg.map(d => d.kcal)) : 0;
   const min = lg.length ? Math.min(...lg.map(d => d.kcal)) : 0;
+
+  // Burned & net stats
+  const burnedDays = days7.map(d => {
+    const k = dateKey(d.date);
+    return log[k]?.kcalBruciate || 0;
+  });
+  const totalBurned = burnedDays.reduce((s, b) => s + b, 0);
+  const trainingDays = burnedDays.filter(b => b > 0).length;
+  const avgBurned = trainingDays ? Math.round(totalBurned / trainingDays) : 0;
+  const netDays = days7.filter((d, i) => d.kcal > 0 || burnedDays[i] > 0);
+  const avgNet = netDays.length ? Math.round(netDays.reduce((s, d, i) => s + d.kcal - burnedDays[days7.indexOf(d)], 0) / netDays.length) : 0;
+
   document.getElementById('chartStats').innerHTML = `
-    <div class="stat-cell"><div class="stat-label">Media 7gg</div><div class="stat-value">${avg || '—'}</div></div>
-    <div class="stat-cell"><div class="stat-label">Massimo</div><div class="stat-value">${max || '—'}</div></div>
-    <div class="stat-cell"><div class="stat-label">Minimo</div><div class="stat-value">${min || '—'}</div></div>
+    <div class="stat-cell"><div class="stat-label">Media ingerite</div><div class="stat-value">${avg || '—'}</div></div>
+    <div class="stat-cell"><div class="stat-label">Max</div><div class="stat-value">${max || '—'}</div></div>
+    <div class="stat-cell"><div class="stat-label">Min</div><div class="stat-value">${min || '—'}</div></div>
+    ${trainingDays > 0 ? `
+    <div class="stat-cell" style="background:#fff3e0"><div class="stat-label">🔥 Media bruciate</div><div class="stat-value">${avgBurned}</div></div>
+    <div class="stat-cell" style="background:#e8f5e9"><div class="stat-label">= Bilancio medio</div><div class="stat-value">${avgNet > 0 ? '+' : ''}${avgNet}</div></div>
+    <div class="stat-cell"><div class="stat-label">Giorni allenamento</div><div class="stat-value">${trainingDays}/7</div></div>
+    ` : ''}
   `;
 
   // 30 giorni
