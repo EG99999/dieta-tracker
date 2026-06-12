@@ -1,4 +1,4 @@
-const CACHE = 'dieta-v1';
+const CACHE = 'dieta-v5';
 const ASSETS = ['/dieta-tracker/', '/dieta-tracker/index.html', '/dieta-tracker/manifest.json', '/dieta-tracker/sw.js'];
 
 self.addEventListener('install', e => {
@@ -13,8 +13,15 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// Network-first: prova sempre la rete, usa cache solo se offline
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
+    fetch(e.request)
+      .then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
