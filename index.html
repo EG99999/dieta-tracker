@@ -382,6 +382,101 @@
     /* ── CAL KCAL LABEL ── */
     .cal-kcal { font-size: 8px; font-weight: 700; color: var(--gray); margin-top: 1px; line-height: 1; }
     .cal-day.today .cal-kcal { color: rgba(255,255,255,0.8); }
+
+    /* ── CATALOG MODAL ── */
+    .catalog-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 200; display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .catalog-sheet {
+      background: white; border-radius: 20px 20px 0 0;
+      max-height: 90vh; display: flex; flex-direction: column;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+    }
+    .catalog-handle {
+      width: 40px; height: 4px; background: #d0d0d0; border-radius: 2px;
+      margin: 10px auto 0; flex-shrink: 0;
+    }
+    .catalog-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px 6px; flex-shrink: 0;
+    }
+    .catalog-title { font-weight: 800; font-size: 16px; }
+    .catalog-close {
+      background: #f0f0f0; border: none; font-size: 16px; color: #616161;
+      cursor: pointer; padding: 5px 9px; line-height: 1; border-radius: 8px;
+    }
+    .catalog-search-wrap { padding: 4px 14px 8px; flex-shrink: 0; }
+    .catalog-search-input {
+      width: 100%; padding: 10px 14px; border: 1.5px solid #e0e0e0;
+      border-radius: 12px; font-size: 15px; background: #f7f7f7;
+      outline: none; -webkit-appearance: none; appearance: none;
+    }
+    .catalog-search-input:focus { border-color: var(--green); background: white; }
+    .catalog-cats {
+      display: flex; gap: 7px; padding: 0 14px 8px;
+      overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+    }
+    .catalog-cats::-webkit-scrollbar { display: none; }
+    .cat-chip {
+      white-space: nowrap; padding: 6px 13px; border-radius: 20px;
+      border: 1.5px solid #e0e0e0; background: white; font-size: 12px;
+      font-weight: 700; cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+    }
+    .cat-chip.active { background: var(--green); color: white; border-color: var(--green); }
+    .catalog-list { flex: 1; overflow-y: auto; padding: 0 14px 4px; min-height: 120px; }
+    .cat-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 8px;
+      border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 8px;
+      transition: background 0.12s;
+    }
+    .cat-item:active { background: #f5f5f5; }
+    .cat-item.sel { background: var(--green-bg); }
+    .ci-emoji { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+    .ci-info { flex: 1; min-width: 0; }
+    .ci-name { font-weight: 700; font-size: 14px; }
+    .ci-meta { font-size: 11px; color: #9e9e9e; margin-top: 1px; }
+    .ci-arrow { font-size: 14px; color: #bdbdbd; flex-shrink: 0; font-weight: 700; }
+    .cat-item.sel .ci-arrow { color: var(--green); }
+    .cat-empty { text-align: center; padding: 30px 10px; color: #9e9e9e; font-size: 14px; }
+    .cat-manual-link {
+      text-align: center; padding: 14px 8px; color: #9e9e9e;
+      font-size: 13px; cursor: pointer; font-weight: 600;
+    }
+    .cat-manual-link:active { color: var(--green); }
+    .catalog-confirm {
+      border-top: 1px solid #e8e8e8; padding: 12px 16px 16px;
+      background: white; flex-shrink: 0;
+    }
+    .conf-food-name { font-weight: 700; font-size: 14px; margin-bottom: 10px; }
+    .conf-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .conf-label { font-size: 13px; color: #757575; font-weight: 600; flex-shrink: 0; }
+    .conf-grams {
+      width: 75px; padding: 8px 10px; border: 1.5px solid #e0e0e0;
+      border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center;
+    }
+    .conf-grams:focus { border-color: var(--green); outline: none; }
+    .conf-g-label { font-size: 13px; color: #9e9e9e; }
+    .conf-kcal { font-size: 18px; font-weight: 800; color: var(--green); margin-left: auto; }
+    .conf-add-btn {
+      width: 100%; padding: 13px; background: var(--green); color: white;
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer;
+    }
+    .conf-add-btn:active { background: #226b30; }
+    .catalog-manual-panel {
+      border-top: 1px solid #e8e8e8; padding: 12px 16px 16px;
+      background: white; flex-shrink: 0;
+    }
+    .manual-title { font-weight: 700; font-size: 13px; color: #757575; margin-bottom: 8px; }
+    .manual-input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #e0e0e0;
+      border-radius: 10px; font-size: 14px; margin-bottom: 7px; background: white;
+    }
+    .manual-input:focus { border-color: var(--green); outline: none; }
+    .manual-add-btn {
+      width: 100%; padding: 11px; background: #616161; color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -581,6 +676,41 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════ -->
+<!-- CATALOG MODAL                                   -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="catalogOverlay" class="catalog-overlay hidden" onclick="if(event.target===this)closeCatalog()">
+  <div class="catalog-sheet">
+    <div class="catalog-handle"></div>
+    <div class="catalog-header">
+      <div class="catalog-title">＋ Aggiungi alimento</div>
+      <button class="catalog-close" onclick="closeCatalog()">✕</button>
+    </div>
+    <div class="catalog-search-wrap">
+      <input type="search" id="catalogSearch" class="catalog-search-input"
+        placeholder="🔍 Cerca alimento..." oninput="filterCatalog(this.value)" autocomplete="off">
+    </div>
+    <div class="catalog-cats" id="catalogCats"></div>
+    <div class="catalog-list" id="catalogList"></div>
+    <div id="catalogConfirm" class="catalog-confirm hidden">
+      <div class="conf-food-name" id="confFoodName"></div>
+      <div class="conf-row">
+        <span class="conf-label">Porzione:</span>
+        <input type="number" id="confGrams" class="conf-grams" min="5" step="5" oninput="updateConfirmKcal()">
+        <span class="conf-g-label">g</span>
+        <span class="conf-kcal" id="confKcal">— kcal</span>
+      </div>
+      <button class="conf-add-btn" onclick="confirmCatalogItem()">✓ Aggiungi</button>
+    </div>
+    <div id="catalogManualPanel" class="catalog-manual-panel hidden">
+      <div class="manual-title">✏️ Inserimento manuale</div>
+      <input type="text" id="manualName" class="manual-input" placeholder="Nome alimento (es. toast con marmellata)">
+      <input type="number" id="manualKcal" class="manual-input" placeholder="kcal stimate (opzionale)" min="0" step="10">
+      <button class="manual-add-btn" onclick="confirmManualItem()">✓ Aggiungi</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════
 // DATI DIETA
@@ -776,6 +906,288 @@ const KCAL_MAP = {
 const OIL_KCAL = 180;  // 2 cucchiai EVO per pasto (pranzo/cena)
 const VEG_KCAL = 50;   // stima verdure per pasto (pranzo/cena)
 let kcalTarget = parseInt(localStorage.getItem('kcalTarget') || '2200');
+
+// ════════════════════════════════════════════════════
+// FOOD CATALOG
+// ════════════════════════════════════════════════════
+const FC_CATS = [
+  { id:'pane',   e:'🥖', label:'Pane' },
+  { id:'pasta',  e:'🍝', label:'Pasta' },
+  { id:'riso',   e:'🌾', label:'Riso e Cereali' },
+  { id:'carne',  e:'🥩', label:'Carne' },
+  { id:'pesce',  e:'🐟', label:'Pesce' },
+  { id:'uova',   e:'🥚', label:'Uova' },
+  { id:'latt',   e:'🧀', label:'Latticini' },
+  { id:'legumi', e:'🫘', label:'Legumi' },
+  { id:'verd',   e:'🥦', label:'Verdure' },
+  { id:'frutta', e:'🍎', label:'Frutta' },
+  { id:'snack',  e:'🍫', label:'Snack' },
+  { id:'frsecc', e:'🥜', label:'Frutta secca' },
+  { id:'cond',   e:'🫙', label:'Condimenti' },
+  { id:'bev',    e:'☕', label:'Bevande' },
+];
+const FC_ITEMS = [
+  // PANE
+  { id:'fc_pane_comune',      n:'Pane comune',                    c:'pane',   k:275, p:80  },
+  { id:'fc_pane_integrale',   n:'Pane integrale',                 c:'pane',   k:245, p:80  },
+  { id:'fc_pane_segale',      n:'Pane di segale',                 c:'pane',   k:258, p:80  },
+  { id:'fc_pane_kamut',       n:'Pane di kamut',                  c:'pane',   k:260, p:80  },
+  { id:'fc_pane_semola',      n:'Pane di semola rimacinata',      c:'pane',   k:270, p:80  },
+  { id:'fc_pane_bauletto',    n:'Pan bauletto (1 fetta)',         c:'pane',   k:265, p:30  },
+  { id:'fc_pane_azzimo',      n:'Pane azzimo',                    c:'pane',   k:380, p:30  },
+  { id:'fc_piadina',          n:'Piadina romagnola',              c:'pane',   k:290, p:60  },
+  { id:'fc_focaccia',         n:'Focaccia (semplice)',            c:'pane',   k:280, p:80  },
+  { id:'fc_grissini',         n:'Grissini',                       c:'pane',   k:410, p:30  },
+  { id:'fc_crackers',         n:'Crackers (classici)',            c:'pane',   k:425, p:30  },
+  { id:'fc_crackers_int',     n:'Crackers integrali',             c:'pane',   k:390, p:30  },
+  { id:'fc_fette_biscottate', n:'Fette biscottate',               c:'pane',   k:380, p:25  },
+  { id:'fc_gallette_riso',    n:'Gallette di riso',               c:'pane',   k:390, p:20  },
+  { id:'fc_gallette_mais',    n:'Gallette di mais',               c:'pane',   k:380, p:20  },
+  // PASTA
+  { id:'fc_pasta_cotta',      n:'Pasta di semola (cotta)',        c:'pasta',  k:158, p:200 },
+  { id:'fc_pasta_int_cotta',  n:'Pasta integrale (cotta)',        c:'pasta',  k:145, p:200 },
+  { id:'fc_pasta_sarac',      n:'Pasta di grano saraceno (cotta)',c:'pasta',  k:150, p:200 },
+  { id:'fc_pasta_legumi',     n:'Pasta di legumi (cotta)',        c:'pasta',  k:155, p:200 },
+  { id:'fc_pasta_uovo_cotta', n:'Pasta fresca all\'uovo (cotta)', c:'pasta',  k:165, p:200 },
+  { id:'fc_gnocchi',          n:'Gnocchi di patate (cotti)',      c:'pasta',  k:105, p:250 },
+  { id:'fc_cous_cous',        n:'Cous cous (cotto)',              c:'pasta',  k:112, p:200 },
+  { id:'fc_polenta',          n:'Polenta (cotta)',                c:'pasta',  k:73,  p:300 },
+  { id:'fc_lasagne',          n:'Lasagne al forno',               c:'pasta',  k:160, p:250 },
+  // RISO E CEREALI
+  { id:'fc_riso_bianco',      n:'Riso bianco (cotto)',            c:'riso',   k:130, p:200 },
+  { id:'fc_riso_integrale',   n:'Riso integrale (cotto)',         c:'riso',   k:122, p:200 },
+  { id:'fc_riso_basmati',     n:'Riso basmati (cotto)',           c:'riso',   k:130, p:200 },
+  { id:'fc_riso_rosso',       n:'Riso rosso (cotto)',             c:'riso',   k:130, p:200 },
+  { id:'fc_riso_venere',      n:'Riso Venere (cotto)',            c:'riso',   k:130, p:200 },
+  { id:'fc_farro_cotto',      n:'Farro (cotto)',                  c:'riso',   k:140, p:200 },
+  { id:'fc_orzo_cotto',       n:'Orzo (cotto)',                   c:'riso',   k:123, p:200 },
+  { id:'fc_quinoa_cotta',     n:'Quinoa (cotta)',                 c:'riso',   k:120, p:200 },
+  { id:'fc_amaranto',         n:'Amaranto (cotto)',               c:'riso',   k:102, p:200 },
+  { id:'fc_avena_fiocchi',    n:'Fiocchi d\'avena',               c:'riso',   k:367, p:50  },
+  { id:'fc_cornflakes',       n:'Corn flakes',                    c:'riso',   k:357, p:40  },
+  { id:'fc_musli',            n:'Muesli',                         c:'riso',   k:368, p:50  },
+  // CARNE
+  { id:'fc_pollo_petto',      n:'Petto di pollo (cotto)',         c:'carne',  k:165, p:150 },
+  { id:'fc_pollo_coscia',     n:'Coscia di pollo (cotta)',        c:'carne',  k:195, p:150 },
+  { id:'fc_tacchino_petto',   n:'Petto di tacchino (cotto)',      c:'carne',  k:135, p:150 },
+  { id:'fc_manzo_magro',      n:'Manzo magro (cotto)',            c:'carne',  k:218, p:150 },
+  { id:'fc_vitello',          n:'Vitello (cotto)',                c:'carne',  k:205, p:150 },
+  { id:'fc_maiale_filetto',   n:'Filetto di maiale (cotto)',      c:'carne',  k:215, p:150 },
+  { id:'fc_maiale_lonza',     n:'Lonza di maiale (cotta)',        c:'carne',  k:200, p:150 },
+  { id:'fc_agnello',          n:'Agnello (cotto)',                c:'carne',  k:250, p:150 },
+  { id:'fc_coniglio',         n:'Coniglio (cotto)',               c:'carne',  k:175, p:150 },
+  { id:'fc_cavallo',          n:'Cavallo (cotto)',                c:'carne',  k:175, p:150 },
+  { id:'fc_hamburger',        n:'Hamburger di manzo (cotto)',     c:'carne',  k:290, p:130 },
+  { id:'fc_prosciutto_cotto', n:'Prosciutto cotto',               c:'carne',  k:155, p:60  },
+  { id:'fc_prosciutto_crudo', n:'Prosciutto crudo',               c:'carne',  k:220, p:60  },
+  { id:'fc_bresaola',         n:'Bresaola',                       c:'carne',  k:151, p:60  },
+  { id:'fc_speck',            n:'Speck',                          c:'carne',  k:295, p:60  },
+  { id:'fc_mortadella',       n:'Mortadella',                     c:'carne',  k:320, p:50  },
+  { id:'fc_salame',           n:'Salame',                         c:'carne',  k:410, p:40  },
+  { id:'fc_salame_tacchino',  n:'Salame di tacchino',             c:'carne',  k:180, p:60  },
+  { id:'fc_wurstel_pollo',    n:'Wurstel di pollo',               c:'carne',  k:200, p:80  },
+  { id:'fc_fesa_tacchino',    n:'Fesa di tacchino',               c:'carne',  k:120, p:80  },
+  { id:'fc_roastbeef',        n:'Roast beef',                     c:'carne',  k:180, p:100 },
+  { id:'fc_pollo_panato',     n:'Petto di pollo panato',          c:'carne',  k:230, p:130 },
+  // PESCE
+  { id:'fc_tonno_acq',        n:'Tonno in acqua (sgocciolato)',   c:'pesce',  k:95,  p:100 },
+  { id:'fc_tonno_olio',       n:'Tonno sott\'olio (sgocciolato)', c:'pesce',  k:200, p:100 },
+  { id:'fc_salmone',          n:'Salmone (cotto)',                c:'pesce',  k:206, p:150 },
+  { id:'fc_branzino',         n:'Branzino (cotto)',               c:'pesce',  k:105, p:200 },
+  { id:'fc_orata',            n:'Orata (cotta)',                  c:'pesce',  k:121, p:200 },
+  { id:'fc_merluzzo',         n:'Merluzzo (cotto)',               c:'pesce',  k:90,  p:200 },
+  { id:'fc_sogliola',         n:'Sogliola (cotta)',               c:'pesce',  k:92,  p:200 },
+  { id:'fc_sgombro',          n:'Sgombro (cotto)',                c:'pesce',  k:205, p:150 },
+  { id:'fc_sardine',          n:'Sardine (cotte)',                c:'pesce',  k:185, p:100 },
+  { id:'fc_gamberi',          n:'Gamberi (cotti)',                c:'pesce',  k:90,  p:150 },
+  { id:'fc_calamari',         n:'Calamari (cotti)',               c:'pesce',  k:93,  p:150 },
+  { id:'fc_polpo',            n:'Polpo (cotto)',                  c:'pesce',  k:86,  p:150 },
+  { id:'fc_vongole',          n:'Vongole (cotte)',                c:'pesce',  k:72,  p:150 },
+  { id:'fc_cozze',            n:'Cozze (cotte)',                  c:'pesce',  k:86,  p:200 },
+  { id:'fc_acciughe',         n:'Acciughe / Alici',              c:'pesce',  k:131, p:50  },
+  { id:'fc_pesce_spada',      n:'Pesce spada (cotto)',            c:'pesce',  k:169, p:150 },
+  { id:'fc_trota',            n:'Trota (cotta)',                  c:'pesce',  k:156, p:150 },
+  { id:'fc_nasello',          n:'Nasello / Merluzzo (cotto)',     c:'pesce',  k:90,  p:200 },
+  { id:'fc_platessa',         n:'Platessa (cotta)',               c:'pesce',  k:91,  p:200 },
+  { id:'fc_baccala',          n:'Baccalà (ammollato, cotto)',     c:'pesce',  k:105, p:200 },
+  { id:'fc_seppie',           n:'Seppie (cotte)',                 c:'pesce',  k:84,  p:150 },
+  // UOVA
+  { id:'fc_uovo_intero',      n:'Uovo intero (1 uovo, ~60g)',    c:'uova',   k:143, p:60  },
+  { id:'fc_albume',           n:'Albume d\'uovo',                c:'uova',   k:52,  p:100 },
+  { id:'fc_frittata_2',       n:'Frittata (2 uova)',              c:'uova',   k:185, p:120 },
+  { id:'fc_uova_strapp',      n:'Uova strapazzate (2 uova)',     c:'uova',   k:160, p:100 },
+  // LATTICINI
+  { id:'fc_yogurt_greco_0',   n:'Yogurt greco 0%',               c:'latt',   k:57,  p:170 },
+  { id:'fc_yogurt_greco_2',   n:'Yogurt greco 2%',               c:'latt',   k:73,  p:170 },
+  { id:'fc_yogurt_intero',    n:'Yogurt intero',                 c:'latt',   k:61,  p:150 },
+  { id:'fc_yogurt_magro',     n:'Yogurt magro',                  c:'latt',   k:38,  p:150 },
+  { id:'fc_yogurt_proteico',  n:'Yogurt proteico',               c:'latt',   k:68,  p:200 },
+  { id:'fc_latte_scremato',   n:'Latte scremato',                c:'latt',   k:36,  p:200 },
+  { id:'fc_latte_pscremato',  n:'Latte parzialmente scremato',   c:'latt',   k:49,  p:200 },
+  { id:'fc_latte_intero',     n:'Latte intero',                  c:'latt',   k:65,  p:200 },
+  { id:'fc_mozzarella',       n:'Mozzarella fiordilatte',        c:'latt',   k:253, p:125 },
+  { id:'fc_mozzarella_buf',   n:'Mozzarella di bufala',          c:'latt',   k:270, p:125 },
+  { id:'fc_ricotta_vacc',     n:'Ricotta vaccina',               c:'latt',   k:136, p:125 },
+  { id:'fc_ricotta_pec',      n:'Ricotta di pecora',             c:'latt',   k:190, p:100 },
+  { id:'fc_fiocchi_latte',    n:'Fiocchi di latte',              c:'latt',   k:110, p:150 },
+  { id:'fc_parmigiano',       n:'Parmigiano Reggiano',           c:'latt',   k:392, p:30  },
+  { id:'fc_grana',            n:'Grana Padano',                  c:'latt',   k:382, p:30  },
+  { id:'fc_pecorino',         n:'Pecorino',                      c:'latt',   k:395, p:40  },
+  { id:'fc_scamorza',         n:'Scamorza',                      c:'latt',   k:290, p:80  },
+  { id:'fc_feta',             n:'Feta',                          c:'latt',   k:264, p:80  },
+  { id:'fc_caprino_fresco',   n:'Caprino fresco',                c:'latt',   k:230, p:80  },
+  { id:'fc_stracchino',       n:'Stracchino / Crescenza',        c:'latt',   k:259, p:80  },
+  { id:'fc_cottage',          n:'Cottage cheese',                c:'latt',   k:103, p:150 },
+  { id:'fc_philadelphia',     n:'Philadelphia (cream cheese)',    c:'latt',   k:250, p:50  },
+  { id:'fc_mascarpone',       n:'Mascarpone',                    c:'latt',   k:430, p:30  },
+  { id:'fc_kefir',            n:'Kefir',                         c:'latt',   k:64,  p:200 },
+  { id:'fc_burro',            n:'Burro',                         c:'latt',   k:716, p:10  },
+  { id:'fc_panna_cucina',     n:'Panna da cucina',               c:'latt',   k:184, p:50  },
+  { id:'fc_primo_sale',       n:'Primo sale',                    c:'latt',   k:190, p:100 },
+  { id:'fc_asiago',           n:'Asiago',                        c:'latt',   k:355, p:40  },
+  { id:'fc_brie',             n:'Brie',                          c:'latt',   k:334, p:50  },
+  // LEGUMI
+  { id:'fc_fagioli_borl',     n:'Fagioli borlotti (cotti)',      c:'legumi', k:97,  p:200 },
+  { id:'fc_fagioli_cann',     n:'Fagioli cannellini (cotti)',    c:'legumi', k:99,  p:200 },
+  { id:'fc_fagioli_neri',     n:'Fagioli neri (cotti)',          c:'legumi', k:132, p:200 },
+  { id:'fc_ceci',             n:'Ceci (cotti)',                  c:'legumi', k:120, p:200 },
+  { id:'fc_lenticchie',       n:'Lenticchie (cotte)',            c:'legumi', k:116, p:200 },
+  { id:'fc_piselli',          n:'Piselli (cotti)',               c:'legumi', k:77,  p:200 },
+  { id:'fc_soia',             n:'Soia (cotta)',                  c:'legumi', k:147, p:150 },
+  { id:'fc_edamame',          n:'Edamame',                       c:'legumi', k:123, p:150 },
+  { id:'fc_hummus',           n:'Hummus',                        c:'legumi', k:177, p:100 },
+  { id:'fc_tempeh',           n:'Tempeh',                        c:'legumi', k:192, p:100 },
+  { id:'fc_tofu_nat',         n:'Tofu (naturale)',               c:'legumi', k:76,  p:150 },
+  { id:'fc_tofu_affum',       n:'Tofu affumicato',               c:'legumi', k:130, p:100 },
+  { id:'fc_lupini',           n:'Lupini',                        c:'legumi', k:99,  p:80  },
+  { id:'fc_fave',             n:'Fave (cotte)',                  c:'legumi', k:110, p:200 },
+  // VERDURE
+  { id:'fc_insalata',         n:'Insalata mista',                c:'verd',   k:15,  p:100 },
+  { id:'fc_rucola',           n:'Rucola',                        c:'verd',   k:25,  p:80  },
+  { id:'fc_pomodori',         n:'Pomodori',                      c:'verd',   k:18,  p:150 },
+  { id:'fc_pomodorini',       n:'Pomodorini',                    c:'verd',   k:18,  p:150 },
+  { id:'fc_cetriolo',         n:'Cetriolo',                      c:'verd',   k:14,  p:150 },
+  { id:'fc_peperoni',         n:'Peperoni',                      c:'verd',   k:27,  p:150 },
+  { id:'fc_zucchine',         n:'Zucchine (cotte)',              c:'verd',   k:17,  p:150 },
+  { id:'fc_melanzane',        n:'Melanzane (cotte)',             c:'verd',   k:25,  p:150 },
+  { id:'fc_spinaci',          n:'Spinaci (cotti)',               c:'verd',   k:23,  p:200 },
+  { id:'fc_broccoli',         n:'Broccoli (cotti)',              c:'verd',   k:35,  p:200 },
+  { id:'fc_cavolfiore',       n:'Cavolfiore (cotto)',            c:'verd',   k:30,  p:200 },
+  { id:'fc_cavolo',           n:'Cavolo cappuccio',              c:'verd',   k:22,  p:150 },
+  { id:'fc_carote',           n:'Carote',                        c:'verd',   k:35,  p:150 },
+  { id:'fc_sedano',           n:'Sedano',                        c:'verd',   k:16,  p:100 },
+  { id:'fc_cipolla',          n:'Cipolla',                       c:'verd',   k:40,  p:80  },
+  { id:'fc_funghi_champ',     n:'Funghi champignon',             c:'verd',   k:22,  p:150 },
+  { id:'fc_funghi_porcini',   n:'Funghi porcini',                c:'verd',   k:28,  p:100 },
+  { id:'fc_asparagi',         n:'Asparagi (cotti)',              c:'verd',   k:25,  p:200 },
+  { id:'fc_carciofi',         n:'Carciofi',                      c:'verd',   k:47,  p:150 },
+  { id:'fc_finocchio',        n:'Finocchio',                     c:'verd',   k:19,  p:150 },
+  { id:'fc_radicchio',        n:'Radicchio',                     c:'verd',   k:23,  p:100 },
+  { id:'fc_lattuga',          n:'Lattuga',                       c:'verd',   k:13,  p:100 },
+  { id:'fc_bietola',          n:'Bietola / Bieta (cotta)',       c:'verd',   k:22,  p:200 },
+  { id:'fc_fagiolini',        n:'Fagiolini (cotti)',             c:'verd',   k:31,  p:200 },
+  { id:'fc_mais',             n:'Mais (in scatola)',             c:'verd',   k:73,  p:80  },
+  { id:'fc_patate',           n:'Patate (bollite)',              c:'verd',   k:77,  p:200 },
+  { id:'fc_patate_dolci',     n:'Patate dolci (cotte)',          c:'verd',   k:86,  p:200 },
+  { id:'fc_avocado',          n:'Avocado',                       c:'verd',   k:167, p:100 },
+  { id:'fc_zucca',            n:'Zucca (cotta)',                 c:'verd',   k:26,  p:200 },
+  { id:'fc_cime_rapa',        n:'Cime di rapa (cotte)',          c:'verd',   k:25,  p:200 },
+  { id:'fc_porri',            n:'Porri (cotti)',                 c:'verd',   k:31,  p:150 },
+  { id:'fc_indivia',          n:'Indivia / Cicoria',             c:'verd',   k:17,  p:100 },
+  // FRUTTA
+  { id:'fc_mela',             n:'Mela',                          c:'frutta', k:52,  p:180 },
+  { id:'fc_pera',             n:'Pera',                          c:'frutta', k:57,  p:170 },
+  { id:'fc_banana',           n:'Banana',                        c:'frutta', k:89,  p:120 },
+  { id:'fc_arancia',          n:'Arancia',                       c:'frutta', k:47,  p:180 },
+  { id:'fc_mandarino',        n:'Mandarino',                     c:'frutta', k:53,  p:120 },
+  { id:'fc_kiwi',             n:'Kiwi',                          c:'frutta', k:61,  p:100 },
+  { id:'fc_fragole',          n:'Fragole',                       c:'frutta', k:32,  p:200 },
+  { id:'fc_mirtilli',         n:'Mirtilli',                      c:'frutta', k:57,  p:150 },
+  { id:'fc_lamponi',          n:'Lamponi',                       c:'frutta', k:52,  p:150 },
+  { id:'fc_more',             n:'More',                          c:'frutta', k:43,  p:150 },
+  { id:'fc_uva',              n:'Uva',                           c:'frutta', k:67,  p:150 },
+  { id:'fc_pesche',           n:'Pesche',                        c:'frutta', k:39,  p:200 },
+  { id:'fc_nettarine',        n:'Nettarine',                     c:'frutta', k:44,  p:180 },
+  { id:'fc_albicocche',       n:'Albicocche',                    c:'frutta', k:48,  p:200 },
+  { id:'fc_ciliegie',         n:'Ciliegie',                      c:'frutta', k:63,  p:150 },
+  { id:'fc_prugne',           n:'Prugne / Susine',               c:'frutta', k:46,  p:150 },
+  { id:'fc_ananas',           n:'Ananas',                        c:'frutta', k:50,  p:200 },
+  { id:'fc_melone',           n:'Melone',                        c:'frutta', k:34,  p:250 },
+  { id:'fc_cocomero',         n:'Cocomero',                      c:'frutta', k:30,  p:300 },
+  { id:'fc_pompelmo',         n:'Pompelmo',                      c:'frutta', k:42,  p:200 },
+  { id:'fc_fichi',            n:'Fichi',                         c:'frutta', k:74,  p:100 },
+  { id:'fc_melograno',        n:'Melograno (sgranato)',          c:'frutta', k:83,  p:100 },
+  { id:'fc_mango',            n:'Mango',                         c:'frutta', k:60,  p:150 },
+  { id:'fc_papaia',           n:'Papaia',                        c:'frutta', k:43,  p:150 },
+  // SNACK E DOLCI
+  { id:'fc_biscotti_frolo',   n:'Biscotti frollino',             c:'snack',  k:465, p:30  },
+  { id:'fc_biscotti_secchi',  n:'Biscotti secchi',               c:'snack',  k:410, p:30  },
+  { id:'fc_barretta_cereali', n:'Barretta ai cereali',           c:'snack',  k:380, p:40  },
+  { id:'fc_barretta_prot',    n:'Barretta proteica',             c:'snack',  k:360, p:60  },
+  { id:'fc_cioccolato_fond',  n:'Cioccolato fondente 70%',       c:'snack',  k:571, p:30  },
+  { id:'fc_cioccolato_latte', n:'Cioccolato al latte',           c:'snack',  k:535, p:30  },
+  { id:'fc_gelato_crema',     n:'Gelato alla crema',             c:'snack',  k:250, p:100 },
+  { id:'fc_gelato_frutta',    n:'Gelato alla frutta / sorbetto', c:'snack',  k:130, p:100 },
+  { id:'fc_torta_mele',       n:'Torta di mele',                 c:'snack',  k:270, p:100 },
+  { id:'fc_cornetto',         n:'Cornetto',                      c:'snack',  k:350, p:60  },
+  { id:'fc_brioche',          n:'Brioche',                       c:'snack',  k:360, p:60  },
+  { id:'fc_patatine',         n:'Patatine fritte / chips',       c:'snack',  k:536, p:30  },
+  { id:'fc_popcorn',          n:'Popcorn (naturale)',             c:'snack',  k:375, p:30  },
+  { id:'fc_riso_soffiato',    n:'Riso soffiato',                 c:'snack',  k:390, p:30  },
+  { id:'fc_wafer',            n:'Wafer',                         c:'snack',  k:480, p:30  },
+  { id:'fc_miele',            n:'Miele',                         c:'snack',  k:304, p:20  },
+  { id:'fc_marmellata',       n:'Marmellata',                    c:'snack',  k:220, p:30  },
+  { id:'fc_nutella',          n:'Nutella / crema spalmabile',    c:'snack',  k:539, p:30  },
+  { id:'fc_pancake',          n:'Pancake (1 pezzo medio)',       c:'snack',  k:220, p:80  },
+  { id:'fc_pizza_marg',       n:'Pizza Margherita',              c:'snack',  k:250, p:300 },
+  // FRUTTA SECCA E SEMI
+  { id:'fc_mandorle',         n:'Mandorle',                      c:'frsecc', k:579, p:30  },
+  { id:'fc_noci',             n:'Noci',                          c:'frsecc', k:654, p:30  },
+  { id:'fc_nocciole',         n:'Nocciole',                      c:'frsecc', k:628, p:30  },
+  { id:'fc_anacardi',         n:'Anacardi',                      c:'frsecc', k:553, p:30  },
+  { id:'fc_pistacchi',        n:'Pistacchi',                     c:'frsecc', k:562, p:30  },
+  { id:'fc_arachidi',         n:'Arachidi',                      c:'frsecc', k:567, p:30  },
+  { id:'fc_semi_chia',        n:'Semi di chia',                  c:'frsecc', k:486, p:15  },
+  { id:'fc_semi_lino',        n:'Semi di lino',                  c:'frsecc', k:534, p:15  },
+  { id:'fc_semi_girasole',    n:'Semi di girasole',              c:'frsecc', k:584, p:20  },
+  { id:'fc_semi_zucca',       n:'Semi di zucca',                 c:'frsecc', k:559, p:20  },
+  { id:'fc_semi_sesamo',      n:'Semi di sesamo',                c:'frsecc', k:573, p:15  },
+  { id:'fc_datteri',          n:'Datteri',                       c:'frsecc', k:282, p:40  },
+  { id:'fc_uvetta',           n:'Uvetta',                        c:'frsecc', k:299, p:30  },
+  { id:'fc_burro_arachidi',   n:'Burro di arachidi',             c:'frsecc', k:588, p:30  },
+  { id:'fc_crema_mandorle',   n:'Crema di mandorle',             c:'frsecc', k:617, p:30  },
+  { id:'fc_cocco_rape',       n:'Cocco rapé / scaglie',          c:'frsecc', k:660, p:20  },
+  // CONDIMENTI
+  { id:'fc_olio_evo',         n:'Olio EVO (1 cucchiaio)',        c:'cond',   k:884, p:10  },
+  { id:'fc_olio_semi',        n:'Olio di semi (1 cucchiaio)',    c:'cond',   k:884, p:10  },
+  { id:'fc_aceto_bals',       n:'Aceto balsamico',               c:'cond',   k:88,  p:15  },
+  { id:'fc_aceto_vino',       n:'Aceto di vino',                 c:'cond',   k:14,  p:15  },
+  { id:'fc_salsa_pom',        n:'Salsa di pomodoro',             c:'cond',   k:35,  p:100 },
+  { id:'fc_pesto',            n:'Pesto alla genovese',           c:'cond',   k:454, p:30  },
+  { id:'fc_maionese',         n:'Maionese',                      c:'cond',   k:680, p:20  },
+  { id:'fc_ketchup',          n:'Ketchup',                       c:'cond',   k:100, p:30  },
+  { id:'fc_senape',           n:'Senape',                        c:'cond',   k:60,  p:15  },
+  { id:'fc_salsa_soia',       n:'Salsa di soia',                 c:'cond',   k:60,  p:20  },
+  { id:'fc_tahini',           n:'Tahini (pasta di sesamo)',      c:'cond',   k:595, p:20  },
+  { id:'fc_sriracha',         n:'Sriracha',                      c:'cond',   k:130, p:15  },
+  // BEVANDE
+  { id:'fc_caffe_esp',        n:'Caffè espresso',                c:'bev',    k:2,   p:30  },
+  { id:'fc_latte_mandorla',   n:'Latte di mandorla',             c:'bev',    k:30,  p:200 },
+  { id:'fc_latte_soia',       n:'Latte di soia',                 c:'bev',    k:44,  p:200 },
+  { id:'fc_latte_avena',      n:'Latte di avena',                c:'bev',    k:46,  p:200 },
+  { id:'fc_latte_riso',       n:'Latte di riso',                 c:'bev',    k:54,  p:200 },
+  { id:'fc_succo_arancia',    n:'Succo d\'arancia (fresco)',     c:'bev',    k:45,  p:200 },
+  { id:'fc_succo_mela',       n:'Succo di mela (senza zucchero)',c:'bev',    k:47,  p:200 },
+  { id:'fc_vino_rosso',       n:'Vino rosso (125ml)',            c:'bev',    k:85,  p:125 },
+  { id:'fc_vino_bianco',      n:'Vino bianco (125ml)',           c:'bev',    k:82,  p:125 },
+  { id:'fc_birra_lager',      n:'Birra lager (330ml)',           c:'bev',    k:143, p:330 },
+  { id:'fc_birra_analc',      n:'Birra analcolica (330ml)',      c:'bev',    k:66,  p:330 },
+  { id:'fc_te_verde',         n:'Tè verde / Tisana',             c:'bev',    k:2,   p:200 },
+  { id:'fc_kombucha',         n:'Kombucha',                      c:'bev',    k:40,  p:200 },
+  { id:'fc_protein_shake',    n:'Protein shake (misurino)',      c:'bev',    k:120, p:200 },
+];
+const FC_CAT_EMOJI = Object.fromEntries(FC_CATS.map(c => [c.id, c.e]));
+let catalogCtx = { sec:null, activeCat:'tutti', query:'', sel:null };
 
 function calcMealKcal(ids) {
   return (ids || []).reduce((s, id) => s + (KCAL_MAP[id] || 0), 0);
@@ -1044,14 +1456,7 @@ function buildMeals(dd) {
     }
 
     // Aggiungi alimento extra
-    bodyHtml += `
-      <button class="add-extra-btn" onclick="showAddExtra('${sec.key}');event.stopPropagation()">＋ Aggiungi alimento fuori dieta</button>
-      <div class="add-extra-form hidden" id="af-${sec.key}">
-        <input class="extra-input" type="text" id="ai-${sec.key}" placeholder="Nome alimento (es. toast crema e marmellata)">
-        <input class="extra-input" type="number" id="ak-${sec.key}" placeholder="kcal stimati (opzionale)" min="0" step="10">
-        <button class="extra-save-btn" onclick="saveExtra('${sec.key}')">✓ Salva</button>
-        <button class="extra-cancel-btn" onclick="hideAddExtra('${sec.key}')">Annulla</button>
-      </div>`;
+    bodyHtml += `<button class="add-extra-btn" onclick="openCatalog('${sec.key}');event.stopPropagation()">＋ Aggiungi alimento fuori dieta</button>`;
 
     card.innerHTML = `
       <div class="meal-header" onclick="toggleMeal('${sec.key}')">
@@ -1123,34 +1528,130 @@ function toggleFood(sectionKey, itemId) {
   }, 10);
 }
 
-function showAddExtra(sec) {
-  const form = document.getElementById('af-' + sec);
-  if (form) form.classList.remove('hidden');
+function openCatalog(sec) {
+  catalogCtx = { sec, activeCat:'tutti', query:'', sel:null };
+  document.getElementById('catalogSearch').value = '';
+  renderCatalogCats();
+  renderCatalogList();
+  document.getElementById('catalogConfirm').classList.add('hidden');
+  document.getElementById('catalogManualPanel').classList.add('hidden');
+  document.getElementById('catalogOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('catalogSearch').focus(), 120);
 }
 
-function hideAddExtra(sec) {
-  const form = document.getElementById('af-' + sec);
-  if (form) form.classList.add('hidden');
-  const ni = document.getElementById('ai-' + sec);
-  const nk = document.getElementById('ak-' + sec);
-  if (ni) ni.value = '';
-  if (nk) nk.value = '';
+function closeCatalog() {
+  document.getElementById('catalogOverlay').classList.add('hidden');
 }
 
-function saveExtra(sec) {
-  const nameEl = document.getElementById('ai-' + sec);
-  const kcalEl = document.getElementById('ak-' + sec);
-  const name = nameEl?.value.trim();
-  if (!name) { nameEl?.focus(); return; }
-  const kcal = Math.max(0, parseInt(kcalEl?.value) || 0);
+function renderCatalogCats() {
+  let html = `<button class="cat-chip ${catalogCtx.activeCat==='tutti'?'active':''}" onclick="setCatalogCat('tutti')">Tutti</button>`;
+  for (const c of FC_CATS) {
+    html += `<button class="cat-chip ${catalogCtx.activeCat===c.id?'active':''}" onclick="setCatalogCat('${c.id}')">${c.e} ${c.label}</button>`;
+  }
+  document.getElementById('catalogCats').innerHTML = html;
+}
+
+function setCatalogCat(id) {
+  catalogCtx.activeCat = id;
+  catalogCtx.sel = null;
+  renderCatalogCats();
+  renderCatalogList();
+  document.getElementById('catalogConfirm').classList.add('hidden');
+}
+
+function filterCatalog(q) {
+  catalogCtx.query = q.toLowerCase().trim();
+  if (catalogCtx.query) catalogCtx.activeCat = 'tutti';
+  catalogCtx.sel = null;
+  renderCatalogCats();
+  renderCatalogList();
+  document.getElementById('catalogConfirm').classList.add('hidden');
+}
+
+function renderCatalogList() {
+  const q = catalogCtx.query;
+  const cat = catalogCtx.activeCat;
+  const items = FC_ITEMS.filter(it => {
+    if (cat !== 'tutti' && it.c !== cat) return false;
+    if (q) return it.n.toLowerCase().includes(q);
+    return true;
+  });
+  let html = '';
+  if (!items.length) {
+    html = `<div class="cat-empty">Nessun risultato${q ? ` per "<strong>${q}</strong>"` : ''}</div>`;
+  } else {
+    for (const it of items) {
+      const isSel = catalogCtx.sel?.id === it.id;
+      html += `<div class="cat-item${isSel?' sel':''}" onclick="selectCatalogItem('${it.id}')">
+        <div class="ci-emoji">${FC_CAT_EMOJI[it.c]||'🍴'}</div>
+        <div class="ci-info">
+          <div class="ci-name">${it.n}</div>
+          <div class="ci-meta">${it.k} kcal/100g &nbsp;·&nbsp; tipica: ${it.p}g</div>
+        </div>
+        <div class="ci-arrow">${isSel?'✓':'›'}</div>
+      </div>`;
+    }
+  }
+  html += `<div class="cat-manual-link" onclick="showManualPanel()">✏️ Non lo trovi? Inserimento manuale</div>`;
+  document.getElementById('catalogList').innerHTML = html;
+}
+
+function selectCatalogItem(id) {
+  const food = FC_ITEMS.find(i => i.id === id);
+  if (!food) return;
+  catalogCtx.sel = food;
+  renderCatalogList();
+  document.getElementById('confFoodName').textContent = (FC_CAT_EMOJI[food.c]||'🍴') + ' ' + food.n;
+  document.getElementById('confGrams').value = food.p;
+  document.getElementById('catalogManualPanel').classList.add('hidden');
+  document.getElementById('catalogConfirm').classList.remove('hidden');
+  updateConfirmKcal();
+}
+
+function updateConfirmKcal() {
+  const food = catalogCtx.sel;
+  if (!food) return;
+  const g = Math.max(0, parseInt(document.getElementById('confGrams').value)||0);
+  document.getElementById('confKcal').textContent = Math.round(food.k * g / 100) + ' kcal';
+}
+
+function confirmCatalogItem() {
+  const food = catalogCtx.sel;
+  if (!food) return;
+  const g = Math.max(1, parseInt(document.getElementById('confGrams').value)||food.p);
+  const kcal = Math.round(food.k * g / 100);
+  addExtraItem(catalogCtx.sec, `${food.n} (${g}g)`, kcal);
+  closeCatalog();
+}
+
+function showManualPanel() {
+  catalogCtx.sel = null;
+  renderCatalogList();
+  document.getElementById('catalogConfirm').classList.add('hidden');
+  const p = document.getElementById('catalogManualPanel');
+  p.classList.remove('hidden');
+  document.getElementById('manualName').value = '';
+  document.getElementById('manualKcal').value = '';
+  setTimeout(() => document.getElementById('manualName').focus(), 50);
+}
+
+function confirmManualItem() {
+  const name = document.getElementById('manualName').value.trim();
+  if (!name) { document.getElementById('manualName').focus(); return; }
+  const kcal = Math.max(0, parseInt(document.getElementById('manualKcal').value)||0);
+  addExtraItem(catalogCtx.sec, name, kcal);
+  closeCatalog();
+}
+
+function addExtraItem(sec, name, kcal) {
   const dd = dayData(currentDate);
   if (!dd.extra) dd.extra = {};
   if (!dd.extra[sec]) dd.extra[sec] = [];
-  dd.extra[sec].push({ id: 'ex_' + Date.now(), name, kcal });
+  dd.extra[sec].push({ id:'ex_'+Date.now(), name, kcal });
   saveLog();
   renderDay();
   setTimeout(() => {
-    const card = document.getElementById('mc-' + sec);
+    const card = document.getElementById('mc-'+sec);
     if (card) card.classList.add('open');
   }, 10);
 }
