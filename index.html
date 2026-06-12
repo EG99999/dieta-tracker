@@ -320,6 +320,36 @@
     .week-dot.today { background: var(--green); color: white; }
 
     .hidden { display: none !important; }
+
+    /* ── CALORIE CARD ── */
+    .kcal-card {
+      background: linear-gradient(135deg, #fff8e1, #fff3e0);
+      border-radius: var(--radius); padding: 13px 16px; margin-bottom: 10px;
+      border-left: 4px solid #ff8f00;
+    }
+    .kcal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .kcal-title { font-weight: 700; font-size: 13px; color: #e65100; }
+    .kcal-target-btn { font-size: 11px; color: #bcaaa4; cursor: pointer; background: none; border: none; padding: 0; }
+    .kcal-row { display: flex; align-items: baseline; gap: 6px; }
+    .kcal-total { font-size: 30px; font-weight: 800; color: #bf360c; line-height: 1; }
+    .kcal-of { font-size: 13px; color: #8d6e63; }
+    .kcal-bar-wrap { background: rgba(230,81,0,0.12); border-radius: 6px; height: 7px; margin: 8px 0 5px; }
+    .kcal-bar { height: 7px; border-radius: 6px; transition: width 0.4s; max-width: 100%; background: #ff8f00; }
+    .kcal-bar.over { background: var(--red); }
+    .kcal-breakdown { font-size: 11px; color: #8d6e63; line-height: 1.7; }
+
+    /* ── GRAFICO TAB ── */
+    .chart-container { padding: 12px 14px; max-width: 600px; margin: 0 auto; }
+    .chart-card { background: white; border-radius: var(--radius); padding: 14px 12px; box-shadow: var(--shadow); margin-bottom: 12px; }
+    .chart-title { font-weight: 800; font-size: 15px; margin-bottom: 12px; }
+    .chart-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .stat-cell { background: var(--gray-light); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+    .stat-label { font-size: 10px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; }
+    .stat-value { font-size: 18px; font-weight: 800; color: #1a1a1a; margin-top: 2px; }
+
+    /* ── CAL KCAL LABEL ── */
+    .cal-kcal { font-size: 8px; font-weight: 700; color: var(--gray); margin-top: 1px; line-height: 1; }
+    .cal-day.today .cal-kcal { color: rgba(255,255,255,0.8); }
   </style>
 </head>
 <body>
@@ -354,6 +384,10 @@
     <span class="nav-icon">🔔</span>
     <span class="nav-label">Avvisi</span>
     <span id="alertBadge" class="nav-badge hidden">0</span>
+  </button>
+  <button class="nav-item" onclick="showView('grafico')" id="nav-grafico">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Grafico</span>
   </button>
 </nav>
 
@@ -407,16 +441,36 @@
       </div>
     </div>
 
+    <!-- Calorie -->
+    <div class="kcal-card">
+      <div class="kcal-header">
+        <div class="kcal-title">🔥 Calorie oggi</div>
+        <button class="kcal-target-btn" onclick="editTarget()">Target: <span id="kcalTargetLabel">2200</span> kcal ✏️</button>
+      </div>
+      <div class="kcal-row">
+        <div class="kcal-total" id="kcalTotal">0</div>
+        <div class="kcal-of" id="kcalOf">/ 2200 kcal</div>
+      </div>
+      <div class="kcal-bar-wrap"><div class="kcal-bar" id="kcalBar" style="width:0%"></div></div>
+      <div class="kcal-breakdown" id="kcalBreakdown">— Nessun pasto registrato</div>
+    </div>
+
     <!-- Pasti -->
     <div id="mealsContainer"></div>
 
     <!-- Pasto libero -->
-    <div class="free-meal-card">
+    <div class="free-meal-card" style="border-radius:var(--radius) var(--radius) 0 0;margin-bottom:0;">
       <div>
         <div class="free-meal-label">🎉 Pasto libero</div>
         <div class="free-meal-sub" id="freeMealSub">Usati questa settimana: 0/2</div>
       </div>
       <div class="toggle-switch" id="freeMealToggle" onclick="toggleFreeMeal()"></div>
+    </div>
+    <div id="freeMealKcalRow" class="hidden" style="padding:8px 16px 12px;background:#fce4ec;border-radius:0 0 var(--radius) var(--radius);margin-bottom:10px;">
+      <label style="font-size:12px;color:#ad1457;font-weight:700;">Stima kcal pasto libero:</label>
+      <input id="freeMealKcalInput" type="number" min="0" max="9999" step="50"
+        style="width:100%;margin-top:4px;padding:7px 10px;border:1.5px solid #f48fb1;border-radius:8px;font-size:15px;font-weight:700;color:#ad1457;"
+        oninput="setFreeMealKcal(+this.value)" placeholder="es. 800">
     </div>
 
     <!-- Regole generali -->
@@ -465,6 +519,23 @@
     <div id="alertsList"></div>
     <div class="alert-section-title">💡 Suggerimenti per oggi</div>
     <div id="suggestionsList"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- VIEW: GRAFICO                                   -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="view-grafico" class="view">
+  <div class="chart-container">
+    <div class="chart-card">
+      <div class="chart-title">📊 Ultimi 7 giorni</div>
+      <svg id="kcalChart" width="100%" viewBox="0 0 350 205" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="chart-stats" id="chartStats"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📅 Ultimi 30 giorni</div>
+      <svg id="kcalChart30" width="100%" viewBox="0 0 350 145" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
   </div>
 </div>
 
@@ -624,6 +695,52 @@ const TRAINING_SUPPLEMENTS = {
   gara:         { durante: 'Idratazione: 500ml 2-3h prima + 250ml 20min prima + 100-150ml ogni 15-20min durante', post: 'Segui le indicazioni della disciplina principale' }
 };
 
+// ════════════════════════════════════════════════════
+// CALORIE
+// ════════════════════════════════════════════════════
+const KCAL_MAP = {
+  // Colazione
+  col_fette: 390, col_toast: 360, col_yogurt: 265,
+  // Spuntino mattina
+  sp_mat: 100,
+  // Pranzo carb
+  pr_c_pane: 330, pr_c_riso: 285, pr_c_cereali: 290,
+  // Pranzo prot
+  pr_p_pesce: 220, pr_p_uova: 215, pr_p_pollo: 235, pr_p_manzo: 285,
+  pr_p_cavallo: 225, pr_p_roastbeef: 340, pr_p_bresaola: 230,
+  pr_p_tofu: 135, pr_p_caprino: 450, pr_p_burger_veg: 280, pr_p_ricotta: 250,
+  // Spuntino pomeriggio
+  sp_pom_pancake: 330, sp_pom_tacchino: 280, sp_pom_hummus: 300,
+  sp_pom_yoeggs: 130, sp_pom_yogurt: 185,
+  // Cena carb
+  ca_c_pasta: 390, ca_c_gnocchi: 285, ca_c_riso: 350,
+  // Cena prot
+  ca_p_tonno: 175, ca_p_legumi: 190, ca_p_prosceco: 240,
+  ca_p_grana: 180, ca_p_ricotta: 230, ca_p_mozz: 160,
+  ca_p_uova: 195, ca_p_pollo: 105, ca_p_tofu: 115, ca_p_tempeh: 195,
+  // Pre-nanna
+  pn_yogurt: 315
+};
+const OIL_KCAL = 180;  // 2 cucchiai EVO per pasto (pranzo/cena)
+const VEG_KCAL = 50;   // stima verdure per pasto (pranzo/cena)
+let kcalTarget = parseInt(localStorage.getItem('kcalTarget') || '2200');
+
+function calcMealKcal(ids) {
+  return (ids || []).reduce((s, id) => s + (KCAL_MAP[id] || 0), 0);
+}
+
+function calcDayKcal(dd) {
+  if (!dd) return 0;
+  let total = 0;
+  for (const [sec, ids] of Object.entries(dd.pasti || {})) {
+    if (!ids?.length) continue;
+    total += calcMealKcal(ids);
+    if (sec === 'pranzo' || sec === 'cena') total += OIL_KCAL + VEG_KCAL;
+  }
+  if (dd.pastoLibero && dd.kcalLibero > 0) total += dd.kcalLibero;
+  return total;
+}
+
 function dateKey(d) { return d.toISOString().split('T')[0]; }
 function today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
 
@@ -648,6 +765,7 @@ function showView(name) {
   document.getElementById('nav-' + name).classList.add('active');
   if (name === 'calendario') renderCalendar();
   if (name === 'avvisi') renderAlerts();
+  if (name === 'grafico') renderGrafico();
 }
 
 function changeDay(delta) {
@@ -695,6 +813,56 @@ function renderDay() {
   // Meals
   buildMeals(dd);
   updateBadge();
+  updateKcalCard(dd);
+}
+
+function updateKcalCard(dd) {
+  const total = calcDayKcal(dd);
+  document.getElementById('kcalTotal').textContent = total;
+  document.getElementById('kcalOf').textContent = `/ ${kcalTarget} kcal`;
+  document.getElementById('kcalTargetLabel').textContent = kcalTarget;
+
+  const pct = Math.min(100, Math.round(total / kcalTarget * 100));
+  const bar = document.getElementById('kcalBar');
+  bar.style.width = pct + '%';
+  bar.className = 'kcal-bar' + (total > kcalTarget ? ' over' : '');
+
+  const secIcons = { colazione:'☀️', spuntino_mattina:'🕙', pranzo:'🍽️', spuntino_pom:'🍎', cena:'🌙', prenanna:'😴' };
+  const pasti = dd.pasti || {};
+  const parts = [];
+  for (const [sec, ids] of Object.entries(pasti)) {
+    if (!ids?.length) continue;
+    let k = calcMealKcal(ids);
+    if (sec === 'pranzo' || sec === 'cena') k += OIL_KCAL + VEG_KCAL;
+    parts.push(`${secIcons[sec] || sec} ${k} kcal`);
+  }
+  if (dd.pastoLibero && dd.kcalLibero > 0) parts.push(`🎉 ${dd.kcalLibero} kcal`);
+  document.getElementById('kcalBreakdown').textContent = parts.join('  ·  ') || '— Nessun pasto registrato';
+
+  const freeRow = document.getElementById('freeMealKcalRow');
+  if (dd.pastoLibero) {
+    freeRow.classList.remove('hidden');
+    const inp = document.getElementById('freeMealKcalInput');
+    inp.value = dd.kcalLibero > 0 ? dd.kcalLibero : '';
+  } else {
+    freeRow.classList.add('hidden');
+  }
+}
+
+function setFreeMealKcal(val) {
+  const dd = dayData(currentDate);
+  dd.kcalLibero = Math.max(0, val || 0);
+  saveLog();
+  updateKcalCard(dd);
+}
+
+function editTarget() {
+  const v = prompt('Obiettivo calorico giornaliero (kcal):', kcalTarget);
+  if (v !== null && !isNaN(+v) && +v > 0) {
+    kcalTarget = Math.round(+v);
+    localStorage.setItem('kcalTarget', kcalTarget);
+    updateKcalCard(dayData(currentDate));
+  }
 }
 
 function buildMeals(dd) {
@@ -727,7 +895,12 @@ function buildMeals(dd) {
     card.id = 'mc-' + sec.key;
 
     const isLogged = allSelected.length > 0;
-    const subtitle = isLogged ? allSelected.map(i => i.nome).slice(0,2).join(', ') : sec.sub;
+    const mealFoodKcal = calcMealKcal(sel);
+    const mealExtras = (sec.key === 'pranzo' || sec.key === 'cena') && sel.length > 0 ? OIL_KCAL + VEG_KCAL : 0;
+    const mealTotalKcal = mealFoodKcal + mealExtras;
+    const subtitle = isLogged
+      ? `${allSelected.map(i => i.nome).slice(0,1).join(', ')} · ${mealTotalKcal} kcal`
+      : sec.sub;
 
     // Collect all unique tags
     const allTags = new Set();
@@ -1089,6 +1262,13 @@ function renderCalendar() {
     const el = document.createElement('div');
     el.className = `cal-day${isToday?' today':''}${hasData?' has-data':''}${trained?' trained':''}`;
     el.textContent = d;
+    const dayKcal = log[k] ? calcDayKcal(log[k]) : 0;
+    if (dayKcal > 0) {
+      const kEl = document.createElement('div');
+      kEl.className = 'cal-kcal';
+      kEl.textContent = dayKcal >= 1000 ? (Math.round(dayKcal / 100) / 10) + 'k' : dayKcal;
+      el.appendChild(kEl);
+    }
     if (trained) { const dot = document.createElement('div'); dot.className='train-dot'; el.appendChild(dot); }
     el.onclick = () => showDayDetail(dt);
     grid.appendChild(el);
@@ -1127,6 +1307,121 @@ function jumpTo(ts) {
   currentDate = new Date(ts); currentDate.setHours(0,0,0,0);
   showView('oggi');
   renderDay();
+}
+
+// ════════════════════════════════════════════════════
+// GRAFICO
+// ════════════════════════════════════════════════════
+function barColor(kcal) {
+  if (!kcal) return '#e0e0e0';
+  if (kcal < 1500) return '#90caf9';
+  if (kcal <= 2200) return '#81c784';
+  if (kcal <= 2600) return '#ffb74d';
+  return '#e57373';
+}
+
+function drawBarChart(svg, days, W, H) {
+  const PAD = { top: 28, bottom: 38, left: 8, right: 8 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+  const n = days.length;
+  const slotW = chartW / n;
+  const barW = Math.max(10, slotW - 8);
+  const maxKcal = Math.max(...days.map(d => d.kcal), kcalTarget, 1);
+  const DAYS_S = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  const todayKey = dateKey(today());
+
+  let s = '';
+
+  // Target line
+  const ty = PAD.top + chartH - (kcalTarget / maxKcal * chartH);
+  s += `<line x1="${PAD.left}" y1="${ty.toFixed(1)}" x2="${W - PAD.right}" y2="${ty.toFixed(1)}" stroke="#ff8f00" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+  s += `<text x="${PAD.left + 3}" y="${(ty - 4).toFixed(1)}" font-size="8" fill="#ff8f00" font-weight="600">target ${kcalTarget}</text>`;
+
+  // Avg line
+  const logged = days.filter(d => d.kcal > 0);
+  if (logged.length > 1) {
+    const avg = Math.round(logged.reduce((a, d) => a + d.kcal, 0) / logged.length);
+    const ay = PAD.top + chartH - (avg / maxKcal * chartH);
+    s += `<line x1="${PAD.left}" y1="${ay.toFixed(1)}" x2="${W - PAD.right}" y2="${ay.toFixed(1)}" stroke="#bdbdbd" stroke-width="1" stroke-dasharray="3,3"/>`;
+    s += `<text x="${W - PAD.right - 2}" y="${(ay - 3).toFixed(1)}" text-anchor="end" font-size="8" fill="#9e9e9e">media ${avg}</text>`;
+  }
+
+  days.forEach((d, i) => {
+    const isTod = dateKey(d.date) === todayKey;
+    const x = PAD.left + i * slotW + (slotW - barW) / 2;
+    const barH = d.kcal ? Math.max(4, d.kcal / maxKcal * chartH) : 2;
+    const y = PAD.top + chartH - barH;
+    const fill = isTod ? '#2d7a3a' : barColor(d.kcal);
+
+    s += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="${barH.toFixed(1)}" rx="3" fill="${fill}"/>`;
+    if (d.kcal > 0) s += `<text x="${(x + barW/2).toFixed(1)}" y="${(y - 4).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#424242">${d.kcal}</text>`;
+
+    const gname = DAYS_S[d.date.getDay()];
+    s += `<text x="${(x + barW/2).toFixed(1)}" y="${(PAD.top + chartH + 14).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="${isTod ? '800' : '600'}" fill="${isTod ? '#2d7a3a' : '#757575'}">${gname}</text>`;
+    s += `<text x="${(x + barW/2).toFixed(1)}" y="${(PAD.top + chartH + 26).toFixed(1)}" text-anchor="middle" font-size="8" fill="#bdbdbd">${d.date.getDate()}</text>`;
+  });
+
+  svg.innerHTML = s;
+}
+
+function drawMiniChart(svg, days, W, H) {
+  const PAD = { top: 18, bottom: 22, left: 6, right: 6 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+  const n = days.length;
+  const slotW = chartW / n;
+  const barW = Math.max(3, slotW - 2);
+  const maxKcal = Math.max(...days.map(d => d.kcal), kcalTarget, 1);
+  const todayKey = dateKey(today());
+
+  let s = '';
+  const ty = PAD.top + chartH - (kcalTarget / maxKcal * chartH);
+  s += `<line x1="${PAD.left}" y1="${ty.toFixed(1)}" x2="${W - PAD.right}" y2="${ty.toFixed(1)}" stroke="#ff8f00" stroke-width="1" stroke-dasharray="3,2"/>`;
+
+  days.forEach((d, i) => {
+    if (!d.kcal) return;
+    const isTod = dateKey(d.date) === todayKey;
+    const x = PAD.left + i * slotW;
+    const barH = Math.max(2, d.kcal / maxKcal * chartH);
+    const y = PAD.top + chartH - barH;
+    s += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="1.5" fill="${isTod ? '#2d7a3a' : barColor(d.kcal)}"/>`;
+    if (i % 5 === 0 || isTod) {
+      s += `<text x="${(x + barW/2).toFixed(1)}" y="${(PAD.top + chartH + 14).toFixed(1)}" text-anchor="middle" font-size="8" fill="${isTod ? '#2d7a3a' : '#bdbdbd'}">${d.date.getDate()}</text>`;
+    }
+  });
+
+  svg.innerHTML = s;
+}
+
+function renderGrafico() {
+  // 7 giorni
+  const days7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today()); d.setDate(d.getDate() - i);
+    const k = dateKey(d);
+    days7.push({ date: d, kcal: log[k] ? calcDayKcal(log[k]) : 0 });
+  }
+  drawBarChart(document.getElementById('kcalChart'), days7, 350, 205);
+
+  const lg = days7.filter(d => d.kcal > 0);
+  const avg = lg.length ? Math.round(lg.reduce((s, d) => s + d.kcal, 0) / lg.length) : 0;
+  const max = lg.length ? Math.max(...lg.map(d => d.kcal)) : 0;
+  const min = lg.length ? Math.min(...lg.map(d => d.kcal)) : 0;
+  document.getElementById('chartStats').innerHTML = `
+    <div class="stat-cell"><div class="stat-label">Media 7gg</div><div class="stat-value">${avg || '—'}</div></div>
+    <div class="stat-cell"><div class="stat-label">Massimo</div><div class="stat-value">${max || '—'}</div></div>
+    <div class="stat-cell"><div class="stat-label">Minimo</div><div class="stat-value">${min || '—'}</div></div>
+  `;
+
+  // 30 giorni
+  const days30 = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today()); d.setDate(d.getDate() - i);
+    const k = dateKey(d);
+    days30.push({ date: d, kcal: log[k] ? calcDayKcal(log[k]) : 0 });
+  }
+  drawMiniChart(document.getElementById('kcalChart30'), days30, 350, 145);
 }
 
 // ════════════════════════════════════════════════════
