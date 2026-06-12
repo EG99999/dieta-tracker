@@ -347,6 +347,38 @@
     .stat-label { font-size: 10px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; }
     .stat-value { font-size: 18px; font-weight: 800; color: #1a1a1a; margin-top: 2px; }
 
+    /* ── EXTRA FOODS ── */
+    .extra-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; background: #fff8e1;
+      border-radius: 8px; border: 1.5px solid #ffe082; margin-bottom: 4px;
+    }
+    .extra-item-name { flex: 1; font-size: 13px; font-weight: 600; color: #5d4037; }
+    .extra-item-kcal { font-size: 12px; color: #8d6e63; white-space: nowrap; }
+    .extra-remove { background: none; border: none; color: #bcaaa4; cursor: pointer; font-size: 18px; padding: 0 2px; line-height: 1; }
+    .add-extra-btn {
+      width: 100%; padding: 9px; border: 1.5px dashed #e0e0e0;
+      border-radius: 8px; background: none; color: #9e9e9e;
+      font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;
+      text-align: center;
+    }
+    .add-extra-form {
+      margin-top: 6px; padding: 10px; background: var(--gray-light);
+      border-radius: 8px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .extra-input {
+      padding: 9px 10px; border: 1.5px solid #e0e0e0; border-radius: 8px;
+      font-size: 14px; background: white; width: 100%;
+    }
+    .extra-save-btn {
+      padding: 9px; background: var(--green); color: white;
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .extra-cancel-btn {
+      padding: 7px; background: none; color: var(--gray);
+      border: 1px solid #e0e0e0; border-radius: 8px; font-size: 12px; cursor: pointer;
+    }
+
     /* ── CAL KCAL LABEL ── */
     .cal-kcal { font-size: 8px; font-weight: 700; color: var(--gray); margin-top: 1px; line-height: 1; }
     .cal-day.today .cal-kcal { color: rgba(255,255,255,0.8); }
@@ -695,6 +727,16 @@ const TRAINING_SUPPLEMENTS = {
   gara:         { durante: 'Idratazione: 500ml 2-3h prima + 250ml 20min prima + 100-150ml ogni 15-20min durante', post: 'Segui le indicazioni della disciplina principale' }
 };
 
+// Mapping section → gruppi di item per radio-behavior (un solo item per gruppo)
+const SECTION_GROUPS = () => ({
+  colazione:        [DIET.colazione],
+  spuntino_mattina: [DIET.spuntino_mattina],
+  pranzo:           [DIET.pranzo_carb, DIET.pranzo_prot],
+  spuntino_pom:     [DIET.spuntino_pom],
+  cena:             [DIET.cena_all_carb, DIET.cena_all_prot],
+  prenanna:         [DIET.prenanna],
+});
+
 // ════════════════════════════════════════════════════
 // CALORIE
 // ════════════════════════════════════════════════════
@@ -732,10 +774,15 @@ function calcMealKcal(ids) {
 function calcDayKcal(dd) {
   if (!dd) return 0;
   let total = 0;
-  for (const [sec, ids] of Object.entries(dd.pasti || {})) {
-    if (!ids?.length) continue;
+  const extra = dd.extra || {};
+  const allSecs = new Set([...Object.keys(dd.pasti || {}), ...Object.keys(extra)]);
+  for (const sec of allSecs) {
+    const ids = (dd.pasti || {})[sec] || [];
+    const exs = extra[sec] || [];
+    if (!ids.length && !exs.length) continue;
     total += calcMealKcal(ids);
-    if (sec === 'pranzo' || sec === 'cena') total += OIL_KCAL + VEG_KCAL;
+    total += exs.reduce((s, e) => s + (e.kcal || 0), 0);
+    if ((sec === 'pranzo' || sec === 'cena') && (ids.length || exs.length)) total += OIL_KCAL + VEG_KCAL;
   }
   if (dd.pastoLibero && dd.kcalLibero > 0) total += dd.kcalLibero;
   return total;
@@ -829,11 +876,16 @@ function updateKcalCard(dd) {
 
   const secIcons = { colazione:'☀️', spuntino_mattina:'🕙', pranzo:'🍽️', spuntino_pom:'🍎', cena:'🌙', prenanna:'😴' };
   const pasti = dd.pasti || {};
+  const extra = dd.extra || {};
   const parts = [];
-  for (const [sec, ids] of Object.entries(pasti)) {
-    if (!ids?.length) continue;
+  const allSecs = new Set([...Object.keys(pasti), ...Object.keys(extra)]);
+  for (const sec of allSecs) {
+    const ids = pasti[sec] || [];
+    const exs = extra[sec] || [];
+    if (!ids.length && !exs.length) continue;
     let k = calcMealKcal(ids);
-    if (sec === 'pranzo' || sec === 'cena') k += OIL_KCAL + VEG_KCAL;
+    k += exs.reduce((s, e) => s + (e.kcal || 0), 0);
+    if ((sec === 'pranzo' || sec === 'cena') && (ids.length || exs.length)) k += OIL_KCAL + VEG_KCAL;
     parts.push(`${secIcons[sec] || sec} ${k} kcal`);
   }
   if (dd.pastoLibero && dd.kcalLibero > 0) parts.push(`🎉 ${dd.kcalLibero} kcal`);
@@ -894,12 +946,15 @@ function buildMeals(dd) {
     card.className = 'meal-card';
     card.id = 'mc-' + sec.key;
 
-    const isLogged = allSelected.length > 0;
+    const extraItems = (dd.extra || {})[sec.key] || [];
+    const extraKcal = extraItems.reduce((s, e) => s + (e.kcal || 0), 0);
+    const isLogged = allSelected.length > 0 || extraItems.length > 0;
     const mealFoodKcal = calcMealKcal(sel);
-    const mealExtras = (sec.key === 'pranzo' || sec.key === 'cena') && sel.length > 0 ? OIL_KCAL + VEG_KCAL : 0;
-    const mealTotalKcal = mealFoodKcal + mealExtras;
+    const mealExtras = (sec.key === 'pranzo' || sec.key === 'cena') && isLogged ? OIL_KCAL + VEG_KCAL : 0;
+    const mealTotalKcal = mealFoodKcal + mealExtras + extraKcal;
+    const firstLabel = allSelected[0]?.nome || extraItems[0]?.name || '';
     const subtitle = isLogged
-      ? `${allSelected.map(i => i.nome).slice(0,1).join(', ')} · ${mealTotalKcal} kcal`
+      ? (firstLabel ? `${firstLabel} · ` : '') + `${mealTotalKcal} kcal`
       : sec.sub;
 
     // Collect all unique tags
@@ -938,6 +993,28 @@ function buildMeals(dd) {
       }
       bodyHtml += `</div>`;
     }
+
+    // Extra items (fuori dieta)
+    if (extraItems.length > 0) {
+      bodyHtml += `<div class="subsec-label" style="margin-top:10px">Fuori dieta</div>`;
+      for (const ex of extraItems) {
+        bodyHtml += `<div class="extra-item">
+          <div class="extra-item-name">🍴 ${ex.name}</div>
+          ${ex.kcal ? `<div class="extra-item-kcal">${ex.kcal} kcal</div>` : ''}
+          <button class="extra-remove" onclick="removeExtra('${sec.key}','${ex.id}');event.stopPropagation()">✕</button>
+        </div>`;
+      }
+    }
+
+    // Aggiungi alimento extra
+    bodyHtml += `
+      <button class="add-extra-btn" onclick="showAddExtra('${sec.key}');event.stopPropagation()">＋ Aggiungi alimento fuori dieta</button>
+      <div class="add-extra-form hidden" id="af-${sec.key}">
+        <input class="extra-input" type="text" id="ai-${sec.key}" placeholder="Nome alimento (es. toast crema e marmellata)">
+        <input class="extra-input" type="number" id="ak-${sec.key}" placeholder="kcal stimati (opzionale)" min="0" step="10">
+        <button class="extra-save-btn" onclick="saveExtra('${sec.key}')">✓ Salva</button>
+        <button class="extra-cancel-btn" onclick="hideAddExtra('${sec.key}')">Annulla</button>
+      </div>`;
 
     card.innerHTML = `
       <div class="meal-header" onclick="toggleMeal('${sec.key}')">
@@ -988,13 +1065,67 @@ function toggleFood(sectionKey, itemId) {
   const dd = dayData(currentDate);
   if (!dd.pasti[sectionKey]) dd.pasti[sectionKey] = [];
   const idx = dd.pasti[sectionKey].indexOf(itemId);
-  if (idx >= 0) dd.pasti[sectionKey].splice(idx, 1);
-  else dd.pasti[sectionKey].push(itemId);
+  if (idx >= 0) {
+    // Deselect (toggle off)
+    dd.pasti[sectionKey].splice(idx, 1);
+  } else {
+    // Radio: rimuovi altri item dello stesso gruppo prima di aggiungere
+    const groups = SECTION_GROUPS()[sectionKey] || [];
+    const group = groups.find(g => g.some(i => i.id === itemId));
+    if (group) {
+      const groupIds = group.map(i => i.id);
+      dd.pasti[sectionKey] = dd.pasti[sectionKey].filter(id => !groupIds.includes(id));
+    }
+    dd.pasti[sectionKey].push(itemId);
+  }
   saveLog();
   renderDay();
-  // Re-open the card that was toggled
   setTimeout(() => {
     const card = document.getElementById('mc-' + sectionKey);
+    if (card) card.classList.add('open');
+  }, 10);
+}
+
+function showAddExtra(sec) {
+  const form = document.getElementById('af-' + sec);
+  if (form) form.classList.remove('hidden');
+}
+
+function hideAddExtra(sec) {
+  const form = document.getElementById('af-' + sec);
+  if (form) form.classList.add('hidden');
+  const ni = document.getElementById('ai-' + sec);
+  const nk = document.getElementById('ak-' + sec);
+  if (ni) ni.value = '';
+  if (nk) nk.value = '';
+}
+
+function saveExtra(sec) {
+  const nameEl = document.getElementById('ai-' + sec);
+  const kcalEl = document.getElementById('ak-' + sec);
+  const name = nameEl?.value.trim();
+  if (!name) { nameEl?.focus(); return; }
+  const kcal = Math.max(0, parseInt(kcalEl?.value) || 0);
+  const dd = dayData(currentDate);
+  if (!dd.extra) dd.extra = {};
+  if (!dd.extra[sec]) dd.extra[sec] = [];
+  dd.extra[sec].push({ id: 'ex_' + Date.now(), name, kcal });
+  saveLog();
+  renderDay();
+  setTimeout(() => {
+    const card = document.getElementById('mc-' + sec);
+    if (card) card.classList.add('open');
+  }, 10);
+}
+
+function removeExtra(sec, exId) {
+  const dd = dayData(currentDate);
+  if (!dd.extra?.[sec]) return;
+  dd.extra[sec] = dd.extra[sec].filter(e => e.id !== exId);
+  saveLog();
+  renderDay();
+  setTimeout(() => {
+    const card = document.getElementById('mc-' + sec);
     if (card) card.classList.add('open');
   }, 10);
 }
