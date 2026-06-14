@@ -569,6 +569,25 @@
     .scorta-details { display: flex; justify-content: space-between; font-size: 11px; color: var(--gray); }
     .scorta-empty { text-align: center; padding: 36px 20px; color: #bdbdbd; font-size: 14px; line-height: 1.8; }
 
+    /* ── UPDATE OVERLAY ── */
+    #updateOverlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    #updateOverlay.hidden { display: none; }
+    .update-box {
+      background: white; border-radius: 18px; padding: 28px 24px;
+      max-width: 300px; width: 90%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .update-icon { font-size: 40px; margin-bottom: 12px; }
+    .update-title { font-size: 17px; font-weight: 700; color: #1b1b1b; margin-bottom: 8px; }
+    .update-msg { font-size: 14px; color: #757575; margin-bottom: 22px; line-height: 1.5; }
+    .update-btn {
+      width: 100%; padding: 14px; background: var(--green); color: white;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+    }
+
     /* ── SHOPPING LIST ── */
     .spesa-container { padding: 12px 14px; max-width: 600px; margin: 0 auto; }
     .spesa-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
@@ -3268,8 +3287,38 @@ if (shoppingList.length === 0) generateWeeklyShopping();
 renderDay();
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            document.getElementById('updateOverlay').classList.remove('hidden');
+          }
+        });
+      });
+    }).catch(() => {});
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+  });
+}
+
+function applyUpdate() {
+  navigator.serviceWorker.ready.then(reg => {
+    if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+  });
 }
 </script>
+
+<div id="updateOverlay" class="hidden">
+  <div class="update-box">
+    <div class="update-icon">🔄</div>
+    <div class="update-title">Aggiornamento disponibile</div>
+    <div class="update-msg">È disponibile una nuova versione dell'app. Premi OK per aggiornare.</div>
+    <button class="update-btn" onclick="applyUpdate()">OK — Aggiorna ora</button>
+  </div>
+</div>
 </body>
 </html>

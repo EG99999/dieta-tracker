@@ -1,9 +1,9 @@
-const CACHE = 'dieta-v5';
+const CACHE = 'dieta-v6';
 const ASSETS = ['/dieta-tracker/', '/dieta-tracker/index.html', '/dieta-tracker/manifest.json', '/dieta-tracker/sw.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  self.skipWaiting();
+  // NON skipWaiting: aspetta che l'utente confermi l'aggiornamento
 });
 
 self.addEventListener('activate', e => {
@@ -11,6 +11,10 @@ self.addEventListener('activate', e => {
     Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
   ));
   self.clients.claim();
+});
+
+self.addEventListener('message', e => {
+  if (e.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
 // Network-first: prova sempre la rete, usa cache solo se offline
