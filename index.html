@@ -379,6 +379,69 @@
       border: 1px solid #e0e0e0; border-radius: 8px; font-size: 12px; cursor: pointer;
     }
 
+    /* ── WEIGHT CARD ── */
+    .weight-card {
+      background: white; border-radius: var(--radius);
+      padding: 13px 16px; margin-bottom: 10px; box-shadow: var(--shadow);
+    }
+    .weight-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .weight-label { font-weight: 700; font-size: 15px; }
+    .weight-trend { font-size: 13px; font-weight: 700; min-width: 80px; text-align: right; }
+    .weight-trend.up { color: var(--orange); }
+    .weight-trend.down { color: var(--green); }
+    .weight-trend.same { color: var(--gray); }
+    .weight-input-row { display: flex; align-items: center; gap: 8px; }
+    .weight-input {
+      width: 90px; padding: 8px 10px; border: 1.5px solid #e0e0e0;
+      border-radius: 10px; font-size: 17px; font-weight: 700; text-align: center;
+    }
+    .weight-input:focus { border-color: var(--green); outline: none; }
+    .weight-save-btn {
+      padding: 9px 16px; background: var(--green); color: white;
+      border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .weight-display { margin-top: 5px; font-size: 12px; color: var(--gray); }
+
+    /* ── CUSTOM FOODS MODAL ── */
+    .custom-mgr-btn {
+      display: block; width: calc(100% - 28px); margin: 6px 14px 14px;
+      padding: 9px; border: 1.5px solid var(--green); border-radius: 10px;
+      background: white; color: var(--green); font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
+    }
+    .custom-mgr-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 300; display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .custom-mgr-sheet {
+      background: white; border-radius: 20px 20px 0 0;
+      max-height: 85vh; display: flex; flex-direction: column;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.2); padding: 16px 18px 24px; overflow-y: auto;
+    }
+    .custom-mgr-title { font-weight: 800; font-size: 16px; margin-bottom: 14px; }
+    .custom-mgr-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .custom-mgr-row { display: flex; gap: 7px; }
+    .cf-input {
+      padding: 10px 12px; border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 14px; background: white; flex: 1;
+    }
+    .cf-input.sm { flex: 0 0 80px; }
+    .cf-input:focus { border-color: var(--green); outline: none; }
+    .cf-add-btn {
+      width: 100%; padding: 12px; background: var(--green); color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer;
+    }
+    .cf-list { display: flex; flex-direction: column; }
+    .cf-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+    .cf-item-info { flex: 1; }
+    .cf-item-name { font-weight: 700; font-size: 14px; }
+    .cf-item-meta { font-size: 11px; color: #9e9e9e; margin-top: 1px; }
+    .cf-del { background: none; border: none; color: #ef9a9a; cursor: pointer; font-size: 20px; padding: 0; line-height: 1; }
+    .cf-empty { text-align: center; color: #9e9e9e; font-size: 13px; padding: 16px 0; }
+    .custom-mgr-close {
+      width: 100%; padding: 11px; background: #f5f5f5; color: #616161;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px;
+    }
+
     /* ── CAL KCAL LABEL ── */
     .cal-kcal { font-size: 8px; font-weight: 700; color: var(--gray); margin-top: 1px; line-height: 1; }
     .cal-day.today .cal-kcal { color: rgba(255,255,255,0.8); }
@@ -477,6 +540,91 @@
       width: 100%; padding: 11px; background: #616161; color: white;
       border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
     }
+
+    /* ── SPESA SUB-TABS ── */
+    .spesa-subtabs { display: flex; background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 4px; margin-bottom: 12px; gap: 4px; }
+    .spesa-subtab { flex: 1; padding: 9px; border: none; background: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--gray); transition: all 0.2s; }
+    .spesa-subtab.active { background: var(--green); color: white; }
+
+    /* ── SCORTA ── */
+    .scorta-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+    .scorta-add-btn { flex: 1; padding: 9px 10px; border: 1.5px solid var(--green); border-radius: 9px; background: white; color: var(--green); font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+    .scorta-gen-btn { flex: 1; padding: 9px 10px; border: 1.5px solid var(--blue); border-radius: 9px; background: white; color: var(--blue); font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+    .scorta-summary { font-size: 13px; color: var(--gray); font-weight: 600; margin-bottom: 8px; }
+    .scorta-list { display: flex; flex-direction: column; gap: 8px; }
+    .scorta-item { background: white; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .scorta-item.esaurito { opacity: 0.6; }
+    .scorta-item-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .scorta-item-name { flex: 1; font-size: 14px; font-weight: 700; }
+    .scorta-status { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px; white-space: nowrap; }
+    .scorta-status.ok { background: var(--green-bg); color: var(--green); }
+    .scorta-status.low { background: var(--orange-bg); color: var(--orange); }
+    .scorta-status.esaurito { background: var(--red-bg); color: var(--red); }
+    .scorta-del { background: none; border: none; color: #d0d0d0; cursor: pointer; font-size: 18px; padding: 0; line-height: 1; flex-shrink: 0; }
+    .scorta-progress-wrap { background: #f0f0f0; border-radius: 6px; height: 7px; margin-bottom: 5px; overflow: hidden; }
+    .scorta-progress { height: 7px; border-radius: 6px; transition: width 0.4s; }
+    .scorta-progress.ok       { background: var(--green-light); }
+    .scorta-progress.low      { background: var(--orange); }
+    .scorta-progress.esaurito { background: var(--red); width: 100% !important; }
+    .scorta-details { display: flex; justify-content: space-between; font-size: 11px; color: var(--gray); }
+    .scorta-empty { text-align: center; padding: 36px 20px; color: #bdbdbd; font-size: 14px; line-height: 1.8; }
+
+    /* ── SHOPPING LIST ── */
+    .spesa-container { padding: 12px 14px; max-width: 600px; margin: 0 auto; }
+    .spesa-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+    .spesa-summary { font-size: 13px; color: var(--gray); font-weight: 600; flex: 1; }
+    .spesa-catalog-btn {
+      padding: 7px 12px; border: 1.5px solid var(--green); border-radius: 9px;
+      background: white; color: var(--green); font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+    }
+    .spesa-add-bar {
+      display: flex; gap: 7px; margin-bottom: 10px;
+      background: white; border-radius: var(--radius); padding: 10px 12px; box-shadow: var(--shadow);
+    }
+    .spesa-add-input {
+      flex: 1; padding: 9px 11px; border: 1.5px solid #e0e0e0;
+      border-radius: 9px; font-size: 14px; background: #fafafa; min-width: 0;
+    }
+    .spesa-add-input:focus { border-color: var(--green); outline: none; background: white; }
+    .spesa-add-qty {
+      width: 62px; padding: 9px 8px; border: 1.5px solid #e0e0e0;
+      border-radius: 9px; font-size: 13px; text-align: center; background: #fafafa;
+    }
+    .spesa-add-qty:focus { border-color: var(--green); outline: none; background: white; }
+    .spesa-add-btn {
+      padding: 9px 16px; background: var(--green); color: white;
+      border: none; border-radius: 9px; font-size: 16px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+    }
+    .spesa-list { display: flex; flex-direction: column; gap: 5px; }
+    .spesa-section-label {
+      font-size: 11px; font-weight: 800; color: #9e9e9e;
+      text-transform: uppercase; letter-spacing: 0.6px; padding: 6px 2px 2px;
+    }
+    .spesa-item {
+      display: flex; align-items: center; gap: 10px;
+      background: white; border-radius: 12px; padding: 11px 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07); transition: opacity 0.2s;
+    }
+    .spesa-item.checked { opacity: 0.45; }
+    .spesa-check {
+      width: 26px; height: 26px; border-radius: 50%; border: 2px solid #d0d0d0;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; font-size: 13px; transition: all 0.2s;
+    }
+    .spesa-item.checked .spesa-check { background: var(--green); border-color: var(--green); color: white; }
+    .spesa-item-info { flex: 1; min-width: 0; }
+    .spesa-item-name { font-size: 14px; font-weight: 600; }
+    .spesa-item.checked .spesa-item-name { text-decoration: line-through; }
+    .spesa-item-qty { font-size: 12px; color: var(--gray); margin-top: 1px; }
+    .spesa-del { background: none; border: none; color: #d0d0d0; cursor: pointer; font-size: 19px; padding: 0 2px; line-height: 1; flex-shrink: 0; }
+    .spesa-del:active { color: var(--red); }
+    .spesa-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .spesa-action-btn {
+      flex: 1; padding: 9px 10px; border: 1.5px solid #e0e0e0; border-radius: 9px;
+      background: white; font-size: 12px; font-weight: 700; cursor: pointer; color: #616161; text-align: center;
+    }
+    .spesa-action-btn.danger { border-color: #ffcdd2; color: var(--red); }
+    .spesa-empty { text-align: center; padding: 44px 20px; color: #bdbdbd; font-size: 14px; line-height: 1.7; }
   </style>
 </head>
 <body>
@@ -515,6 +663,11 @@
   <button class="nav-item" onclick="showView('grafico')" id="nav-grafico">
     <span class="nav-icon">📊</span>
     <span class="nav-label">Grafico</span>
+  </button>
+  <button class="nav-item" onclick="showView('spesa')" id="nav-spesa">
+    <span class="nav-icon">🛒</span>
+    <span class="nav-label">Spesa</span>
+    <span id="spesaBadge" class="nav-badge hidden">0</span>
   </button>
 </nav>
 
@@ -575,6 +728,20 @@
         <button class="water-btn" onclick="addWater(500)">+500</button>
         <button class="water-btn minus" onclick="addWater(-250)">−</button>
       </div>
+    </div>
+
+    <!-- Peso -->
+    <div class="weight-card">
+      <div class="weight-header">
+        <div class="weight-label">⚖️ Peso corporeo</div>
+        <div id="weightTrend" class="weight-trend same"></div>
+      </div>
+      <div class="weight-input-row">
+        <input type="number" id="weightInput" class="weight-input" min="20" max="300" step="0.1" placeholder="—">
+        <span style="font-size:14px;color:var(--gray);font-weight:600;">kg</span>
+        <button class="weight-save-btn" onclick="saveWeight()">Salva</button>
+      </div>
+      <div id="weightDisplay" class="weight-display"></div>
     </div>
 
     <!-- Calorie -->
@@ -673,6 +840,50 @@
       <div class="chart-title">📅 Ultimi 30 giorni</div>
       <svg id="kcalChart30" width="100%" viewBox="0 0 350 145" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
+    <div class="chart-card">
+      <div class="chart-title">⚖️ Peso corporeo · ultimi 30 giorni</div>
+      <svg id="weightChart" width="100%" viewBox="0 0 350 160" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="chart-stats" id="weightStats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- VIEW: SPESA                                     -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="view-spesa" class="view">
+  <div class="spesa-container">
+    <!-- Sub-tab navigation -->
+    <div class="spesa-subtabs">
+      <button class="spesa-subtab active" id="subtab-lista" onclick="toggleSpesaTab('lista')">📋 Lista spesa</button>
+      <button class="spesa-subtab" id="subtab-scorta" onclick="toggleSpesaTab('scorta')">🥗 Scorta</button>
+    </div>
+
+    <!-- TAB: LISTA SPESA -->
+    <div id="spesa-lista-section">
+      <div class="spesa-topbar">
+        <div class="spesa-summary" id="spesaSummary">Lista vuota</div>
+        <button class="spesa-catalog-btn" onclick="openCatalogForSpesa()">📋 Dal catalogo</button>
+      </div>
+      <div class="spesa-add-bar">
+        <input type="text" id="spesaInput" class="spesa-add-input" placeholder="Aggiungi articolo..."
+          onkeydown="if(event.key==='Enter')addSpesaItem()">
+        <input type="text" id="spesaQty" class="spesa-add-qty" placeholder="qtà">
+        <button class="spesa-add-btn" onclick="addSpesaItem()">＋</button>
+      </div>
+      <div id="spesaList"></div>
+      <div id="spesaActions" class="spesa-actions"></div>
+    </div>
+
+    <!-- TAB: SCORTA -->
+    <div id="spesa-scorta-section" class="hidden">
+      <div class="scorta-actions">
+        <button class="scorta-add-btn" onclick="openCatalogForScorta()">＋ Ho già in casa</button>
+        <button class="scorta-gen-btn" onclick="generateWeeklyShopping()">📋 Genera lista settimana</button>
+      </div>
+      <div id="scortaSummary" class="scorta-summary"></div>
+      <div id="scortaList" class="scorta-list"></div>
+    </div>
   </div>
 </div>
 
@@ -708,6 +919,26 @@
       <input type="number" id="manualKcal" class="manual-input" placeholder="kcal stimate (opzionale)" min="0" step="10">
       <button class="manual-add-btn" onclick="confirmManualItem()">✓ Aggiungi</button>
     </div>
+    <button class="custom-mgr-btn" onclick="openCustomMgr()">⭐ I miei alimenti (marche e preferiti)</button>
+  </div>
+</div>
+
+<!-- CUSTOM FOODS MANAGER -->
+<div id="customMgrOverlay" class="custom-mgr-overlay hidden" onclick="if(event.target===this)closeCustomMgr()">
+  <div class="custom-mgr-sheet">
+    <div class="custom-mgr-title">⭐ I miei alimenti</div>
+    <div style="font-size:12px;color:#9e9e9e;margin-bottom:12px;">Salva alimenti con nomi commerciali, marche o ricette. Appariranno nelle ricerche del catalogo.</div>
+    <div class="custom-mgr-form">
+      <input type="text" id="cfName" class="cf-input" placeholder="Nome alimento (es. Yogurt Fage 0% Total)">
+      <div class="custom-mgr-row">
+        <input type="text" id="cfBrand" class="cf-input" placeholder="Marca (opzionale)">
+        <input type="number" id="cfKcal" class="cf-input sm" placeholder="kcal/100g" min="0">
+        <input type="number" id="cfGrams" class="cf-input sm" placeholder="g tipici" min="0">
+      </div>
+      <button class="cf-add-btn" onclick="addCustomFood()">＋ Aggiungi alimento</button>
+    </div>
+    <div class="cf-list" id="cfList"></div>
+    <button class="custom-mgr-close" onclick="closeCustomMgr()">Chiudi</button>
   </div>
 </div>
 
@@ -1521,6 +1752,139 @@ const FC_ITEMS = [
 const FC_CAT_EMOJI = Object.fromEntries(FC_CATS.map(c => [c.id, c.e]));
 let catalogCtx = { sec:null, activeCat:'tutti', query:'', sel:null };
 
+// ════════════════════════════════════════════════════
+// DIET → SCORTA: porzione (grammi) per ogni pasto pianificato
+// ════════════════════════════════════════════════════
+const DIET_TO_SCORTA = {
+  col_fette:         { fcId:'fc_pane_bauletto',     g:90  },
+  col_toast:         { fcId:'fc_pane_bauletto',     g:60  },
+  col_yogurt:        { fcId:'fc_yogurt_greco_0',    g:170 },
+  sp_mat:            { fcId:'fc_yogurt_proteico',   g:200 },
+  pr_c_pane:         { fcId:'fc_pane_integrale',    g:70  },
+  pr_c_riso:         { fcId:'fc_riso_basmati',      g:80  },
+  pr_c_cereali:      { fcId:'fc_farro_cotto',       g:80  },
+  pr_p_pesce:        { fcId:'fc_branzino',          g:275 },
+  pr_p_uova:         { fcId:'fc_uovo_intero',       g:180 },
+  pr_p_pollo:        { fcId:'fc_pollo_petto',       g:225 },
+  pr_p_manzo:        { fcId:'fc_manzo_magro',       g:225 },
+  pr_p_cavallo:      { fcId:'fc_cavallo',           g:225 },
+  pr_p_roastbeef:    { fcId:'fc_roastbeef',         g:200 },
+  pr_p_bresaola:     { fcId:'fc_bresaola',          g:100 },
+  pr_p_tofu:         { fcId:'fc_tofu_nat',          g:175 },
+  pr_p_ricotta:      { fcId:'fc_ricotta_vacc',      g:200 },
+  pr_p_caprino:      { fcId:'fc_caprino_fresco',    g:100 },
+  pr_p_burger_veg:   { fcId:'fc_tofu_nat',          g:175 },
+  sp_pom_yogurt:     { fcId:'fc_yogurt_greco_0',    g:170 },
+  sp_pom_pancake:    { fcId:'fc_avena_fiocchi',     g:40  },
+  sp_pom_tacchino:   { fcId:'fc_fesa_tacchino',     g:40  },
+  sp_pom_hummus:     { fcId:'fc_hummus',            g:100 },
+  sp_pom_yoeggs:     { fcId:'fc_uovo_intero',       g:60  },
+  ca_c_pasta:        { fcId:'fc_pasta_int_cotta',   g:95  },
+  ca_c_gnocchi:      { fcId:'fc_gnocchi',           g:225 },
+  ca_c_riso:         { fcId:'fc_farro_cotto',       g:95  },
+  ca_p_tonno:        { fcId:'fc_tonno_acq',         g:160 },
+  ca_p_legumi:       { fcId:'fc_lenticchie',        g:160 },
+  ca_p_prosceco:     { fcId:'fc_prosciutto_cotto',  g:80  },
+  ca_p_grana:        { fcId:'fc_grana',             g:40  },
+  ca_p_ricotta:      { fcId:'fc_ricotta_vacc',      g:200 },
+  ca_p_mozz:         { fcId:'fc_mozzarella_light',  g:125 },
+  ca_p_uova:         { fcId:'fc_uovo_intero',       g:150 },
+  ca_p_pollo:        { fcId:'fc_pollo_petto',       g:100 },
+  ca_p_tofu:         { fcId:'fc_tofu_nat',          g:150 },
+  ca_p_tempeh:       { fcId:'fc_tempeh',            g:100 },
+  prenanna:          { fcId:'fc_yogurt_greco_0',    g:170 },
+};
+
+// ════════════════════════════════════════════════════
+// LISTA SPESA SETTIMANALE TIPO (porzioni aggregate × 7gg)
+// ════════════════════════════════════════════════════
+const WEEKLY_PLAN_INGREDIENTS = [
+  // ─── Proteine ───
+  { fcId:'fc_pollo_petto',      name:'Petto di pollo',                   grams:500,  display:'~500g (3 pasti)' },
+  { fcId:'fc_tonno_acq',        name:'Tonno in acqua',                   grams:480,  display:'3 scatolette da 160g' },
+  { fcId:'fc_branzino',         name:'Pesce fresco (merluzzo / branzino)', grams:300, display:'~300g' },
+  { fcId:'fc_uovo_intero',      name:'Uova bio',                         grams:600,  display:'10 uova (max 4 pasti/sett)' },
+  { fcId:'fc_bresaola',         name:'Bresaola',                         grams:100,  display:'100g' },
+  { fcId:'fc_mozzarella_light', name:'Mozzarella light',                 grams:250,  display:'2 pz da 125g' },
+  { fcId:'fc_ricotta_vacc',     name:'Ricotta / Fiocchi di latte',       grams:400,  display:'400g' },
+  { fcId:'fc_lenticchie',       name:'Lenticchie (lattina / secche)',    grams:480,  display:'3 lattine o 200g secche' },
+  // ─── Latticini ───
+  { fcId:'fc_yogurt_greco_0',   name:'Yogurt greco 0%',                  grams:1530, display:'9 vasetti da 170g' },
+  { fcId:'fc_yogurt_proteico',  name:'Yogurt proteico (Milk Pro/Milbona)', grams:1400, display:'7 vasetti da 200g' },
+  // ─── Carboidrati ───
+  { fcId:'fc_pane_bauletto',    name:'Pan bauletto integrale',            grams:300,  display:'1-2 confezioni' },
+  { fcId:'fc_pasta_int_cotta',  name:'Pasta integrale / saraceno / kamut', grams:500, display:'500g (cruda)' },
+  { fcId:'fc_riso_basmati',     name:'Riso basmati',                     grams:500,  display:'500g' },
+  { fcId:'fc_farro_cotto',      name:'Farro o Orzo',                     grams:500,  display:'500g (crudo)' },
+  { fcId:'fc_pane_integrale',   name:'Pane integrale',                   grams:280,  display:'~280g' },
+  { fcId:'fc_gnocchi',          name:'Gnocchi di patate',                grams:500,  display:'1 confezione 500g' },
+  // ─── Verdure base ───
+  { fcId:'fc_insalata',         name:'Insalata mista',                   grams:700,  display:'3-4 buste' },
+  { fcId:'fc_pomodori',         name:'Pomodori',                         grams:500,  display:'500g' },
+  { fcId:'fc_zucchine',         name:'Zucchine',                         grams:400,  display:'4-5 pz' },
+  // ─── Condimenti ───
+  { fcId:'fc_olio_evo',         name:'Olio EVO',                         grams:140,  display:'14 cucchiai (~140ml)' },
+  // ─── Avena / Semi ───
+  { fcId:'fc_avena_fiocchi',    name:'Fiocchi di avena',                 grams:200,  display:'200g' },
+  { fcId:'fc_semi_chia',        name:'Semi misti (chia / girasole / zucca)', grams:100, display:'100g' },
+];
+
+// ════════════════════════════════════════════════════
+// CUSTOM FOODS
+// ════════════════════════════════════════════════════
+let customFoods = [];
+
+function loadCustomFoods() {
+  try { customFoods = JSON.parse(localStorage.getItem('customFoods') || '[]'); } catch { customFoods = []; }
+}
+function saveCustomFoods() { localStorage.setItem('customFoods', JSON.stringify(customFoods)); }
+
+function openCustomMgr() {
+  renderCfList();
+  ['cfName','cfBrand','cfKcal','cfGrams'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('customMgrOverlay').classList.remove('hidden');
+}
+function closeCustomMgr() {
+  document.getElementById('customMgrOverlay').classList.add('hidden');
+  renderCatalogList(); // aggiorna il catalogo con eventuali nuovi alimenti
+}
+
+function addCustomFood() {
+  const name = document.getElementById('cfName').value.trim();
+  if (!name) { document.getElementById('cfName').focus(); return; }
+  const brand = document.getElementById('cfBrand').value.trim();
+  const k = Math.max(0, parseInt(document.getElementById('cfKcal').value) || 0);
+  const p = Math.max(1, parseInt(document.getElementById('cfGrams').value) || 100);
+  const fullName = brand ? `${name} — ${brand}` : name;
+  customFoods.unshift({ id: 'cf_' + Date.now(), n: fullName, k, p, custom: true });
+  saveCustomFoods();
+  ['cfName','cfBrand','cfKcal','cfGrams'].forEach(id => document.getElementById(id).value = '');
+  renderCfList();
+}
+
+function deleteCustomFood(id) {
+  if (!confirm('Eliminare questo alimento?')) return;
+  customFoods = customFoods.filter(f => f.id !== id);
+  saveCustomFoods();
+  renderCfList();
+}
+
+function renderCfList() {
+  const el = document.getElementById('cfList');
+  if (!customFoods.length) {
+    el.innerHTML = '<div class="cf-empty">Nessun alimento personalizzato salvato.</div>';
+    return;
+  }
+  el.innerHTML = customFoods.map(f => `
+    <div class="cf-item">
+      <div class="cf-item-info">
+        <div class="cf-item-name">⭐ ${f.n}</div>
+        <div class="cf-item-meta">${f.k} kcal/100g · porzione tipica: ${f.p}g</div>
+      </div>
+      <button class="cf-del" onclick="deleteCustomFood('${f.id}')">✕</button>
+    </div>`).join('');
+}
+
 function calcMealKcal(ids) {
   return (ids || []).reduce((s, id) => s + (KCAL_MAP[id] || 0), 0);
 }
@@ -1567,6 +1931,7 @@ function showView(name) {
   if (name === 'calendario') renderCalendar();
   if (name === 'avvisi') renderAlerts();
   if (name === 'grafico') renderGrafico();
+  if (name === 'spesa') { renderSpesa(); if (currentSpesaTab === 'scorta') renderScorta(); }
 }
 
 function changeDay(delta) {
@@ -1619,6 +1984,9 @@ function renderDay() {
   const freeCount = weeklyCount(currentDate, 'pastoLibero');
   document.getElementById('freeMealSub').textContent = `Usati questa settimana: ${freeCount}/2`;
   document.getElementById('freeMealToggle').className = 'toggle-switch' + (dd.pastoLibero ? ' on' : '');
+
+  // Weight
+  renderWeightCard();
 
   // Meals
   buildMeals(dd);
@@ -1769,7 +2137,7 @@ function buildMeals(dd) {
               <div class="opt-badges">${badges}</div>
             </div>
             <div class="opt-desc">${it.desc}</div>
-            <div class="opt-check">${isSelected?'✓':''}</div>
+            <div class="opt-check">${isSelected?'✕':''}</div>
           </div>`;
       }
       bodyHtml += `</div>`;
@@ -1839,18 +2207,34 @@ function toggleFood(sectionKey, itemId) {
   const dd = dayData(currentDate);
   if (!dd.pasti[sectionKey]) dd.pasti[sectionKey] = [];
   const idx = dd.pasti[sectionKey].indexOf(itemId);
+  const isToday = currentDate === dateKey(today());
+
   if (idx >= 0) {
-    // Deselect (toggle off)
     dd.pasti[sectionKey].splice(idx, 1);
+    if (isToday) {
+      const mapping = DIET_TO_SCORTA[itemId];
+      if (mapping) consumeFromScorta(mapping.fcId, mapping.g, true);
+    }
   } else {
     // Radio: rimuovi altri item dello stesso gruppo prima di aggiungere
     const groups = SECTION_GROUPS()[sectionKey] || [];
     const group = groups.find(g => g.some(i => i.id === itemId));
     if (group) {
       const groupIds = group.map(i => i.id);
+      const removed = dd.pasti[sectionKey].filter(id => groupIds.includes(id));
       dd.pasti[sectionKey] = dd.pasti[sectionKey].filter(id => !groupIds.includes(id));
+      if (isToday) {
+        for (const rid of removed) {
+          const m = DIET_TO_SCORTA[rid];
+          if (m) consumeFromScorta(m.fcId, m.g, true);
+        }
+      }
     }
     dd.pasti[sectionKey].push(itemId);
+    if (isToday) {
+      const mapping = DIET_TO_SCORTA[itemId];
+      if (mapping) consumeFromScorta(mapping.fcId, mapping.g, false);
+    }
   }
   saveLog();
   renderDay();
@@ -1873,10 +2257,16 @@ function openCatalog(sec) {
 
 function closeCatalog() {
   document.getElementById('catalogOverlay').classList.add('hidden');
+  document.getElementById('catalogOverlay').querySelector('.catalog-title').textContent = '＋ Aggiungi alimento';
+  document.querySelector('.manual-title').textContent = '✏️ Aggiungi manuale';
+  document.getElementById('manualKcal').placeholder = 'kcal';
 }
 
 function renderCatalogCats() {
   let html = `<button class="cat-chip ${catalogCtx.activeCat==='tutti'?'active':''}" onclick="setCatalogCat('tutti')">Tutti</button>`;
+  if (customFoods.length > 0) {
+    html += `<button class="cat-chip ${catalogCtx.activeCat==='miei'?'active':''}" onclick="setCatalogCat('miei')">⭐ I miei</button>`;
+  }
   for (const c of FC_CATS) {
     html += `<button class="cat-chip ${catalogCtx.activeCat===c.id?'active':''}" onclick="setCatalogCat('${c.id}')">${c.e} ${c.label}</button>`;
   }
@@ -1903,19 +2293,32 @@ function filterCatalog(q) {
 function renderCatalogList() {
   const q = catalogCtx.query;
   const cat = catalogCtx.activeCat;
-  const items = FC_ITEMS.filter(it => {
+
+  // Custom foods
+  const custItems = customFoods.filter(f => {
+    if (cat === 'miei') return true;
+    if (q) return f.n.toLowerCase().includes(q);
+    return cat === 'tutti'; // mostra in "Tutti" senza query
+  });
+
+  // Standard items
+  const stdItems = cat === 'miei' ? [] : FC_ITEMS.filter(it => {
     if (cat !== 'tutti' && it.c !== cat) return false;
     if (q) return it.n.toLowerCase().includes(q);
     return true;
   });
+
+  const items = [...custItems, ...stdItems];
+
   let html = '';
   if (!items.length) {
     html = `<div class="cat-empty">Nessun risultato${q ? ` per "<strong>${q}</strong>"` : ''}</div>`;
   } else {
     for (const it of items) {
       const isSel = catalogCtx.sel?.id === it.id;
+      const emoji = it.custom ? '⭐' : (FC_CAT_EMOJI[it.c] || '🍴');
       html += `<div class="cat-item${isSel?' sel':''}" onclick="selectCatalogItem('${it.id}')">
-        <div class="ci-emoji">${FC_CAT_EMOJI[it.c]||'🍴'}</div>
+        <div class="ci-emoji">${emoji}</div>
         <div class="ci-info">
           <div class="ci-name">${it.n}</div>
           <div class="ci-meta">${it.k} kcal/100g &nbsp;·&nbsp; tipica: ${it.p}g</div>
@@ -1929,11 +2332,12 @@ function renderCatalogList() {
 }
 
 function selectCatalogItem(id) {
-  const food = FC_ITEMS.find(i => i.id === id);
+  const food = FC_ITEMS.find(i => i.id === id) || customFoods.find(f => f.id === id);
   if (!food) return;
   catalogCtx.sel = food;
   renderCatalogList();
-  document.getElementById('confFoodName').textContent = (FC_CAT_EMOJI[food.c]||'🍴') + ' ' + food.n;
+  const emoji = food.custom ? '⭐' : (FC_CAT_EMOJI[food.c] || '🍴');
+  document.getElementById('confFoodName').textContent = emoji + ' ' + food.n;
   document.getElementById('confGrams').value = food.p;
   document.getElementById('catalogManualPanel').classList.add('hidden');
   document.getElementById('catalogConfirm').classList.remove('hidden');
@@ -1950,7 +2354,20 @@ function updateConfirmKcal() {
 function confirmCatalogItem() {
   const food = catalogCtx.sel;
   if (!food) return;
-  const g = Math.max(1, parseInt(document.getElementById('confGrams').value)||food.p);
+  const g = Math.max(1, parseInt(document.getElementById('confGrams').value) || food.p);
+  if (catalogCtx.sec === '__spesa__') {
+    shoppingList.unshift({ id: 'sl_' + Date.now(), name: food.n, qty: g + 'g', checked: false, fcId: food.id, grams: g });
+    saveShoppingList();
+    closeCatalog();
+    renderSpesa();
+    return;
+  }
+  if (catalogCtx.sec === '__scorta__') {
+    addToScorta(food.id, food.n, g);
+    closeCatalog();
+    renderScorta();
+    return;
+  }
   const kcal = Math.round(food.k * g / 100);
   addExtraItem(catalogCtx.sec, `${food.n} (${g}g)`, kcal);
   closeCatalog();
@@ -1970,7 +2387,21 @@ function showManualPanel() {
 function confirmManualItem() {
   const name = document.getElementById('manualName').value.trim();
   if (!name) { document.getElementById('manualName').focus(); return; }
-  const kcal = Math.max(0, parseInt(document.getElementById('manualKcal').value)||0);
+  if (catalogCtx.sec === '__spesa__') {
+    shoppingList.unshift({ id: 'sl_' + Date.now(), name, qty: '', checked: false });
+    saveShoppingList();
+    closeCatalog();
+    renderSpesa();
+    return;
+  }
+  if (catalogCtx.sec === '__scorta__') {
+    const g = Math.max(1, parseInt(document.getElementById('manualKcal').value) || 100);
+    addToScorta('custom_' + Date.now(), name, g);
+    closeCatalog();
+    renderScorta();
+    return;
+  }
+  const kcal = Math.max(0, parseInt(document.getElementById('manualKcal').value) || 0);
   addExtraItem(catalogCtx.sec, name, kcal);
   closeCatalog();
 }
@@ -2031,6 +2462,49 @@ function renderSupplCard(dd) {
   if (s.post)    html += `<br><strong>Post:</strong> ${s.post}`;
   body.innerHTML = html;
   card.classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════════════
+// WEIGHT
+// ════════════════════════════════════════════════════
+function renderWeightCard() {
+  const dd = dayData(currentDate);
+  const inp = document.getElementById('weightInput');
+  const disp = document.getElementById('weightDisplay');
+  const trendEl = document.getElementById('weightTrend');
+
+  inp.value = dd.peso > 0 ? dd.peso : '';
+
+  if (dd.peso > 0) {
+    let prev = null;
+    for (let i = 1; i <= 60; i++) {
+      const d = new Date(currentDate); d.setDate(d.getDate() - i);
+      const k = dateKey(d);
+      if (log[k]?.peso > 0) { prev = log[k].peso; break; }
+    }
+    disp.textContent = `Registrato: ${dd.peso} kg`;
+    if (prev !== null) {
+      const diff = Math.round((dd.peso - prev) * 10) / 10;
+      trendEl.className = 'weight-trend ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'same');
+      trendEl.textContent = diff > 0 ? `▲ +${diff} kg` : diff < 0 ? `▼ ${diff} kg` : '→ stabile';
+    } else {
+      trendEl.className = 'weight-trend same';
+      trendEl.textContent = '';
+    }
+  } else {
+    disp.textContent = 'Nessun peso registrato oggi';
+    trendEl.className = 'weight-trend same';
+    trendEl.textContent = '';
+  }
+}
+
+function saveWeight() {
+  const val = parseFloat(document.getElementById('weightInput').value);
+  if (!val || val < 20 || val > 300) { document.getElementById('weightInput').select(); return; }
+  const dd = dayData(currentDate);
+  dd.peso = Math.round(val * 10) / 10;
+  saveLog();
+  renderWeightCard();
 }
 
 // ════════════════════════════════════════════════════
@@ -2432,7 +2906,7 @@ function renderGrafico() {
     ` : ''}
   `;
 
-  // 30 giorni
+  // 30 giorni calorie
   const days30 = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date(today()); d.setDate(d.getDate() - i);
@@ -2440,12 +2914,363 @@ function renderGrafico() {
     days30.push({ date: d, kcal: log[k] ? calcDayKcal(log[k]) : 0 });
   }
   drawMiniChart(document.getElementById('kcalChart30'), days30, 350, 145);
+
+  // 30 giorni peso
+  const wdays = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today()); d.setDate(d.getDate() - i);
+    const k = dateKey(d);
+    wdays.push({ date: d, peso: log[k]?.peso || 0 });
+  }
+  drawWeightChart(document.getElementById('weightChart'), wdays, 350, 160);
+  const wlogged = wdays.filter(d => d.peso > 0).map(d => d.peso);
+  document.getElementById('weightStats').innerHTML = wlogged.length > 0 ? `
+    <div class="stat-cell"><div class="stat-label">Ultimo</div><div class="stat-value">${wlogged[wlogged.length-1]} kg</div></div>
+    <div class="stat-cell"><div class="stat-label">Min</div><div class="stat-value">${Math.min(...wlogged)} kg</div></div>
+    <div class="stat-cell"><div class="stat-label">Max</div><div class="stat-value">${Math.max(...wlogged)} kg</div></div>
+  ` : `<div class="stat-cell" style="grid-column:1/-1"><div class="stat-label" style="font-size:12px;color:#9e9e9e;text-align:center">Inserisci il peso nella sezione Oggi per visualizzare il grafico</div></div>`;
+}
+
+function drawWeightChart(svg, days, W, H) {
+  const PAD = { top: 22, bottom: 26, left: 32, right: 8 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+  const n = days.length;
+  const logged = days.filter(d => d.peso > 0);
+  if (logged.length < 2) {
+    svg.innerHTML = `<text x="${W/2}" y="${H/2+5}" text-anchor="middle" font-size="12" fill="#bdbdbd">Nessun dato peso disponibile</text>`;
+    return;
+  }
+  const weights = logged.map(d => d.peso);
+  const minW = Math.min(...weights);
+  const maxW = Math.max(...weights);
+  const pad = Math.max(0.3, (maxW - minW) * 0.1) || 0.5;
+  const lo = minW - pad;
+  const hi = maxW + pad;
+  const range = hi - lo;
+  const toX = i => PAD.left + (i / (n - 1)) * chartW;
+  const toY = w => PAD.top + chartH - ((w - lo) / range * chartH);
+  const todayKey = dateKey(today());
+  let s = '';
+
+  // Y axis labels
+  [lo + pad * 0.5, (lo + hi) / 2, hi - pad * 0.5].forEach(w => {
+    const y = toY(w);
+    s += `<text x="${PAD.left - 3}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="8" fill="#bdbdbd">${Math.round(w * 10) / 10}</text>`;
+    s += `<line x1="${PAD.left}" y1="${y.toFixed(1)}" x2="${W - PAD.right}" y2="${y.toFixed(1)}" stroke="#f0f0f0" stroke-width="1"/>`;
+  });
+
+  // Polyline through logged points only
+  const pts = days.reduce((acc, d, i) => {
+    if (!d.peso) return acc;
+    return [...acc, `${toX(i).toFixed(1)},${toY(d.peso).toFixed(1)}`];
+  }, []);
+  s += `<polyline points="${pts.join(' ')}" fill="none" stroke="#2d7a3a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+  // Area fill
+  const first = days.findIndex(d => d.peso > 0);
+  const last = days.map(d => d.peso > 0).lastIndexOf(true);
+  const areaBottom = PAD.top + chartH;
+  const areapts = days.slice(first, last + 1).reduce((acc, d, i) => {
+    if (!d.peso) return acc;
+    return [...acc, `${toX(first + i).toFixed(1)},${toY(d.peso).toFixed(1)}`];
+  }, []);
+  if (areapts.length > 1) {
+    const xl = toX(last).toFixed(1);
+    const xf = toX(first).toFixed(1);
+    s += `<polygon points="${areapts.join(' ')} ${xl},${areaBottom} ${xf},${areaBottom}" fill="rgba(45,122,58,0.08)"/>`;
+  }
+
+  // Dots + labels
+  days.forEach((d, i) => {
+    if (!d.peso) return;
+    const x = toX(i); const y = toY(d.peso);
+    const isTod = dateKey(d.date) === todayKey;
+    s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isTod ? 5 : 3}" fill="${isTod ? '#2d7a3a' : '#81c784'}" stroke="white" stroke-width="1.5"/>`;
+    if (isTod || i === first || i === last) {
+      const lx = Math.min(W - PAD.right - 15, Math.max(PAD.left + 5, x));
+      s += `<text x="${lx.toFixed(1)}" y="${(y - 8).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#2d7a3a">${d.peso}</text>`;
+      s += `<text x="${x.toFixed(1)}" y="${(PAD.top + chartH + 17).toFixed(1)}" text-anchor="middle" font-size="8" fill="${isTod ? '#2d7a3a' : '#bdbdbd'}">${d.date.getDate()}</text>`;
+    }
+  });
+
+  svg.innerHTML = s;
+}
+
+// ════════════════════════════════════════════════════
+// SCORTA SETTIMANALE
+// ════════════════════════════════════════════════════
+let scorta = [];
+let currentSpesaTab = 'lista';
+
+function loadScorta() {
+  try { scorta = JSON.parse(localStorage.getItem('scorta') || '[]'); } catch { scorta = []; }
+}
+function saveScorta() { localStorage.setItem('scorta', JSON.stringify(scorta)); }
+
+function addToScorta(fcId, name, grams) {
+  const existing = scorta.find(i => i.fcId === fcId);
+  if (existing) {
+    existing.totalG += grams;
+  } else {
+    scorta.push({ id: 'sc_' + Date.now() + Math.random(), fcId, name, totalG: grams, consumedG: 0 });
+  }
+  saveScorta();
+  updateScortaTabLabel();
+}
+
+function removeFromScortaStock(fcId, grams) {
+  const item = scorta.find(i => i.fcId === fcId);
+  if (!item) return;
+  item.totalG = Math.max(item.consumedG, item.totalG - grams);
+  if (item.totalG <= 0 && item.consumedG <= 0) scorta = scorta.filter(i => i.fcId !== fcId);
+  saveScorta();
+  updateScortaTabLabel();
+}
+
+function consumeFromScorta(fcId, grams, refund = false) {
+  const item = scorta.find(i => i.fcId === fcId);
+  if (!item) return;
+  if (refund) {
+    item.consumedG = Math.max(0, item.consumedG - grams);
+  } else {
+    item.consumedG = Math.min(item.totalG, item.consumedG + grams);
+  }
+  saveScorta();
+  updateScortaTabLabel();
+  if (currentSpesaTab === 'scorta') renderScorta();
+}
+
+function deleteScortaItem(id) {
+  scorta = scorta.filter(i => i.id !== id);
+  saveScorta();
+  renderScorta();
+}
+
+function updateScortaTabLabel() {
+  const btn = document.getElementById('subtab-scorta');
+  if (!btn) return;
+  const esauriti = scorta.filter(i => i.totalG - i.consumedG <= 0 && i.totalG > 0).length;
+  btn.textContent = `🥗 Scorta${scorta.length > 0 ? ' (' + scorta.length + ')' : ''}${esauriti > 0 ? ' ⚠️' + esauriti : ''}`;
+}
+
+function toggleSpesaTab(tab) {
+  currentSpesaTab = tab;
+  document.getElementById('spesa-lista-section').classList.toggle('hidden', tab !== 'lista');
+  document.getElementById('spesa-scorta-section').classList.toggle('hidden', tab !== 'scorta');
+  document.getElementById('subtab-lista').classList.toggle('active', tab === 'lista');
+  document.getElementById('subtab-scorta').classList.toggle('active', tab === 'scorta');
+  if (tab === 'scorta') renderScorta();
+  if (tab === 'lista') renderSpesa();
+}
+
+function renderScorta() {
+  const listEl = document.getElementById('scortaList');
+  const summaryEl = document.getElementById('scortaSummary');
+  if (!listEl) return;
+  updateScortaTabLabel();
+  if (!scorta.length) {
+    summaryEl.textContent = '';
+    listEl.innerHTML = '<div class="scorta-empty">🥗<br><br>Scorta vuota.<br>Usa <strong>"Ho già in casa"</strong> per aggiungere ingredienti,<br>oppure <strong>"Genera lista settimana"</strong> → fai la spesa → spunta gli articoli acquistati.</div>';
+    return;
+  }
+  const disponibili = scorta.filter(i => i.totalG - i.consumedG > 0);
+  const esauriti    = scorta.filter(i => i.totalG - i.consumedG <= 0);
+  summaryEl.textContent = `${disponibili.length} disponibili · ${esauriti.length} esauriti`;
+  let html = disponibili.map(renderScortaItem).join('');
+  if (esauriti.length) {
+    html += `<div class="spesa-section-label" style="margin-top:10px">⚠️ Esauriti</div>`;
+    html += esauriti.map(renderScortaItem).join('');
+  }
+  listEl.innerHTML = html;
+}
+
+function renderScortaItem(item) {
+  const remaining = Math.max(0, item.totalG - item.consumedG);
+  const availPct  = item.totalG > 0 ? Math.round(remaining / item.totalG * 100) : 0;
+  let statusClass, statusLabel;
+  if (remaining <= 0)        { statusClass = 'esaurito'; statusLabel = 'Esaurito'; }
+  else if (availPct <= 25)   { statusClass = 'low';      statusLabel = 'In esaurimento'; }
+  else                        { statusClass = 'ok';       statusLabel = 'Disponibile'; }
+
+  // Stima porzioni rimaste
+  const entries = Object.values(DIET_TO_SCORTA).filter(e => e.fcId === item.fcId);
+  const avgG = entries.length ? entries.reduce((s, e) => s + e.g, 0) / entries.length : 0;
+  const portionText = avgG > 0 && remaining > 0
+    ? `~${Math.floor(remaining / avgG)} porz. · ${remaining}g rimasti`
+    : `${remaining}g rimasti`;
+
+  return `<div class="scorta-item${statusClass === 'esaurito' ? ' esaurito' : ''}">
+    <div class="scorta-item-header">
+      <div class="scorta-item-name">${item.name}</div>
+      <span class="scorta-status ${statusClass}">${statusLabel}</span>
+      <button class="scorta-del" onclick="deleteScortaItem('${item.id}')">✕</button>
+    </div>
+    <div class="scorta-progress-wrap">
+      <div class="scorta-progress ${statusClass}" style="width:${Math.max(2, availPct)}%"></div>
+    </div>
+    <div class="scorta-details">
+      <span>${portionText}</span>
+      <span style="color:#bdbdbd">${item.totalG}g totali</span>
+    </div>
+  </div>`;
+}
+
+function openCatalogForScorta() {
+  catalogCtx = { sec: '__scorta__', activeCat: 'tutti', query: '', sel: null };
+  document.getElementById('catalogSearch').value = '';
+  document.getElementById('catalogOverlay').querySelector('.catalog-title').textContent = '🥗 Ho già in casa';
+  document.querySelector('.manual-title').textContent = '✏️ Aggiungi manuale';
+  document.getElementById('manualKcal').placeholder = 'Quantità disponibile (g)';
+  renderCatalogCats();
+  renderCatalogList();
+  document.getElementById('catalogConfirm').classList.add('hidden');
+  document.getElementById('catalogManualPanel').classList.add('hidden');
+  document.getElementById('catalogOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('catalogSearch').focus(), 120);
+}
+
+function generateWeeklyShopping() {
+  let added = 0;
+  for (const tpl of WEEKLY_PLAN_INGREDIENTS) {
+    const exists = shoppingList.some(i => i.fcId === tpl.fcId && !i.checked);
+    if (!exists) {
+      shoppingList.push({
+        id: 'sl_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+        name: tpl.name, qty: tpl.display,
+        checked: false, fcId: tpl.fcId, grams: tpl.grams,
+      });
+      added++;
+    }
+  }
+  saveShoppingList();
+  toggleSpesaTab('lista');
+  renderSpesa();
+  if (added === 0) alert('Tutti gli ingredienti settimanali sono già in lista!');
+}
+
+// ════════════════════════════════════════════════════
+// SHOPPING LIST
+// ════════════════════════════════════════════════════
+let shoppingList = [];
+
+function loadShoppingList() {
+  try { shoppingList = JSON.parse(localStorage.getItem('shoppingList') || '[]'); } catch { shoppingList = []; }
+}
+function saveShoppingList() { localStorage.setItem('shoppingList', JSON.stringify(shoppingList)); }
+
+function renderSpesa() {
+  const unchecked = shoppingList.filter(i => !i.checked);
+  const checked   = shoppingList.filter(i =>  i.checked);
+
+  // summary + badge
+  const summaryEl = document.getElementById('spesaSummary');
+  summaryEl.textContent = shoppingList.length
+    ? `${unchecked.length} da comprare · ${checked.length} acquistati`
+    : 'Lista vuota';
+  const badge = document.getElementById('spesaBadge');
+  badge.textContent = unchecked.length;
+  badge.className = 'nav-badge' + (unchecked.length > 0 ? '' : ' hidden');
+
+  // list
+  const listEl = document.getElementById('spesaList');
+  if (!shoppingList.length) {
+    listEl.innerHTML = '<div class="spesa-empty">🛒<br><br>Lista vuota.<br>Aggiungi articoli con il campo sopra<br>o importa direttamente dal catalogo alimenti.</div>';
+  } else {
+    let html = unchecked.map(renderSpesaItem).join('');
+    if (checked.length) {
+      html += `<div class="spesa-section-label" style="margin-top:${unchecked.length?'8px':'0'}">✓ Acquistati</div>`;
+      html += checked.map(renderSpesaItem).join('');
+    }
+    listEl.innerHTML = html;
+  }
+
+  // actions
+  const actEl = document.getElementById('spesaActions');
+  let acts = '';
+  if (checked.length)         acts += `<button class="spesa-action-btn" onclick="clearCheckedSpesa()">🗑 Cancella acquistati (${checked.length})</button>`;
+  if (shoppingList.length)    acts += `<button class="spesa-action-btn danger" onclick="clearAllSpesa()">Svuota lista</button>`;
+  actEl.innerHTML = acts;
+  updateScortaTabLabel();
+}
+
+function renderSpesaItem(item) {
+  const qty = item.qty ? `<div class="spesa-item-qty">${item.qty}</div>` : '';
+  return `<div class="spesa-item${item.checked ? ' checked' : ''}">
+    <div class="spesa-check" onclick="toggleSpesaItem('${item.id}')">${item.checked ? '✓' : ''}</div>
+    <div class="spesa-item-info">
+      <div class="spesa-item-name">${item.name}</div>${qty}
+    </div>
+    <button class="spesa-del" onclick="deleteSpesaItem('${item.id}')">✕</button>
+  </div>`;
+}
+
+function addSpesaItem() {
+  const nameEl = document.getElementById('spesaInput');
+  const qtyEl  = document.getElementById('spesaQty');
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  shoppingList.unshift({ id: 'sl_' + Date.now(), name, qty: qtyEl.value.trim(), checked: false });
+  saveShoppingList();
+  nameEl.value = ''; qtyEl.value = '';
+  nameEl.focus();
+  renderSpesa();
+}
+
+function toggleSpesaItem(id) {
+  const item = shoppingList.find(i => i.id === id);
+  if (!item) return;
+  const wasChecked = item.checked;
+  item.checked = !wasChecked;
+  if (item.fcId && item.grams) {
+    if (item.checked) {
+      addToScorta(item.fcId, item.name, item.grams);
+    } else {
+      removeFromScortaStock(item.fcId, item.grams);
+    }
+  }
+  saveShoppingList();
+  renderSpesa();
+}
+
+function deleteSpesaItem(id) {
+  shoppingList = shoppingList.filter(i => i.id !== id);
+  saveShoppingList();
+  renderSpesa();
+}
+
+function clearCheckedSpesa() {
+  shoppingList = shoppingList.filter(i => !i.checked);
+  saveShoppingList();
+  renderSpesa();
+}
+
+function clearAllSpesa() {
+  if (!confirm('Svuotare tutta la lista della spesa?')) return;
+  shoppingList = [];
+  saveShoppingList();
+  renderSpesa();
+}
+
+function openCatalogForSpesa() {
+  catalogCtx = { sec: '__spesa__', activeCat: 'tutti', query: '', sel: null };
+  document.getElementById('catalogSearch').value = '';
+  document.getElementById('catalogOverlay').querySelector('.catalog-title').textContent = '🛒 Aggiungi alla spesa';
+  renderCatalogCats();
+  renderCatalogList();
+  document.getElementById('catalogConfirm').classList.add('hidden');
+  document.getElementById('catalogManualPanel').classList.add('hidden');
+  document.getElementById('catalogOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('catalogSearch').focus(), 120);
 }
 
 // ════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════
 loadLog();
+loadCustomFoods();
+loadShoppingList();
+loadScorta();
 renderDay();
 
 if ('serviceWorker' in navigator) {
