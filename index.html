@@ -863,13 +863,6 @@
     <div id="spesa-lista-section">
       <div class="spesa-topbar">
         <div class="spesa-summary" id="spesaSummary">Lista vuota</div>
-        <button class="spesa-catalog-btn" onclick="openCatalogForSpesa()">📋 Dal catalogo</button>
-      </div>
-      <div class="spesa-add-bar">
-        <input type="text" id="spesaInput" class="spesa-add-input" placeholder="Aggiungi articolo..."
-          onkeydown="if(event.key==='Enter')addSpesaItem()">
-        <input type="text" id="spesaQty" class="spesa-add-qty" placeholder="qtà">
-        <button class="spesa-add-btn" onclick="addSpesaItem()">＋</button>
       </div>
       <div id="spesaList"></div>
       <div id="spesaActions" class="spesa-actions"></div>
@@ -3271,6 +3264,7 @@ loadLog();
 loadCustomFoods();
 loadShoppingList();
 loadScorta();
+if (shoppingList.length === 0) generateWeeklyShopping();
 renderDay();
 
 if ('serviceWorker' in navigator) {
