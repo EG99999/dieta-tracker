@@ -1,4 +1,4 @@
-const CACHE = 'dieta-v6';
+const CACHE = 'dieta-v7';
 const ASSETS = ['/dieta-tracker/', '/dieta-tracker/index.html', '/dieta-tracker/manifest.json', '/dieta-tracker/sw.js'];
 
 self.addEventListener('install', e => {
