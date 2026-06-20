@@ -2128,12 +2128,14 @@ function renderDay() {
 }
 
 function updateKcalCard(dd) {
-  const total = calcDayKcal(dd);
+  const intake = calcDayKcal(dd);
+  const burned = dd.kcalBruciate || 0;
+  const total = intake - burned;   // numero grande = bilancio NETTO (cibo − bruciate)
   document.getElementById('kcalTotal').textContent = total;
   document.getElementById('kcalOf').textContent = `/ ${kcalTarget} kcal`;
   document.getElementById('kcalTargetLabel').textContent = kcalTarget;
 
-  const pct = Math.min(100, Math.round(total / kcalTarget * 100));
+  const pct = Math.max(0, Math.min(100, Math.round(total / kcalTarget * 100)));
   const bar = document.getElementById('kcalBar');
   bar.style.width = pct + '%';
   bar.className = 'kcal-bar' + (total > kcalTarget ? ' over' : '');
@@ -2153,12 +2155,10 @@ function updateKcalCard(dd) {
     parts.push(`${secIcons[sec] || sec} ${k} kcal`);
   }
   if (dd.pastoLibero && dd.kcalLibero > 0) parts.push(`🎉 ${dd.kcalLibero} kcal`);
-  // Bilancio bruciate
-  const burned = dd.kcalBruciate || 0;
+  // Dettaglio entrate/uscite (il numero grande è già il netto)
   const bilancioEl = document.getElementById('kcalBilancio');
   if (burned > 0) {
-    const net = total - burned;
-    bilancioEl.innerHTML = `🏋️ Bruciate: <strong>−${burned}</strong> kcal &nbsp;·&nbsp; Bilancio netto: <strong>${net > 0 ? '+' : ''}${net}</strong> kcal`;
+    bilancioEl.innerHTML = `🍽️ Mangiate: <strong>${intake}</strong> kcal &nbsp;·&nbsp; 🏋️ Bruciate: <strong>−${burned}</strong> kcal`;
     bilancioEl.classList.remove('hidden');
   } else {
     bilancioEl.classList.add('hidden');
