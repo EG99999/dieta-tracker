@@ -442,6 +442,39 @@
       border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px;
     }
 
+    /* ── SETTINGS ── */
+    .gear-btn {
+      background: rgba(255,255,255,0.22); border: none; color: white;
+      width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+      font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center;
+    }
+    .gear-btn:active { background: rgba(255,255,255,0.4); }
+    .set-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 350; display: flex; flex-direction: column; justify-content: flex-end; }
+    .set-overlay.hidden { display: none; }
+    .set-sheet { background: #f0f1f3; border-radius: 20px 20px 0 0; max-height: 88vh; overflow-y: auto; box-shadow: 0 -4px 24px rgba(0,0,0,0.2); padding: 16px 16px 28px; }
+    .set-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .set-head-title { font-weight: 800; font-size: 18px; }
+    .set-x { background: none; border: none; font-size: 20px; color: #9e9e9e; cursor: pointer; line-height: 1; }
+    .set-section { background: white; border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .set-section-title { font-weight: 800; font-size: 14px; margin-bottom: 10px; }
+    .set-status { font-size: 13px; line-height: 1.5; color: #424242; margin-bottom: 6px; }
+    .set-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 8px; }
+    .set-btn.primary { background: var(--green); color: white; }
+    .set-btn.secondary { background: var(--blue-bg); color: var(--blue); }
+    .set-btn.neutral { background: #f0f0f0; color: #555; }
+    .set-row { display: flex; align-items: center; gap: 10px; }
+    .set-label { flex: 1; font-size: 14px; font-weight: 600; }
+    .set-num { width: 92px; padding: 9px 10px; border: 1.5px solid #e0e0e0; border-radius: 9px; font-size: 15px; font-weight: 700; text-align: right; }
+    .set-switch { position: relative; width: 46px; height: 28px; flex: 0 0 auto; }
+    .set-switch input { opacity: 0; width: 0; height: 0; }
+    .set-switch span { position: absolute; inset: 0; background: #ccc; border-radius: 28px; transition: .2s; cursor: pointer; }
+    .set-switch span::before { content:''; position: absolute; width: 22px; height: 22px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: .2s; }
+    .set-switch input:checked + span { background: var(--green); }
+    .set-switch input:checked + span::before { transform: translateX(18px); }
+    .set-hint { font-size: 11px; color: #9e9e9e; margin-top: 8px; line-height: 1.5; }
+    .sync-toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%) translateY(20px); background: #323232; color: white; padding: 10px 18px; border-radius: 22px; font-size: 13px; font-weight: 600; z-index: 9998; opacity: 0; pointer-events: none; transition: .25s; max-width: 90%; text-align: center; }
+    .sync-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
     /* ── CAL KCAL LABEL ── */
     .cal-kcal { font-size: 8px; font-weight: 700; color: var(--gray); margin-top: 1px; line-height: 1; }
     .cal-day.today .cal-kcal { color: rgba(255,255,255,0.8); }
@@ -654,6 +687,7 @@
 <div class="app-header">
   <div class="header-top">
     <div class="app-title">🥗 Dieta Elia</div>
+    <button class="gear-btn" onclick="openSettings()" aria-label="Impostazioni">⚙️</button>
   </div>
   <div class="date-nav">
     <button class="date-btn" onclick="changeDay(-1)">‹</button>
@@ -954,6 +988,55 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════ -->
+<!-- IMPOSTAZIONI                                    -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="settingsOverlay" class="set-overlay hidden" onclick="if(event.target===this)closeSettings()">
+  <div class="set-sheet">
+    <div class="set-head">
+      <div class="set-head-title">⚙️ Impostazioni</div>
+      <button class="set-x" onclick="closeSettings()">✕</button>
+    </div>
+
+    <!-- Sync cloud -->
+    <div class="set-section">
+      <div class="set-section-title">☁️ Sincronizzazione cloud (OneDrive)</div>
+      <div class="set-status" id="setSyncStatus">…</div>
+      <button class="set-btn neutral" id="setConnectBtn">Connetti OneDrive</button>
+      <button class="set-btn primary" onclick="manualBackup()">⬆️ Crea backup ora</button>
+      <button class="set-btn secondary" onclick="manualRestore()">⬇️ Ripristina da cloud</button>
+      <div class="set-row" style="margin-top:14px">
+        <div class="set-label">Sincronizza automaticamente</div>
+        <label class="set-switch"><input type="checkbox" id="setAutoSync" onchange="toggleAutoSync(this.checked)"><span></span></label>
+      </div>
+      <div class="set-hint">⚠️ Il <strong>primo</strong> backup va fatto dal <strong>telefono</strong> (i dati di riferimento). Sugli altri dispositivi i dati vengono scaricati dal cloud, mai sovrascritti se più completi qui.</div>
+    </div>
+
+    <!-- Obiettivo calorie -->
+    <div class="set-section">
+      <div class="set-section-title">🔥 Obiettivo calorico</div>
+      <div class="set-row">
+        <div class="set-label">Target giornaliero</div>
+        <input type="number" class="set-num" id="setTargetInput" min="800" max="6000" step="50" onchange="applyTargetFromSettings(this.value)">
+        <span style="font-size:13px;color:#9e9e9e;font-weight:700">kcal</span>
+      </div>
+    </div>
+
+    <!-- Backup locale -->
+    <div class="set-section">
+      <div class="set-section-title">💾 Backup locale (file)</div>
+      <button class="set-btn neutral" onclick="exportData()">⬇️ Esporta dati (.json)</button>
+      <label class="set-btn secondary" style="display:block;text-align:center;box-sizing:border-box">⬆️ Importa dati (.json)
+        <input type="file" accept="application/json,.json" style="display:none" onchange="importData(this)">
+      </label>
+      <div class="set-hint">Backup manuale senza cloud: scarica un file con tutti i tuoi dati e ricaricalo dove vuoi. Utile come copia di sicurezza extra.</div>
+    </div>
+
+    <div class="set-hint" style="text-align:center">Dieta Elia · dati salvati sul dispositivo (localStorage)</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <script>
 // ════════════════════════════════════════════════════
 // DATI DIETA
@@ -1887,7 +1970,7 @@ let customFoods = [];
 function loadCustomFoods() {
   try { customFoods = JSON.parse(localStorage.getItem('customFoods') || '[]'); } catch { customFoods = []; }
 }
-function saveCustomFoods() { localStorage.setItem('customFoods', JSON.stringify(customFoods)); }
+function saveCustomFoods() { localStorage.setItem('customFoods', JSON.stringify(customFoods)); touchLocal(); }
 
 function openCustomMgr() {
   renderCfList();
@@ -1962,7 +2045,7 @@ function today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
 function loadLog() {
   try { log = JSON.parse(localStorage.getItem('dietaLog') || '{}'); } catch { log = {}; }
 }
-function saveLog() { localStorage.setItem('dietaLog', JSON.stringify(log)); }
+function saveLog() { localStorage.setItem('dietaLog', JSON.stringify(log)); touchLocal(); }
 
 function dayData(d) {
   const k = dateKey(d);
@@ -2105,6 +2188,7 @@ function editTarget() {
   if (v !== null && !isNaN(+v) && +v > 0) {
     kcalTarget = Math.round(+v);
     localStorage.setItem('kcalTarget', kcalTarget);
+    touchLocal();
     updateKcalCard(dayData(currentDate));
   }
 }
@@ -3053,7 +3137,7 @@ let currentSpesaTab = 'lista';
 function loadScorta() {
   try { scorta = JSON.parse(localStorage.getItem('scorta') || '[]'); } catch { scorta = []; }
 }
-function saveScorta() { localStorage.setItem('scorta', JSON.stringify(scorta)); }
+function saveScorta() { localStorage.setItem('scorta', JSON.stringify(scorta)); touchLocal(); }
 
 function addToScorta(fcId, name, grams) {
   const existing = scorta.find(i => i.fcId === fcId);
@@ -3212,7 +3296,7 @@ let shoppingList = [];
 function loadShoppingList() {
   try { shoppingList = JSON.parse(localStorage.getItem('shoppingList') || '[]'); } catch { shoppingList = []; }
 }
-function saveShoppingList() { localStorage.setItem('shoppingList', JSON.stringify(shoppingList)); }
+function saveShoppingList() { localStorage.setItem('shoppingList', JSON.stringify(shoppingList)); touchLocal(); }
 
 function renderSpesa() {
   const unchecked = shoppingList.filter(i => !i.checked);
@@ -3320,6 +3404,265 @@ function openCatalogForSpesa() {
 }
 
 // ════════════════════════════════════════════════════
+// IMPOSTAZIONI + SYNC CLOUD (OneDrive / Microsoft Graph)
+// ════════════════════════════════════════════════════
+const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget'];
+const CLOUD_PATH   = '/me/drive/root:/DietaElia-backup.json';
+const SYNC_CLIENT  = '1bb6501e-437c-472e-b1cf-a1b2fc95c978';
+const SYNC_SCOPES  = ['Files.ReadWrite','User.Read'];
+const SYNC_MSALCFG = {
+  auth: {
+    clientId: SYNC_CLIENT,
+    authority: 'https://login.microsoftonline.com/consumers',
+    redirectUri: 'https://eg99999.github.io/dieta-tracker/'
+  },
+  cache: { cacheLocation: 'localStorage' }
+};
+let msalInstance = null;
+let accessToken  = null;
+let syncBusy     = false;
+let syncTimer    = null;
+
+function syncEnabled() { return localStorage.getItem('syncEnabled') !== '0'; } // default ON
+function setSyncEnabled(on){ localStorage.setItem('syncEnabled', on ? '1' : '0'); }
+function deviceLabel(){ return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Telefono' : 'PC'; }
+function getLocalRev(){ return localStorage.getItem('dietaLocalRev') || ''; }
+function setLocalRev(v){ localStorage.setItem('dietaLocalRev', v); }
+function getCloudSeen(){ return localStorage.getItem('cloudRevSeen') || ''; }
+function setCloudSeen(v){ localStorage.setItem('cloudRevSeen', v); }
+
+// segna una modifica locale e pianifica un push automatico (debounce)
+function touchLocal(){
+  setLocalRev(new Date().toISOString());
+  scheduleSync();
+}
+function scheduleSync(){
+  if (!syncEnabled()) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => { autoSync('change').catch(()=>{}); }, 4000);
+}
+
+function collectSnapshot(){
+  const data = {};
+  for (const k of SYNC_KEYS){ const v = localStorage.getItem(k); if (v !== null) data[k] = v; }
+  return { app:'dieta-tracker', version:1, updatedAt:getLocalRev() || new Date().toISOString(), device:deviceLabel(), data };
+}
+function applySnapshot(snap){
+  if (!snap || !snap.data) return;
+  for (const k of SYNC_KEYS){ if (snap.data[k] !== undefined) localStorage.setItem(k, snap.data[k]); }
+  // ricarica stato in memoria + UI
+  loadLog(); loadCustomFoods(); loadShoppingList(); loadScorta();
+  kcalTarget = parseInt(localStorage.getItem('kcalTarget') || '2200');
+  renderDay();
+  if (typeof renderSpesa === 'function') renderSpesa();
+  if (typeof currentSpesaTab !== 'undefined' && currentSpesaTab === 'scorta') renderScorta();
+}
+
+// "ricchezza" dei dati = nr. giorni registrati (proxy anti-perdita: i dati più ricchi vincono)
+function snapScore(data){
+  if (!data) return -1;
+  let log = {};
+  try { log = JSON.parse(data.dietaLog || '{}'); } catch {}
+  let n = Object.keys(log).length * 100;
+  try { n += JSON.parse(data.scorta || '[]').length + JSON.parse(data.customFoods || '[]').length; } catch {}
+  return n;
+}
+
+// ── Microsoft Graph ──
+async function gFetch(method, body){
+  const url = 'https://graph.microsoft.com/v1.0' + CLOUD_PATH + ':/content';
+  const opts = () => ({
+    method,
+    headers: Object.assign({ Authorization:'Bearer '+accessToken }, body !== undefined ? {'Content-Type':'application/json'} : {}),
+    body: body !== undefined ? JSON.stringify(body) : undefined
+  });
+  let r = await fetch(url, opts());
+  if (r.status === 401){ await acquireToken(); r = await fetch(url, opts()); }
+  return r;
+}
+async function cloudGet(){
+  const r = await gFetch('GET');
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error('lettura '+r.status);
+  return await r.json();
+}
+async function cloudPut(snap){
+  const r = await gFetch('PUT', snap);
+  if (!r.ok) throw new Error('scrittura '+r.status);
+  return true;
+}
+async function doPush(snap){
+  const now = new Date().toISOString();
+  snap.updatedAt = now;
+  await cloudPut(snap);
+  setLocalRev(now); setCloudSeen(now);
+}
+async function doPull(cloud){
+  applySnapshot(cloud);
+  const rev = cloud.updatedAt || new Date().toISOString();
+  setLocalRev(rev); setCloudSeen(rev);
+}
+
+// Sync automatico sicuro: i dati più ricchi vincono; a pari ricchezza vince il più recente.
+// Garantisce phone-first: un dispositivo vuoto non sovrascrive mai il cloud più completo.
+async function autoSync(reason){
+  if (syncBusy || !accessToken || !syncEnabled()) return;
+  syncBusy = true; renderSettings();
+  try {
+    const cloud = await cloudGet();
+    const local = collectSnapshot();
+    const ls = snapScore(local.data);
+    const cs = cloud ? snapScore(cloud.data) : -1;
+    if (!cloud){
+      if (ls > 0){ await doPush(local); toastSync('☁️ Backup creato sul cloud'); }
+    } else if (cs > ls){
+      await doPull(cloud); toastSync('⬇️ Dati aggiornati dal cloud');
+    } else if (ls > cs){
+      await doPush(local); toastSync('⬆️ Backup aggiornato sul cloud');
+    } else {
+      const lr = getLocalRev(), cr = cloud.updatedAt || '';
+      if (cr > lr) await doPull(cloud);
+      else if (lr > cr) await doPush(local);
+    }
+  } catch(e){ toastSync('Sync non riuscito: '+e.message, true); }
+  finally { syncBusy = false; renderSettings(); }
+}
+
+async function manualBackup(){
+  if (!accessToken){ connectCloud(); return; }
+  try {
+    const cloud = await cloudGet().catch(()=>null);
+    const local = collectSnapshot();
+    if (cloud && snapScore(cloud.data) > snapScore(local.data)){
+      if (!confirm('⚠️ Sul cloud ci sono PIÙ dati che su questo dispositivo. Sovrascrivere comunque il cloud con i dati (meno completi) di questo dispositivo? Rischi di perdere dati.')) return;
+    }
+    await doPush(local); toastSync('☁️ Backup eseguito'); renderSettings();
+  } catch(e){ toastSync('Backup non riuscito: '+e.message, true); }
+}
+async function manualRestore(){
+  if (!accessToken){ connectCloud(); return; }
+  try {
+    const cloud = await cloudGet();
+    if (!cloud){ toastSync('Nessun backup sul cloud', true); return; }
+    const local = collectSnapshot();
+    const msg = snapScore(local.data) > snapScore(cloud.data)
+      ? '⚠️ Su questo dispositivo ci sono PIÙ dati del backup cloud. Ripristinando PERDI i dati locali più recenti. Continuare?'
+      : 'Ripristinare i dati dal backup cloud? I dati di questo dispositivo verranno sostituiti.';
+    if (!confirm(msg)) return;
+    await doPull(cloud); toastSync('⬇️ Dati ripristinati dal cloud'); renderSettings();
+  } catch(e){ toastSync('Ripristino non riuscito: '+e.message, true); }
+}
+
+// ── MSAL auth ──
+async function ensureMsal(){
+  if (msalInstance) return;
+  if (typeof msal === 'undefined') throw new Error('libreria Microsoft non caricata');
+  msalInstance = new msal.PublicClientApplication(SYNC_MSALCFG);
+  await msalInstance.initialize();
+}
+async function acquireToken(){
+  const acc = msalInstance.getActiveAccount();
+  if (!acc) throw new Error('non connesso');
+  try { const r = await msalInstance.acquireTokenSilent({ scopes:SYNC_SCOPES, account:acc }); accessToken = r.accessToken; }
+  catch(e){ await msalInstance.acquireTokenRedirect({ scopes:SYNC_SCOPES }); }
+}
+async function connectCloud(){
+  try { await ensureMsal(); await msalInstance.loginRedirect({ scopes:SYNC_SCOPES }); }
+  catch(e){ toastSync('Connessione non riuscita: '+e.message, true); }
+}
+async function disconnectCloud(){
+  try { const acc = msalInstance && msalInstance.getActiveAccount(); accessToken = null; if (acc) await msalInstance.logoutRedirect({ account:acc }); }
+  catch(e){ renderSettings(); }
+}
+async function initSync(){
+  try {
+    await ensureMsal();
+    const resp = await msalInstance.handleRedirectPromise();
+    if (resp && resp.account) msalInstance.setActiveAccount(resp.account);
+    const acc = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
+    if (acc){
+      msalInstance.setActiveAccount(acc);
+      await acquireToken();
+      if (syncEnabled()) autoSync('load').catch(()=>{});
+    }
+  } catch(e){ /* offline o non configurato: l'app resta pienamente usabile in locale */ }
+  renderSettings();
+}
+
+// ── UI impostazioni ──
+function openSettings(){
+  renderSettings();
+  document.getElementById('setTargetInput').value = kcalTarget;
+  document.getElementById('settingsOverlay').classList.remove('hidden');
+}
+function closeSettings(){ document.getElementById('settingsOverlay').classList.add('hidden'); }
+
+function renderSettings(){
+  const statusEl = document.getElementById('setSyncStatus');
+  const connBtn  = document.getElementById('setConnectBtn');
+  if (!statusEl || !connBtn) return;
+  const acc = msalInstance && msalInstance.getActiveAccount();
+  if (acc && accessToken){
+    const last = getCloudSeen();
+    statusEl.innerHTML = `✅ Connesso: <strong>${acc.username || acc.name || 'account Microsoft'}</strong>`
+      + (last ? `<br><span style="color:#9e9e9e">Ultimo sync: ${new Date(last).toLocaleString('it-IT')}</span>` : '')
+      + (syncBusy ? `<br><span style="color:var(--blue)">Sincronizzazione…</span>` : '');
+    connBtn.textContent = 'Disconnetti';
+    connBtn.onclick = disconnectCloud;
+  } else {
+    statusEl.innerHTML = '⛔ Non connesso. Collega OneDrive per backup e sincronizzazione tra dispositivi.';
+    connBtn.textContent = 'Connetti OneDrive';
+    connBtn.onclick = connectCloud;
+  }
+  const t = document.getElementById('setAutoSync');
+  if (t) t.checked = syncEnabled();
+}
+function toggleAutoSync(on){ setSyncEnabled(on); if (on) autoSync('toggle').catch(()=>{}); }
+function applyTargetFromSettings(v){
+  if (!isNaN(+v) && +v > 0){
+    kcalTarget = Math.round(+v);
+    localStorage.setItem('kcalTarget', kcalTarget);
+    touchLocal();
+    updateKcalCard(dayData(currentDate));
+  }
+}
+
+function toastSync(msg, isErr){
+  let el = document.getElementById('syncToast');
+  if (!el){ el = document.createElement('div'); el.id = 'syncToast'; el.className = 'sync-toast'; document.body.appendChild(el); }
+  el.textContent = msg;
+  el.style.background = isErr ? 'var(--red)' : '#323232';
+  el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ── Backup locale (file, senza cloud) ──
+function exportData(){
+  const blob = new Blob([JSON.stringify(collectSnapshot(), null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dieta-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function importData(input){
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const snap = JSON.parse(rd.result);
+      if (!snap || !snap.data) throw new Error('file non valido');
+      if (confirm('Importare questi dati? Sostituiranno i dati di questo dispositivo.')){
+        applySnapshot(snap); touchLocal(); toastSync('✅ Dati importati');
+      }
+    } catch(e){ toastSync('Import non riuscito: '+e.message, true); }
+    input.value = '';
+  };
+  rd.readAsText(f);
+}
+
+// ════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════
 loadLog();
@@ -3328,6 +3671,7 @@ loadShoppingList();
 loadScorta();
 if (shoppingList.length === 0) generateWeeklyShopping();
 renderDay();
+initSync();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
