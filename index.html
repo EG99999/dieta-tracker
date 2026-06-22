@@ -2341,7 +2341,7 @@ function toggleFood(sectionKey, itemId) {
   const dd = dayData(currentDate);
   if (!dd.pasti[sectionKey]) dd.pasti[sectionKey] = [];
   const idx = dd.pasti[sectionKey].indexOf(itemId);
-  const isToday = currentDate === dateKey(today());
+  const isToday = dateKey(currentDate) === dateKey(today());
 
   if (idx >= 0) {
     dd.pasti[sectionKey].splice(idx, 1);
