@@ -489,7 +489,8 @@
     .cfg-counter { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
     .cfg-step { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--green-bg); color: var(--green); font-size: 20px; font-weight: 800; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .cfg-step:active { background: var(--green); color: white; }
-    .cfg-count { min-width: 24px; text-align: center; font-size: 16px; font-weight: 800; }
+    .cfg-count { width: 48px; text-align: center; font-size: 16px; font-weight: 800; color: var(--green); border: 1.5px solid #e0e0e0; border-radius: 8px; padding: 5px 4px; background: white; }
+    .cfg-count:focus { border-color: var(--green); outline: none; }
 
     /* ── CAL KCAL LABEL ── */
     .cal-kcal { font-size: 8px; font-weight: 700; color: var(--gray); margin-top: 1px; line-height: 1; }
@@ -3389,7 +3390,7 @@ function renderShopConfig(){
       </div>
       <div class="cfg-counter">
         <button class="cfg-step" onclick="bumpShopCount('${tpl.fcId}', -1)">−</button>
-        <span class="cfg-count">${n}</span>
+        <input class="cfg-count" type="number" min="0" inputmode="numeric" value="${n}" onchange="setShopCount('${tpl.fcId}', this.value)">
         <button class="cfg-step" onclick="bumpShopCount('${tpl.fcId}', 1)">+</button>
       </div>
     </div>`;
