@@ -475,6 +475,14 @@
     .sync-toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%) translateY(20px); background: #323232; color: white; padding: 10px 18px; border-radius: 22px; font-size: 13px; font-weight: 600; z-index: 9998; opacity: 0; pointer-events: none; transition: .25s; max-width: 90%; text-align: center; }
     .sync-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ── CONFIGURA SPESA ── */
+    .spesa-cfg-btn { background: var(--green-bg); color: var(--green); border: none; border-radius: 9px; padding: 7px 12px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .cfg-cat { font-size: 12px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; margin: 14px 2px 6px; }
+    .cfg-row { display: flex; align-items: center; gap: 10px; background: white; border-radius: 11px; padding: 9px 12px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .cfg-name { flex: 1; font-size: 13px; font-weight: 600; }
+    .cfg-qty { width: 64px; padding: 7px 8px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 15px; font-weight: 700; text-align: right; color: var(--green); }
+    .cfg-unit { width: 78px; font-size: 12px; font-weight: 700; color: #9e9e9e; }
+
     /* ── CAL KCAL LABEL ── */
     .cal-kcal { font-size: 8px; font-weight: 700; color: var(--gray); margin-top: 1px; line-height: 1; }
     .cal-day.today .cal-kcal { color: rgba(255,255,255,0.8); }
@@ -919,6 +927,7 @@
     <div id="spesa-lista-section">
       <div class="spesa-topbar">
         <div class="spesa-summary" id="spesaSummary">Lista vuota</div>
+        <button class="spesa-cfg-btn" onclick="openShopConfig()">⚙️ Configura</button>
       </div>
       <div id="spesaList"></div>
       <div id="spesaActions" class="spesa-actions"></div>
@@ -1040,6 +1049,22 @@
     </div>
 
     <div class="set-hint" style="text-align:center">Dieta Elia · dati salvati sul dispositivo (localStorage)</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CONFIGURA SPESA SETTIMANALE                     -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="shopCfgOverlay" class="set-overlay hidden" onclick="if(event.target===this)closeShopConfig()">
+  <div class="set-sheet">
+    <div class="set-head">
+      <div class="set-head-title">🛒 Configura spesa settimanale</div>
+      <button class="set-x" onclick="closeShopConfig()">✕</button>
+    </div>
+    <div class="set-hint" style="margin:0 0 12px">Imposta quanto compri di ogni voce, nella sua unità. "Salva e aggiorna lista" rigenera la lista della spesa con questi valori. Metti 0 per togliere una voce.</div>
+    <div id="shopCfgList"></div>
+    <button class="set-btn primary" onclick="saveShopConfigAndGenerate()">✅ Salva e aggiorna lista</button>
+    <button class="set-btn neutral" onclick="closeShopConfig()">Chiudi</button>
   </div>
 </div>
 
@@ -1934,40 +1959,55 @@ function fmtPieces(grams, u) {
 // ════════════════════════════════════════════════════
 // LISTA SPESA SETTIMANALE TIPO (porzioni aggregate × 7gg)
 // ════════════════════════════════════════════════════
+// Template spesa settimanale. Ogni voce: unità + g per unità (gpu) + quantità default (qty).
+// La qty è configurabile dall'utente (shopConfig, sincronizzato). Grammi = qty × gpu.
 const WEEKLY_PLAN_INGREDIENTS = [
   // ─── Proteine ───
-  { fcId:'fc_pollo_petto',      name:'Petto di pollo',                   grams:500,  display:'~500g (3 pasti)' },
-  { fcId:'fc_tonno_acq',        name:'Tonno in acqua',                   grams:480,  display:'3 scatolette da 160g' },
-  { fcId:'fc_branzino',         name:'Pesce fresco (merluzzo / branzino)', grams:300, display:'~300g' },
-  { fcId:'fc_uovo_intero',      name:'Uova bio',                         grams:600,  display:'10 uova (max 4 pasti/sett)' },
-  { fcId:'fc_bresaola',         name:'Bresaola',                         grams:100,  display:'100g' },
-  { fcId:'fc_mozzarella_light', name:'Mozzarella light',                 grams:250,  display:'2 pz da 125g' },
-  { fcId:'fc_ricotta_vacc',     name:'Ricotta / Fiocchi di latte',       grams:400,  display:'400g' },
-  { fcId:'fc_lenticchie',       name:'Lenticchie (lattina / secche)',    grams:480,  display:'3 lattine o 200g secche' },
+  { fcId:'fc_pollo_petto',      name:'Petto di pollo',                  cat:'Proteine',    unit:'g',          unitP:'g',          gpu:1,    qty:500 },
+  { fcId:'fc_tonno_acq',        name:'Tonno in acqua',                  cat:'Proteine',    unit:'scatoletta', unitP:'scatolette', gpu:160,  qty:3 },
+  { fcId:'fc_branzino',         name:'Pesce fresco (merluzzo/branzino)', cat:'Proteine',   unit:'g',          unitP:'g',          gpu:1,    qty:300 },
+  { fcId:'fc_uovo_intero',      name:'Uova bio',                        cat:'Proteine',    unit:'uovo',       unitP:'uova',       gpu:60,   qty:10 },
+  { fcId:'fc_bresaola',         name:'Bresaola',                        cat:'Proteine',    unit:'g',          unitP:'g',          gpu:1,    qty:100 },
+  { fcId:'fc_mozzarella_light', name:'Mozzarella light',                cat:'Proteine',    unit:'pz',         unitP:'pz',         gpu:125,  qty:2 },
+  { fcId:'fc_ricotta_vacc',     name:'Ricotta / Fiocchi di latte',      cat:'Proteine',    unit:'confezione', unitP:'confezioni', gpu:250,  qty:2 },
+  { fcId:'fc_lenticchie',       name:'Lenticchie',                      cat:'Proteine',    unit:'lattina',    unitP:'lattine',    gpu:160,  qty:3 },
   // ─── Latticini ───
-  { fcId:'fc_yogurt_greco_0',   name:'Yogurt greco 0%',                  grams:1530, display:'9 vasetti da 170g' },
-  { fcId:'fc_yogurt_proteico',  name:'Yogurt proteico (Milk Pro/Milbona)', grams:1400, display:'7 vasetti da 200g' },
+  { fcId:'fc_yogurt_greco_0',   name:'Yogurt greco 0%',                 cat:'Latticini',   unit:'vasetto',    unitP:'vasetti',    gpu:170,  qty:9 },
+  { fcId:'fc_yogurt_proteico',  name:'Yogurt proteico (Milk Pro/Milbona)', cat:'Latticini', unit:'vasetto',  unitP:'vasetti',    gpu:200,  qty:7 },
   // ─── Carboidrati ───
-  { fcId:'fc_pane_bauletto',    name:'Pan bauletto integrale',            grams:300,  display:'1-2 confezioni' },
-  { fcId:'fc_pasta_int_cotta',  name:'Pasta integrale / saraceno / kamut', grams:500, display:'500g (cruda)' },
-  { fcId:'fc_riso_basmati',     name:'Riso basmati',                     grams:500,  display:'500g' },
-  { fcId:'fc_farro_cotto',      name:'Farro o Orzo',                     grams:500,  display:'500g (crudo)' },
-  { fcId:'fc_pane_integrale',   name:'Pane integrale',                   grams:280,  display:'~280g' },
-  { fcId:'fc_gnocchi',          name:'Gnocchi di patate',                grams:500,  display:'1 confezione 500g' },
-  // ─── Verdure base ───
-  { fcId:'fc_insalata',         name:'Insalata mista',                   grams:700,  display:'3-4 buste' },
-  { fcId:'fc_zucchine',         name:'Zucchine',                         grams:400,  display:'4-5 pz' },
-  // ─── Contorno crudo fisso (pranzo + cena × 7gg = 14 porzioni) ───
-  { fcId:'fc_pomodori',         name:'Pomodori',                         grams:910,  display:'~7 pz' },
-  { fcId:'fc_carote',           name:'Carote',                           grams:980,  display:'~14 pz' },
-  { fcId:'fc_lattuga',          name:'Lattuga iceberg',                  grams:420,  display:'1 cespo (~28 foglie)' },
-  { fcId:'fc_finocchio',        name:'Finocchio',                        grams:1120, display:'~14 pz' },
-  // ─── Condimenti ───
-  { fcId:'fc_olio_evo',         name:'Olio EVO',                         grams:140,  display:'14 cucchiai (~140ml)' },
-  // ─── Avena / Semi ───
-  { fcId:'fc_avena_fiocchi',    name:'Fiocchi di avena',                 grams:200,  display:'200g' },
-  { fcId:'fc_semi_chia',        name:'Semi misti (chia / girasole / zucca)', grams:100, display:'100g' },
+  { fcId:'fc_pane_bauletto',    name:'Pane in cassetta integrale',      cat:'Carboidrati', unit:'confezione', unitP:'confezioni', gpu:400,  qty:1 },
+  { fcId:'fc_pasta_int_cotta',  name:'Pasta integrale/saraceno/kamut',  cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:1,    qty:500 },
+  { fcId:'fc_riso_basmati',     name:'Riso basmati',                    cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:1,    qty:500 },
+  { fcId:'fc_farro_cotto',      name:'Farro o Orzo',                    cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:1,    qty:500 },
+  { fcId:'fc_gnocchi',          name:'Gnocchi di patate',               cat:'Carboidrati', unit:'confezione', unitP:'confezioni', gpu:500,  qty:1 },
+  // ─── Verdure ───
+  { fcId:'fc_insalata',         name:'Insalata mista',                  cat:'Verdure',     unit:'busta',      unitP:'buste',      gpu:150,  qty:4 },
+  { fcId:'fc_pomodori',         name:'Pomodori',                        cat:'Verdure',     unit:'pz',         unitP:'pz',         gpu:130,  qty:7 },
+  { fcId:'fc_carote',           name:'Carote',                          cat:'Verdure',     unit:'pz',         unitP:'pz',         gpu:70,   qty:14 },
+  { fcId:'fc_lattuga',          name:'Lattuga iceberg',                 cat:'Verdure',     unit:'cespo',      unitP:'cespi',      gpu:420,  qty:1 },
+  { fcId:'fc_finocchio',        name:'Finocchio',                       cat:'Verdure',     unit:'pz',         unitP:'pz',         gpu:80,   qty:14 },
+  // ─── Condimenti / Avena ───
+  { fcId:'fc_olio_evo',         name:'Olio EVO',                        cat:'Condimenti',  unit:'bottiglia',  unitP:'bottiglie',  gpu:1000, qty:1 },
+  { fcId:'fc_avena_fiocchi',    name:'Fiocchi di avena',                cat:'Condimenti',  unit:'confezione', unitP:'confezioni', gpu:500,  qty:1 },
+  { fcId:'fc_semi_chia',        name:'Semi misti (chia/girasole/zucca)', cat:'Condimenti', unit:'confezione', unitP:'confezioni', gpu:100,  qty:1 },
 ];
+
+// ── Configurazione quantità spesa (override utente, per fcId) ──
+let shopConfig = {};
+function loadShopConfig(){ try { shopConfig = JSON.parse(localStorage.getItem('shopConfig') || '{}'); } catch { shopConfig = {}; } }
+function saveShopConfig(){ localStorage.setItem('shopConfig', JSON.stringify(shopConfig)); touchLocal(); }
+function shopQty(tpl){ const v = shopConfig[tpl.fcId]; return (v === undefined || v === null || v === '') ? tpl.qty : Number(v); }
+function shopGrams(tpl){ return Math.round(shopQty(tpl) * tpl.gpu); }
+function shopDisplay(tpl){
+  const q = shopQty(tpl);
+  if (tpl.unit === 'g') return `${q}g`;
+  return `${q} ${q === 1 ? tpl.unit : tpl.unitP}`;
+}
+function setShopQty(fcId, v){
+  if (v === '' || v === null || isNaN(+v)) delete shopConfig[fcId];
+  else shopConfig[fcId] = Math.max(0, +v);
+  saveShopConfig();
+}
 
 // ════════════════════════════════════════════════════
 // CUSTOM FOODS
@@ -3282,12 +3322,21 @@ function openCatalogForScorta() {
 function generateWeeklyShopping() {
   let added = 0;
   for (const tpl of WEEKLY_PLAN_INGREDIENTS) {
-    const exists = shoppingList.some(i => i.fcId === tpl.fcId && !i.checked);
-    if (!exists) {
+    const grams = shopGrams(tpl);
+    const existing = shoppingList.find(i => i.fcId === tpl.fcId && !i.checked);
+    if (grams <= 0) {                       // qty 0 → fuori lista
+      if (existing) shoppingList = shoppingList.filter(i => i !== existing);
+      continue;
+    }
+    if (existing) {                          // aggiorna quantità da configurazione
+      existing.name = tpl.name;
+      existing.qty  = shopDisplay(tpl);
+      existing.grams = grams;
+    } else {
       shoppingList.push({
         id: 'sl_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-        name: tpl.name, qty: tpl.display,
-        checked: false, fcId: tpl.fcId, grams: tpl.grams,
+        name: tpl.name, qty: shopDisplay(tpl),
+        checked: false, fcId: tpl.fcId, grams,
       });
       added++;
     }
@@ -3295,7 +3344,31 @@ function generateWeeklyShopping() {
   saveShoppingList();
   toggleSpesaTab('lista');
   renderSpesa();
-  if (added === 0) alert('Tutti gli ingredienti settimanali sono già in lista!');
+}
+
+// ── Editor configurazione quantità spesa ──
+function renderShopConfig(){
+  const el = document.getElementById('shopCfgList');
+  if (!el) return;
+  let html = '', lastCat = '';
+  for (const tpl of WEEKLY_PLAN_INGREDIENTS){
+    if (tpl.cat !== lastCat){ html += `<div class="cfg-cat">${tpl.cat}</div>`; lastCat = tpl.cat; }
+    const step = tpl.unit === 'g' ? 10 : 1;
+    const unitLabel = tpl.unit === 'g' ? 'g' : tpl.unitP;
+    html += `<div class="cfg-row">
+      <div class="cfg-name">${tpl.name}</div>
+      <input type="number" class="cfg-qty" min="0" step="${step}" value="${shopQty(tpl)}" onchange="setShopQty('${tpl.fcId}', this.value)">
+      <div class="cfg-unit">${unitLabel}</div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+function openShopConfig(){ renderShopConfig(); document.getElementById('shopCfgOverlay').classList.remove('hidden'); }
+function closeShopConfig(){ document.getElementById('shopCfgOverlay').classList.add('hidden'); }
+function saveShopConfigAndGenerate(){
+  generateWeeklyShopping();   // rigenera/aggiorna la lista con le quantità configurate
+  closeShopConfig();
+  if (typeof toastSync === 'function') toastSync('🛒 Lista aggiornata');
 }
 
 // ════════════════════════════════════════════════════
@@ -3416,7 +3489,7 @@ function openCatalogForSpesa() {
 // ════════════════════════════════════════════════════
 // IMPOSTAZIONI + SYNC CLOUD (OneDrive / Microsoft Graph)
 // ════════════════════════════════════════════════════
-const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget','lastShoppingDate'];
+const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget','lastShoppingDate','shopConfig'];
 const CLOUD_PATH   = '/me/drive/root:/DietaElia-backup.json';
 const SYNC_CLIENT  = '1bb6501e-437c-472e-b1cf-a1b2fc95c978';
 const SYNC_SCOPES  = ['Files.ReadWrite','User.Read'];
@@ -3461,7 +3534,7 @@ function applySnapshot(snap){
   if (!snap || !snap.data) return;
   for (const k of SYNC_KEYS){ if (snap.data[k] !== undefined) localStorage.setItem(k, snap.data[k]); }
   // ricarica stato in memoria + UI
-  loadLog(); loadCustomFoods(); loadShoppingList(); loadScorta();
+  loadLog(); loadCustomFoods(); loadShoppingList(); loadScorta(); loadShopConfig();
   kcalTarget = parseInt(localStorage.getItem('kcalTarget') || '2200');
   renderDay();
   if (typeof renderSpesa === 'function') renderSpesa();
@@ -3679,6 +3752,7 @@ loadLog();
 loadCustomFoods();
 loadShoppingList();
 loadScorta();
+loadShopConfig();
 if (shoppingList.length === 0) generateWeeklyShopping();
 renderDay();
 initSync();
