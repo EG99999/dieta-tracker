@@ -581,6 +581,9 @@
 
     /* ── SCORTA ── */
     .scorta-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+    .scorta-shop-row { display: flex; align-items: center; gap: 10px; background: white; border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .scorta-shop-label { flex: 1; font-size: 13px; font-weight: 700; color: #424242; }
+    .scorta-shop-date { border: 1.5px solid #e0e0e0; border-radius: 9px; padding: 7px 10px; font-size: 14px; font-weight: 700; color: var(--green); background: white; }
     .scorta-add-btn { flex: 1; padding: 9px 10px; border: 1.5px solid var(--green); border-radius: 9px; background: white; color: var(--green); font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
     .scorta-gen-btn { flex: 1; padding: 9px 10px; border: 1.5px solid var(--blue); border-radius: 9px; background: white; color: var(--blue); font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
     .scorta-summary { font-size: 13px; color: var(--gray); font-weight: 600; margin-bottom: 8px; }
@@ -926,6 +929,10 @@
       <div class="scorta-actions">
         <button class="scorta-add-btn" onclick="openCatalogForScorta()">＋ Ho già in casa</button>
         <button class="scorta-gen-btn" onclick="generateWeeklyShopping()">📋 Genera lista settimana</button>
+      </div>
+      <div class="scorta-shop-row">
+        <label class="scorta-shop-label">🛒 Ultima spesa</label>
+        <input type="date" id="lastShopDate" class="scorta-shop-date" onchange="setLastShoppingDate(this.value)">
       </div>
       <div id="scortaSummary" class="scorta-summary"></div>
       <div id="scortaList" class="scorta-list"></div>
@@ -2341,32 +2348,20 @@ function toggleFood(sectionKey, itemId) {
   const dd = dayData(currentDate);
   if (!dd.pasti[sectionKey]) dd.pasti[sectionKey] = [];
   const idx = dd.pasti[sectionKey].indexOf(itemId);
-  const isToday = dateKey(currentDate) === dateKey(today());
 
   if (idx >= 0) {
     dd.pasti[sectionKey].splice(idx, 1);
-    if (isToday) {
-      for (const m of scortaMappings(itemId)) consumeFromScorta(m.fcId, m.g, true);
-    }
   } else {
     // Radio: rimuovi altri item dello stesso gruppo prima di aggiungere
     const groups = SECTION_GROUPS()[sectionKey] || [];
     const group = groups.find(g => g.some(i => i.id === itemId));
     if (group) {
       const groupIds = group.map(i => i.id);
-      const removed = dd.pasti[sectionKey].filter(id => groupIds.includes(id));
       dd.pasti[sectionKey] = dd.pasti[sectionKey].filter(id => !groupIds.includes(id));
-      if (isToday) {
-        for (const rid of removed) {
-          for (const m of scortaMappings(rid)) consumeFromScorta(m.fcId, m.g, true);
-        }
-      }
     }
     dd.pasti[sectionKey].push(itemId);
-    if (isToday) {
-      for (const m of scortaMappings(itemId)) consumeFromScorta(m.fcId, m.g, false);
-    }
   }
+  // La scorta non si tocca qui: il consumo è calcolato in renderScorta dai pasti loggati
   saveLog();
   renderDay();
   setTimeout(() => {
@@ -3139,13 +3134,39 @@ function loadScorta() {
 }
 function saveScorta() { localStorage.setItem('scorta', JSON.stringify(scorta)); touchLocal(); }
 
+// Data ultima spesa (globale): da qui la scorta cala in base ai pasti loggati
+function getLastShoppingDate(){ return localStorage.getItem('lastShoppingDate') || dateKey(today()); }
+function setLastShoppingDate(v){
+  if (!v) return;
+  localStorage.setItem('lastShoppingDate', v);
+  touchLocal();
+  renderScorta();
+}
+
+// Grammi di un ingrediente consumati dai pasti loggati da 'since' (incluso) fino a oggi
+function consumedSince(fcId, since){
+  const todayKey = dateKey(today());
+  let g = 0;
+  for (const dayKey in log){
+    if (dayKey < since || dayKey > todayKey) continue;
+    const pasti = (log[dayKey] && log[dayKey].pasti) || {};
+    for (const sec in pasti){
+      for (const itemId of (pasti[sec] || [])){
+        for (const m of scortaMappings(itemId)) if (m.fcId === fcId) g += m.g;
+      }
+    }
+  }
+  return g;
+}
+// Rimanente = comprato − consumato (calcolato, retroattivo)
+function scortaRemaining(item){
+  return Math.max(0, item.totalG - consumedSince(item.fcId, getLastShoppingDate()));
+}
+
 function addToScorta(fcId, name, grams) {
   const existing = scorta.find(i => i.fcId === fcId);
-  if (existing) {
-    existing.totalG += grams;
-  } else {
-    scorta.push({ id: 'sc_' + Date.now() + Math.random(), fcId, name, totalG: grams, consumedG: 0 });
-  }
+  if (existing) existing.totalG += grams;
+  else scorta.push({ id: 'sc_' + Date.now() + Math.random(), fcId, name, totalG: grams });
   saveScorta();
   updateScortaTabLabel();
 }
@@ -3153,23 +3174,10 @@ function addToScorta(fcId, name, grams) {
 function removeFromScortaStock(fcId, grams) {
   const item = scorta.find(i => i.fcId === fcId);
   if (!item) return;
-  item.totalG = Math.max(item.consumedG, item.totalG - grams);
-  if (item.totalG <= 0 && item.consumedG <= 0) scorta = scorta.filter(i => i.fcId !== fcId);
+  item.totalG = Math.max(0, item.totalG - grams);
+  if (item.totalG <= 0) scorta = scorta.filter(i => i.fcId !== fcId);
   saveScorta();
   updateScortaTabLabel();
-}
-
-function consumeFromScorta(fcId, grams, refund = false) {
-  const item = scorta.find(i => i.fcId === fcId);
-  if (!item) return;
-  if (refund) {
-    item.consumedG = Math.max(0, item.consumedG - grams);
-  } else {
-    item.consumedG = Math.min(item.totalG, item.consumedG + grams);
-  }
-  saveScorta();
-  updateScortaTabLabel();
-  if (currentSpesaTab === 'scorta') renderScorta();
 }
 
 function deleteScortaItem(id) {
@@ -3181,7 +3189,7 @@ function deleteScortaItem(id) {
 function updateScortaTabLabel() {
   const btn = document.getElementById('subtab-scorta');
   if (!btn) return;
-  const esauriti = scorta.filter(i => i.totalG - i.consumedG <= 0 && i.totalG > 0).length;
+  const esauriti = scorta.filter(i => i.totalG > 0 && scortaRemaining(i) <= 0).length;
   btn.textContent = `🥗 Scorta${scorta.length > 0 ? ' (' + scorta.length + ')' : ''}${esauriti > 0 ? ' ⚠️' + esauriti : ''}`;
 }
 
@@ -3199,14 +3207,16 @@ function renderScorta() {
   const listEl = document.getElementById('scortaList');
   const summaryEl = document.getElementById('scortaSummary');
   if (!listEl) return;
+  const dateInput = document.getElementById('lastShopDate');
+  if (dateInput) dateInput.value = getLastShoppingDate();
   updateScortaTabLabel();
   if (!scorta.length) {
     summaryEl.textContent = '';
     listEl.innerHTML = '<div class="scorta-empty">🥗<br><br>Scorta vuota.<br>Usa <strong>"Ho già in casa"</strong> per aggiungere ingredienti,<br>oppure <strong>"Genera lista settimana"</strong> → fai la spesa → spunta gli articoli acquistati.</div>';
     return;
   }
-  const disponibili = scorta.filter(i => i.totalG - i.consumedG > 0);
-  const esauriti    = scorta.filter(i => i.totalG - i.consumedG <= 0);
+  const disponibili = scorta.filter(i => scortaRemaining(i) > 0);
+  const esauriti    = scorta.filter(i => scortaRemaining(i) <= 0);
   summaryEl.textContent = `${disponibili.length} disponibili · ${esauriti.length} esauriti`;
   let html = disponibili.map(renderScortaItem).join('');
   if (esauriti.length) {
@@ -3217,7 +3227,7 @@ function renderScorta() {
 }
 
 function renderScortaItem(item) {
-  const remaining = Math.max(0, item.totalG - item.consumedG);
+  const remaining = scortaRemaining(item);
   const availPct  = item.totalG > 0 ? Math.round(remaining / item.totalG * 100) : 0;
   let statusClass, statusLabel;
   if (remaining <= 0)        { statusClass = 'esaurito'; statusLabel = 'Esaurito'; }
@@ -3406,7 +3416,7 @@ function openCatalogForSpesa() {
 // ════════════════════════════════════════════════════
 // IMPOSTAZIONI + SYNC CLOUD (OneDrive / Microsoft Graph)
 // ════════════════════════════════════════════════════
-const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget'];
+const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget','lastShoppingDate'];
 const CLOUD_PATH   = '/me/drive/root:/DietaElia-backup.json';
 const SYNC_CLIENT  = '1bb6501e-437c-472e-b1cf-a1b2fc95c978';
 const SYNC_SCOPES  = ['Files.ReadWrite','User.Read'];
