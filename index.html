@@ -3753,6 +3753,19 @@ loadCustomFoods();
 loadShoppingList();
 loadScorta();
 loadShopConfig();
+
+// Pulizia una-tantum: rimuove zucchine e pane integrale dai dati già salvati
+(function cleanupRemovedItems(){
+  if (localStorage.getItem('migr_rm_zuc_pane') === '1') return;
+  const drop = ['fc_zucchine','fc_pane_integrale'];
+  const sl = shoppingList.length, sc = scorta.length;
+  shoppingList = shoppingList.filter(i => !drop.includes(i.fcId));
+  scorta       = scorta.filter(i => !drop.includes(i.fcId));
+  if (shoppingList.length !== sl) saveShoppingList();
+  if (scorta.length !== sc) saveScorta();
+  localStorage.setItem('migr_rm_zuc_pane', '1');
+})();
+
 if (shoppingList.length === 0) generateWeeklyShopping();
 renderDay();
 initSync();
