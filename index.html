@@ -478,10 +478,18 @@
     /* ── CONFIGURA SPESA ── */
     .spesa-cfg-btn { background: var(--green-bg); color: var(--green); border: none; border-radius: 9px; padding: 7px 12px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
     .cfg-cat { font-size: 12px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; margin: 14px 2px 6px; }
-    .cfg-row { display: flex; align-items: center; gap: 10px; background: white; border-radius: 11px; padding: 9px 12px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-    .cfg-name { flex: 1; font-size: 13px; font-weight: 600; }
-    .cfg-qty { width: 64px; padding: 7px 8px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 15px; font-weight: 700; text-align: right; color: var(--green); }
-    .cfg-unit { width: 78px; font-size: 12px; font-weight: 700; color: #9e9e9e; }
+    .cfg-row { display: flex; align-items: center; gap: 10px; background: white; border-radius: 11px; padding: 10px 12px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .cfg-main { flex: 1; min-width: 0; }
+    .cfg-name { font-size: 14px; font-weight: 700; }
+    .cfg-sub { font-size: 11px; color: #9e9e9e; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .cfg-sub strong { color: var(--green); font-weight: 800; }
+    .cfg-unitwrap { display: inline-flex; align-items: center; gap: 4px; }
+    .cfg-unitg { width: 54px; padding: 4px 6px; border: 1.5px solid #e0e0e0; border-radius: 7px; font-size: 13px; font-weight: 700; text-align: right; color: #424242; }
+    .cfg-unitsuffix, .cfg-unitlabel { font-size: 11px; color: #9e9e9e; font-weight: 700; }
+    .cfg-counter { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .cfg-step { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--green-bg); color: var(--green); font-size: 20px; font-weight: 800; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .cfg-step:active { background: var(--green); color: white; }
+    .cfg-count { min-width: 24px; text-align: center; font-size: 16px; font-weight: 800; }
 
     /* ── CAL KCAL LABEL ── */
     .cal-kcal { font-size: 8px; font-weight: 700; color: var(--gray); margin-top: 1px; line-height: 1; }
@@ -1963,11 +1971,11 @@ function fmtPieces(grams, u) {
 // La qty è configurabile dall'utente (shopConfig, sincronizzato). Grammi = qty × gpu.
 const WEEKLY_PLAN_INGREDIENTS = [
   // ─── Proteine ───
-  { fcId:'fc_pollo_petto',      name:'Petto di pollo',                  cat:'Proteine',    unit:'g',          unitP:'g',          gpu:1,    qty:500 },
+  { fcId:'fc_pollo_petto',      name:'Petto di pollo',                  cat:'Proteine',    unit:'g',          unitP:'g',          gpu:400,  qty:1 },
   { fcId:'fc_tonno_acq',        name:'Tonno in acqua',                  cat:'Proteine',    unit:'scatoletta', unitP:'scatolette', gpu:160,  qty:3 },
-  { fcId:'fc_branzino',         name:'Pesce fresco (merluzzo/branzino)', cat:'Proteine',   unit:'g',          unitP:'g',          gpu:1,    qty:300 },
+  { fcId:'fc_branzino',         name:'Pesce fresco (merluzzo/branzino)', cat:'Proteine',   unit:'g',          unitP:'g',          gpu:300,  qty:1 },
   { fcId:'fc_uovo_intero',      name:'Uova bio',                        cat:'Proteine',    unit:'uovo',       unitP:'uova',       gpu:60,   qty:10 },
-  { fcId:'fc_bresaola',         name:'Bresaola',                        cat:'Proteine',    unit:'g',          unitP:'g',          gpu:1,    qty:100 },
+  { fcId:'fc_bresaola',         name:'Bresaola',                        cat:'Proteine',    unit:'g',          unitP:'g',          gpu:100,  qty:1 },
   { fcId:'fc_mozzarella_light', name:'Mozzarella light',                cat:'Proteine',    unit:'pz',         unitP:'pz',         gpu:125,  qty:2 },
   { fcId:'fc_ricotta_vacc',     name:'Ricotta / Fiocchi di latte',      cat:'Proteine',    unit:'confezione', unitP:'confezioni', gpu:250,  qty:2 },
   { fcId:'fc_lenticchie',       name:'Lenticchie',                      cat:'Proteine',    unit:'lattina',    unitP:'lattine',    gpu:160,  qty:3 },
@@ -1976,9 +1984,9 @@ const WEEKLY_PLAN_INGREDIENTS = [
   { fcId:'fc_yogurt_proteico',  name:'Yogurt proteico (Milk Pro/Milbona)', cat:'Latticini', unit:'vasetto',  unitP:'vasetti',    gpu:200,  qty:7 },
   // ─── Carboidrati ───
   { fcId:'fc_pane_bauletto',    name:'Pane in cassetta integrale',      cat:'Carboidrati', unit:'confezione', unitP:'confezioni', gpu:400,  qty:1 },
-  { fcId:'fc_pasta_int_cotta',  name:'Pasta integrale/saraceno/kamut',  cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:1,    qty:500 },
-  { fcId:'fc_riso_basmati',     name:'Riso basmati',                    cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:1,    qty:500 },
-  { fcId:'fc_farro_cotto',      name:'Farro o Orzo',                    cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:1,    qty:500 },
+  { fcId:'fc_pasta_int_cotta',  name:'Pasta integrale/saraceno/kamut',  cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:500,  qty:1 },
+  { fcId:'fc_riso_basmati',     name:'Riso basmati',                    cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:500,  qty:1 },
+  { fcId:'fc_farro_cotto',      name:'Farro o Orzo',                    cat:'Carboidrati', unit:'g',          unitP:'g',          gpu:500,  qty:1 },
   { fcId:'fc_gnocchi',          name:'Gnocchi di patate',               cat:'Carboidrati', unit:'confezione', unitP:'confezioni', gpu:500,  qty:1 },
   // ─── Verdure ───
   { fcId:'fc_insalata',         name:'Insalata mista',                  cat:'Verdure',     unit:'busta',      unitP:'buste',      gpu:150,  qty:4 },
@@ -1996,17 +2004,34 @@ const WEEKLY_PLAN_INGREDIENTS = [
 let shopConfig = {};
 function loadShopConfig(){ try { shopConfig = JSON.parse(localStorage.getItem('shopConfig') || '{}'); } catch { shopConfig = {}; } }
 function saveShopConfig(){ localStorage.setItem('shopConfig', JSON.stringify(shopConfig)); touchLocal(); }
-function shopQty(tpl){ const v = shopConfig[tpl.fcId]; return (v === undefined || v === null || v === '') ? tpl.qty : Number(v); }
-function shopGrams(tpl){ return Math.round(shopQty(tpl) * tpl.gpu); }
-function shopDisplay(tpl){
-  const q = shopQty(tpl);
-  if (tpl.unit === 'g') return `${q}g`;
-  return `${q} ${q === 1 ? tpl.unit : tpl.unitP}`;
+// Override per fcId: { u: grammi per unità (pezzatura), n: numero di unità }
+function shopCfg(fcId){
+  const v = shopConfig[fcId];
+  if (v === undefined || v === null) return {};
+  if (typeof v === 'number') return { n: v };   // retrocompat vecchio formato (solo conteggio)
+  return v;
 }
-function setShopQty(fcId, v){
-  if (v === '' || v === null || isNaN(+v)) delete shopConfig[fcId];
-  else shopConfig[fcId] = Math.max(0, +v);
+function shopUnitG(tpl){ const u = shopCfg(tpl.fcId).u; return (u === undefined || u === null || u === '') ? tpl.gpu : Number(u); }
+function shopCount(tpl){ const n = shopCfg(tpl.fcId).n; return (n === undefined || n === null || n === '') ? tpl.qty : Number(n); }
+function shopGrams(tpl){ return Math.round(shopUnitG(tpl) * shopCount(tpl)); }
+function shopDisplay(tpl){
+  const n = shopCount(tpl);
+  if (tpl.unit === 'g'){ const u = shopUnitG(tpl); return n > 1 ? `${n*u}g (${n}×${u}g)` : `${u}g`; }
+  return `${n} ${n === 1 ? tpl.unit : tpl.unitP}`;
+}
+function shopConfigSet(fcId, key, val){
+  const c = (typeof shopConfig[fcId] === 'object' && shopConfig[fcId]) ? shopConfig[fcId]
+          : (typeof shopConfig[fcId] === 'number' ? { n: shopConfig[fcId] } : {});
+  if (val === '' || val === null || isNaN(+val)) delete c[key];
+  else c[key] = Math.max(0, +val);
+  if (Object.keys(c).length) shopConfig[fcId] = c; else delete shopConfig[fcId];
   saveShopConfig();
+}
+function setShopUnit(fcId, v){ shopConfigSet(fcId, 'u', v); renderShopConfig(); }
+function setShopCount(fcId, v){ shopConfigSet(fcId, 'n', Math.round(+v || 0)); renderShopConfig(); }
+function bumpShopCount(fcId, delta){
+  const tpl = WEEKLY_PLAN_INGREDIENTS.find(t => t.fcId === fcId);
+  if (tpl) setShopCount(fcId, Math.max(0, shopCount(tpl) + delta));
 }
 
 // ════════════════════════════════════════════════════
@@ -3353,12 +3378,20 @@ function renderShopConfig(){
   let html = '', lastCat = '';
   for (const tpl of WEEKLY_PLAN_INGREDIENTS){
     if (tpl.cat !== lastCat){ html += `<div class="cfg-cat">${tpl.cat}</div>`; lastCat = tpl.cat; }
-    const step = tpl.unit === 'g' ? 10 : 1;
-    const unitLabel = tpl.unit === 'g' ? 'g' : tpl.unitP;
+    const n = shopCount(tpl);
+    const unitCell = tpl.unit === 'g'
+      ? `<span class="cfg-unitwrap"><input class="cfg-unitg" type="number" min="0" step="10" value="${shopUnitG(tpl)}" onchange="setShopUnit('${tpl.fcId}', this.value)"><span class="cfg-unitsuffix">g / unità</span></span>`
+      : `<span class="cfg-unitlabel">1 ${tpl.unit} (${tpl.gpu}g)</span>`;
     html += `<div class="cfg-row">
-      <div class="cfg-name">${tpl.name}</div>
-      <input type="number" class="cfg-qty" min="0" step="${step}" value="${shopQty(tpl)}" onchange="setShopQty('${tpl.fcId}', this.value)">
-      <div class="cfg-unit">${unitLabel}</div>
+      <div class="cfg-main">
+        <div class="cfg-name">${tpl.name}</div>
+        <div class="cfg-sub">${unitCell} · <strong>${shopDisplay(tpl)}</strong></div>
+      </div>
+      <div class="cfg-counter">
+        <button class="cfg-step" onclick="bumpShopCount('${tpl.fcId}', -1)">−</button>
+        <span class="cfg-count">${n}</span>
+        <button class="cfg-step" onclick="bumpShopCount('${tpl.fcId}', 1)">+</button>
+      </div>
     </div>`;
   }
   el.innerHTML = html;
