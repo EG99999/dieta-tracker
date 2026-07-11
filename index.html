@@ -1085,13 +1085,13 @@
 const DIET = {
   colazione: [
     { id:'col_fette', nome:'Fette biscottate + Crema', emoji:'🍞',
-      desc:'2-3 fette pan bauletto (kamut/integrale/5 cereali) + marmellata senza zuccheri + burro arachidi 100% o crema 100% frutta secca (nocciole, mandorle, pistacchi)',
+      desc:'2 fette pan bauletto (kamut/integrale/5 cereali) + marmellata senza zuccheri + burro arachidi 100% o crema 100% frutta secca (nocciole, mandorle, pistacchi)',
       tags:['vegano'] },
     { id:'col_toast', nome:'Toast proteico', emoji:'🥪',
       desc:'2 fette pan bauletto (kamut/integrale/rustico con semi) + 4-5 fette tacchino o prosciutto cotto alta qualità + 1 sottiletta',
       tags:['carne'] },
     { id:'col_yogurt', nome:'Yogurt greco', emoji:'🫙',
-      desc:'1 vasetto yogurt greco 0% + 10g semi (chia/girasole/zucca) + [scaglie cocco o cioccolato fondente 85%] + 1 cucchiaino miele',
+      desc:'1 vasetto yogurt greco 0% + 10g semi (chia/girasole/zucca) + 20g frutta secca + 1 cucchiaino miele',
       tags:['latticini'] },
   ],
   spuntino_mattina: [
@@ -1099,15 +1099,25 @@ const DIET = {
       desc:'1 yogurt proteico tipo Milk Pro o Milbona',
       tags:['latticini'] },
   ],
-  pranzo_carb: [
+  // Giorno bici/corsa/gara: quantità maggiorate + pane integrale disponibile
+  pranzo_carb_bici: [
     { id:'pr_c_pane', nome:'Pane integrale + Legumi', emoji:'🍞',
       desc:'60-80g pane integrale (3-4 fette) + 120-150g legumi',
       tags:['vegano'] },
     { id:'pr_c_riso', nome:'Riso basmati', emoji:'🍚',
-      desc:'80g riso basmati',
+      desc:'90-100g riso basmati',
       tags:['vegano'] },
     { id:'pr_c_cereali', nome:'Misto cereali', emoji:'🌾',
-      desc:'80g misto cereali',
+      desc:'90-100g misto cereali',
+      tags:['vegano'] },
+  ],
+  // Giorno senza bici/corsa/gara: quantità ridotte, niente pane+legumi
+  pranzo_carb_normale: [
+    { id:'pr_c_riso_n', nome:'Riso basmati', emoji:'🍚',
+      desc:'70-80g riso basmati',
+      tags:['vegano'] },
+    { id:'pr_c_cereali_n', nome:'Misto cereali', emoji:'🌾',
+      desc:'70-80g misto cereali',
       tags:['vegano'] },
   ],
   pranzo_prot: [
@@ -1115,8 +1125,8 @@ const DIET = {
       desc:'250-300g: nasello, merluzzo, branzino, platessa, coda di rospo, orata, spigola, trota, salmone, tonno, seppie o calamari',
       tags:['pesce'], foodGroup:'pesce',
       minWeek:{ count:1, msg:'Dovresti mangiare pesce almeno 1v/sett' } },
-    { id:'pr_p_uova', nome:'Uova (3 intere)', emoji:'🥚',
-      desc:'3 uova (frittata con verdure, strapazzate o à la coque)',
+    { id:'pr_p_uova', nome:'Uova (3 intere) + Albume', emoji:'🥚',
+      desc:'3 uova intere + 150g di albume (frittata con verdure, strapazzate o à la coque)',
       tags:['uova'], foodGroup:'uova',
       maxWeek:{ count:4, msg:'Limite uova settimanale' } },
     { id:'pr_p_pollo', nome:'Pollo / Tacchino / Maiale', emoji:'🍗',
@@ -1132,19 +1142,28 @@ const DIET = {
       desc:'200g roast beef + scaglie di grana',
       tags:['carne'] },
     { id:'pr_p_bresaola', nome:'Bresaola + Grana', emoji:'🥩',
-      desc:'100g bresaola + scaglie di grana',
+      desc:'120g bresaola + scaglie di grana',
       tags:['carne'] },
-    { id:'pr_p_tofu', nome:'Tofu / Tempeh', emoji:'🌿',
-      desc:'150-200g tofu/tempeh (saltato con miso, o marinato con porro, sesamo, zenzero, salsa di soia)',
+    { id:'pr_p_tofu', nome:'Tofu', emoji:'🌿',
+      desc:'200-250g tofu, saltato in padella con miso di soia oppure marinato con porro, sesamo, zenzero, salsa di soia e poi spadellato',
+      tags:['vegano'] },
+    { id:'pr_p_tempeh', nome:'Tempeh', emoji:'🌿',
+      desc:'180-200g tempeh, saltato in padella con miso di soia oppure marinato con porro, sesamo, zenzero, salsa di soia e poi spadellato',
       tags:['vegano'] },
     { id:'pr_p_caprino', nome:'Caprino + Affettato Veg', emoji:'🧀',
       desc:'100g caprino stagionato + 100g affettato veg (Fettallegra / tofu / seitan)',
       tags:['latticini','vegano'] },
     { id:'pr_p_burger_veg', nome:'Burger Veg', emoji:'🍔',
-      desc:'150-200g (Unconventional Burger, GreenMe, Beyond Burger, Garden Gourmet, sojasun, valsoia, kioene…)',
+      desc:'200g (Unconventional Burger, GreenMe, Beyond Burger, Garden Gourmet, sojasun, valsoia, kioene…)',
       tags:['vegano'] },
-    { id:'pr_p_ricotta', nome:'Ricotta / Primo sale / Mozzarella', emoji:'🧀',
-      desc:'200g ricotta, fiocchi di latte, primo sale o 1 mozzarella',
+    { id:'pr_p_ricotta', nome:'Ricotta', emoji:'🧀',
+      desc:'250g ricotta',
+      tags:['latticini'] },
+    { id:'pr_p_primosale', nome:'Primo sale', emoji:'🧀',
+      desc:'220g primo sale',
+      tags:['latticini'] },
+    { id:'pr_p_mozzarella', nome:'Mozzarella grande', emoji:'🫙',
+      desc:'1 mozzarella grande (150-180g)',
       tags:['latticini'] },
   ],
   spuntino_pom: [
@@ -1157,22 +1176,44 @@ const DIET = {
     { id:'sp_pom_hummus', nome:'Paninetto hummus', emoji:'🫓',
       desc:'1 paninetto con 100g hummus',
       tags:['vegano'] },
-    { id:'sp_pom_yoeggs', nome:'Yoeggs', emoji:'🥚',
-      desc:'1 Yoeggs',
+    { id:'sp_pom_yoeggs', nome:'Yoeggs + Pane + Burro arachidi', emoji:'🥚',
+      desc:'1 Yoeggs + 2 fette di pane + burro di arachidi 100% arachidi',
       tags:['uova'] },
     { id:'sp_pom_yogurt', nome:'Yogurt greco + Avena', emoji:'🫙',
       desc:'1 yogurt greco + 2 cucchiai di avena',
       tags:['latticini'] },
   ],
-  cena_all_carb: [
+  // Solo nei giorni di nuoto (spuntino pre-allenamento delle 20)
+  spuntino_pom_nuoto: [
+    { id:'sp_pom_gallette', nome:'Gallette + Marmellata/Miele', emoji:'🍘',
+      desc:'2-3 gallette + marmellata o miele',
+      tags:['vegano'] },
+    { id:'sp_pom_barretta', nome:'Barretta energetica', emoji:'🍫',
+      desc:'1 barretta energetica',
+      tags:['vegano'] },
+  ],
+  // Cena normale (quando nuoti la sera): carbo ~100g + secondo lista a-j
+  cena_carb_normale: [
     { id:'ca_c_pasta', nome:'Pasta integrale / saraceno / kamut', emoji:'🍝',
-      desc:'90-100g + sugo vegetale (pomodoro, pesto o verdura a piacere)',
+      desc:'100g + sugo vegetale (pomodoro, pesto o verdura a piacere)',
       tags:['vegano'] },
     { id:'ca_c_gnocchi', nome:'Gnocchi di patate', emoji:'🥔',
       desc:'220-230g + sugo vegetale',
       tags:['vegano'] },
     { id:'ca_c_riso', nome:'Riso / Farro / Orzo / Cereali', emoji:'🍚',
-      desc:'90-100g (basmati, rosso, nero, integrale, farro, orzo)',
+      desc:'100g (basmati, rosso, nero, integrale, farro, orzo, cereali)',
+      tags:['vegano'] },
+  ],
+  // Cena leggera (allenamento in pausa pranzo o solo bici): carbo ridotto, secondo abbondante stile pranzo
+  cena_carb_leggera: [
+    { id:'ca_c_riso_legg', nome:'Riso basmati (leggero)', emoji:'🍚',
+      desc:'50-60g riso basmati',
+      tags:['vegano'] },
+    { id:'ca_c_cereali_legg', nome:'Misto cereali (leggero)', emoji:'🌾',
+      desc:'50-60g misto cereali',
+      tags:['vegano'] },
+    { id:'ca_c_pane_legg', nome:'Pane', emoji:'🍞',
+      desc:'50g pane',
       tags:['vegano'] },
   ],
   cena_all_prot: [
@@ -1239,13 +1280,23 @@ const TRAINING_SUPPLEMENTS = {
   gara:         { durante: 'Idratazione: 500ml 2-3h prima + 250ml 20min prima + 100-150ml ogni 15-20min durante', post: 'Segui le indicazioni della disciplina principale' }
 };
 
+// Condizioni legate al training del giorno
+function isPranzoBig(dd) { return ['bici','corsa','gara'].includes(dd?.tipoAllenamento); }
+function isCenaLeggera(dd) { return ['bici','corpo_libero'].includes(dd?.tipoAllenamento); }
+function pranzoCarbItems(dd) { return isPranzoBig(dd) ? DIET.pranzo_carb_bici : DIET.pranzo_carb_normale; }
+function cenaCarbItems(dd) { return isCenaLeggera(dd) ? DIET.cena_carb_leggera : DIET.cena_carb_normale; }
+function cenaProtItems(dd) { return isCenaLeggera(dd) ? DIET.pranzo_prot : DIET.cena_all_prot; }
+function spuntinoPomItems(dd) {
+  return dd?.tipoAllenamento === 'nuoto' ? [...DIET.spuntino_pom, ...DIET.spuntino_pom_nuoto] : DIET.spuntino_pom;
+}
+
 // Mapping section → gruppi di item per radio-behavior (un solo item per gruppo)
-const SECTION_GROUPS = () => ({
+const SECTION_GROUPS = (dd) => ({
   colazione:        [DIET.colazione],
   spuntino_mattina: [DIET.spuntino_mattina],
-  pranzo:           [DIET.pranzo_carb, DIET.pranzo_prot, DIET.contorno],
-  spuntino_pom:     [DIET.spuntino_pom],
-  cena:             [DIET.cena_all_carb, DIET.cena_all_prot, DIET.contorno],
+  pranzo:           [pranzoCarbItems(dd), DIET.pranzo_prot, DIET.contorno],
+  spuntino_pom:     [spuntinoPomItems(dd)],
+  cena:             [cenaCarbItems(dd), cenaProtItems(dd), DIET.contorno],
   prenanna:         [DIET.prenanna],
 });
 
@@ -1254,20 +1305,26 @@ const SECTION_GROUPS = () => ({
 // ════════════════════════════════════════════════════
 const KCAL_MAP = {
   // Colazione
-  col_fette: 390, col_toast: 360, col_yogurt: 265,
+  col_fette: 390, col_toast: 360, col_yogurt: 300,
   // Spuntino mattina
   sp_mat: 100,
-  // Pranzo carb
-  pr_c_pane: 330, pr_c_riso: 285, pr_c_cereali: 290,
+  // Pranzo carb (giorno bici/corsa/gara)
+  pr_c_pane: 330, pr_c_riso: 335, pr_c_cereali: 345,
+  // Pranzo carb (giorno normale)
+  pr_c_riso_n: 265, pr_c_cereali_n: 270,
   // Pranzo prot
-  pr_p_pesce: 220, pr_p_uova: 215, pr_p_pollo: 235, pr_p_manzo: 285,
-  pr_p_cavallo: 225, pr_p_roastbeef: 340, pr_p_bresaola: 230,
-  pr_p_tofu: 135, pr_p_caprino: 450, pr_p_burger_veg: 280, pr_p_ricotta: 250,
+  pr_p_pesce: 220, pr_p_uova: 295, pr_p_pollo: 235, pr_p_manzo: 285,
+  pr_p_cavallo: 225, pr_p_roastbeef: 340, pr_p_bresaola: 275,
+  pr_p_tofu: 175, pr_p_tempeh: 370, pr_p_caprino: 450, pr_p_burger_veg: 320,
+  pr_p_ricotta: 310, pr_p_primosale: 570, pr_p_mozzarella: 460,
   // Spuntino pomeriggio
   sp_pom_pancake: 330, sp_pom_tacchino: 280, sp_pom_hummus: 300,
-  sp_pom_yoeggs: 130, sp_pom_yogurt: 185,
-  // Cena carb
+  sp_pom_yoeggs: 295, sp_pom_yogurt: 185,
+  sp_pom_gallette: 150, sp_pom_barretta: 200,
+  // Cena carb (normale)
   ca_c_pasta: 390, ca_c_gnocchi: 285, ca_c_riso: 350,
+  // Cena carb (leggera)
+  ca_c_riso_legg: 195, ca_c_cereali_legg: 200, ca_c_pane_legg: 125,
   // Cena prot
   ca_p_tonno: 175, ca_p_legumi: 190, ca_p_prosceco: 240,
   ca_p_grana: 180, ca_p_ricotta: 230, ca_p_mozz: 160,
@@ -2274,9 +2331,11 @@ function setBurned(val) {
 }
 
 function buildMeals(dd) {
-  const isTrained = dd.allenamento;
   const container = document.getElementById('mealsContainer');
   container.innerHTML = '';
+
+  const pranzoBig = isPranzoBig(dd);
+  const cenaLeggera = isCenaLeggera(dd);
 
   const sections = [
     { key:'colazione',        icon:'☀️',  title:'Colazione',         sub:'Alterna le opzioni',
@@ -2284,11 +2343,13 @@ function buildMeals(dd) {
     { key:'spuntino_mattina', icon:'🕙',  title:'Spuntino mattina',  sub:'½ mattina',
       groups:[ { label:null, items: DIET.spuntino_mattina } ] },
     { key:'pranzo',           icon:'🍽️', title:'Pranzo',            sub:'Verdure + Carb + Proteina',
-      groups:[ { label:'Carboidrato', items: DIET.pranzo_carb }, { label:'Proteina', items: DIET.pranzo_prot }, { label:'Contorno', items: DIET.contorno } ] },
+      note: pranzoBig ? '🚴 Giorno bici/corsa/gara: carbo maggiorati, pane+legumi disponibile' : null,
+      groups:[ { label:'Carboidrato', items: pranzoCarbItems(dd) }, { label:'Proteina', items: DIET.pranzo_prot }, { label:'Contorno', items: DIET.contorno } ] },
     { key:'spuntino_pom',     icon:'🍎',  title:'Spuntino pomeriggio', sub:'½ pomeriggio',
-      groups:[ { label:null, items: DIET.spuntino_pom } ] },
+      groups:[ { label:null, items: spuntinoPomItems(dd) } ] },
     { key:'cena',             icon:'🌙',  title:'Cena',              sub:'Verdure + Carb + Secondo',
-      groups:[ { label:'Carboidrato', items: DIET.cena_all_carb }, { label:'Secondo', items: DIET.cena_all_prot }, { label:'Contorno', items: DIET.contorno } ] },
+      note: cenaLeggera ? '💪 Allenamento pranzo/bici: cena leggera, secondo abbondante (porzioni da pranzo)' : null,
+      groups:[ { label:'Carboidrato', items: cenaCarbItems(dd) }, { label: cenaLeggera ? 'Secondo (abbondante)' : 'Secondo', items: cenaProtItems(dd) }, { label:'Contorno', items: DIET.contorno } ] },
     { key:'prenanna',         icon:'😴',  title:'Pre-nanna',         sub:'Yogurt greco + semi girasole + avena + gocce cioccolato',
       groups:[ { label:null, items: DIET.prenanna } ] },
   ];
@@ -2320,6 +2381,9 @@ function buildMeals(dd) {
 
     // Build options HTML
     let bodyHtml = '';
+    if (sec.note) {
+      bodyHtml += `<div class="subsec-label" style="color:#e65100">${sec.note}</div>`;
+    }
     if (hasMultipleTags) {
       bodyHtml += `<div class="filter-tabs" id="ft-${sec.key}">`;
       bodyHtml += `<button class="filter-tab active" onclick="filterOpts('${sec.key}','tutti')">Tutti</button>`;
@@ -2419,7 +2483,7 @@ function toggleFood(sectionKey, itemId) {
     dd.pasti[sectionKey].splice(idx, 1);
   } else {
     // Radio: rimuovi altri item dello stesso gruppo prima di aggiungere
-    const groups = SECTION_GROUPS()[sectionKey] || [];
+    const groups = SECTION_GROUPS(dd)[sectionKey] || [];
     const group = groups.find(g => g.some(i => i.id === itemId));
     if (group) {
       const groupIds = group.map(i => i.id);
@@ -2626,10 +2690,22 @@ function removeExtra(sec, exId) {
 // ════════════════════════════════════════════════════
 // TRAINING
 // ════════════════════════════════════════════════════
+// Rimuove selezioni non più valide quando cambia il tipo di allenamento
+// (es. carb "normale" già scelto a pranzo, poi il giorno diventa "bici" → variante "bici")
+function sanitizeMealSelections(dd) {
+  const groups = SECTION_GROUPS(dd);
+  for (const sec of ['pranzo', 'cena', 'spuntino_pom']) {
+    if (!dd.pasti[sec]) continue;
+    const validIds = new Set((groups[sec] || []).flat().map(it => it.id));
+    dd.pasti[sec] = dd.pasti[sec].filter(id => validIds.has(id));
+  }
+}
+
 function toggleTraining() {
   const dd = dayData(currentDate);
   dd.allenamento = !dd.allenamento;
   if (!dd.allenamento) dd.tipoAllenamento = null;
+  sanitizeMealSelections(dd);
   saveLog();
   renderDay();
 }
@@ -2637,10 +2713,9 @@ function toggleTraining() {
 function selTraining(type) {
   const dd = dayData(currentDate);
   dd.tipoAllenamento = dd.tipoAllenamento === type ? null : type;
+  sanitizeMealSelections(dd);
   saveLog();
-  document.querySelectorAll('.tt-btn').forEach(b => b.classList.remove('active'));
-  if (dd.tipoAllenamento) document.getElementById('tt-' + dd.tipoAllenamento).classList.add('active');
-  renderSupplCard(dd);
+  renderDay();
 }
 
 function renderSupplCard(dd) {
