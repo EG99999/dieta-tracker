@@ -759,24 +759,42 @@
     <!-- Allenamento -->
     <div class="training-card">
       <div class="training-row">
-        <div class="training-label">🏃 Ti sei allenato oggi?</div>
-        <div class="toggle-switch" id="trainingToggle" onclick="toggleTraining()"></div>
+        <div class="training-label">🏃 Allenamenti oggi</div>
+        <div class="training-label" id="trainingTotalKcal" style="color:var(--green);"></div>
       </div>
-      <div class="training-types hidden" id="trainingTypes">
-        <button class="tt-btn" onclick="selTraining('bici')" id="tt-bici">🚴 Bici</button>
-        <button class="tt-btn" onclick="selTraining('corsa')" id="tt-corsa">🏃 Corsa</button>
-        <button class="tt-btn" onclick="selTraining('nuoto')" id="tt-nuoto">🏊 Nuoto</button>
-        <button class="tt-btn" onclick="selTraining('corpo_libero')" id="tt-corpo_libero">💪 Corpo libero</button>
-        <button class="tt-btn" onclick="selTraining('combinato')" id="tt-combinato">🔀 Combinato</button>
-        <button class="tt-btn" onclick="selTraining('gara')" id="tt-gara">🏆 Gara</button>
-      </div>
-      <div id="burnedRow" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0;">
-        <div style="font-size:12px;font-weight:700;color:#757575;margin-bottom:5px;">🔥 Calorie bruciate (Garmin)</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="number" id="burnedInput" min="0" max="9999" step="10"
+      <div id="trainingList"></div>
+      <button class="add-extra-btn" onclick="openTrainingForm()">＋ Aggiungi allenamento</button>
+      <div id="trainingForm" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0;">
+        <div style="font-size:11px;font-weight:800;color:#9e9e9e;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Tipo</div>
+        <div class="training-types" id="tfTipoRow">
+          <button class="tt-btn" onclick="setTfTipo('bici')" id="tf-t-bici">🚴 Bici</button>
+          <button class="tt-btn" onclick="setTfTipo('corsa')" id="tf-t-corsa">🏃 Corsa</button>
+          <button class="tt-btn" onclick="setTfTipo('nuoto')" id="tf-t-nuoto">🏊 Nuoto</button>
+          <button class="tt-btn" onclick="setTfTipo('corpo_libero')" id="tf-t-corpo_libero">💪 Corpo libero</button>
+          <button class="tt-btn" onclick="setTfTipo('combinato')" id="tf-t-combinato">🔀 Combinato</button>
+          <button class="tt-btn" onclick="setTfTipo('gara')" id="tf-t-gara">🏆 Gara</button>
+        </div>
+        <div style="font-size:11px;font-weight:800;color:#9e9e9e;text-transform:uppercase;letter-spacing:0.6px;margin:10px 0 6px;">Quando</div>
+        <div class="training-types" id="tfMomentoRow">
+          <button class="tt-btn" onclick="setTfMomento('mattina')" id="tf-m-mattina">🌅 Mattina</button>
+          <button class="tt-btn" onclick="setTfMomento('pranzo')" id="tf-m-pranzo">🍽️ Pausa pranzo</button>
+          <button class="tt-btn" onclick="setTfMomento('pomeriggio')" id="tf-m-pomeriggio">☕ Pomeriggio</button>
+          <button class="tt-btn" onclick="setTfMomento('sera')" id="tf-m-sera">🌙 Sera</button>
+          <button class="tt-btn" onclick="setTfMomento('custom')" id="tf-m-custom">🕐 Orario</button>
+        </div>
+        <div id="tfOrarioRow" class="hidden" style="margin-top:8px;">
+          <input type="time" id="tfOrarioInput" oninput="setTfOrario(this.value)"
+            style="padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:15px;font-weight:600;">
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
+          <input type="number" id="tfKcalInput" min="0" max="9999" step="10"
             style="flex:1;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:16px;font-weight:700;color:#1a1a1a;background:white;"
-            placeholder="es. 450" oninput="setBurned(+this.value)">
+            placeholder="kcal bruciate (Garmin)" oninput="setTfKcal(this.value)">
           <span style="font-size:13px;color:#9e9e9e;font-weight:700;">kcal</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onclick="closeTrainingForm()" style="flex:1;background:var(--gray-light);color:#616161;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;">Annulla</button>
+          <button onclick="confirmAddTraining()" style="flex:1;background:var(--green);color:white;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;">✓ Aggiungi</button>
         </div>
       </div>
     </div>
@@ -1271,6 +1289,7 @@ const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio'
 const MONTHS_S = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
 const DAYS = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
 const TRAINING_LABELS = { bici:'🚴 Bici', corsa:'🏃 Corsa', nuoto:'🏊 Nuoto', corpo_libero:'💪 Corpo libero', combinato:'🔀 Combinato', gara:'🏆 Gara' };
+const MOMENTI = { mattina:'🌅 Mattina', pranzo:'🍽️ Pausa pranzo', pomeriggio:'☕ Pomeriggio', sera:'🌙 Sera' };
 const TRAINING_SUPPLEMENTS = {
   bici:         { durante: null, post: '1 misurino Recovery Per4m (cod. veronica10 per 10% sconto)' },
   corsa:        { durante: '1 gel Enervit ogni 40\' con acqua (per corsa lunga/variata)', post: 'Corsa lunga: 2 mis. Recovery Per4m — Lavoro di corsa: 2 mis. Amino Essential Yamamoto' },
@@ -1280,14 +1299,26 @@ const TRAINING_SUPPLEMENTS = {
   gara:         { durante: 'Idratazione: 500ml 2-3h prima + 250ml 20min prima + 100-150ml ogni 15-20min durante', post: 'Segui le indicazioni della disciplina principale' }
 };
 
-// Condizioni legate al training del giorno
-function isPranzoBig(dd) { return ['bici','corsa','gara'].includes(dd?.tipoAllenamento); }
-function isCenaLeggera(dd) { return ['bici','corpo_libero'].includes(dd?.tipoAllenamento); }
+// Condizioni legate agli allenamenti del giorno (dd.allenamenti: [{tipo, momento, orario, kcal}])
+function sessions(dd) { return dd?.allenamenti || []; }
+function totalBurned(dd) { return sessions(dd).reduce((s, a) => s + (a.kcal || 0), 0); }
+function momentoFromOrario(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  const mins = h * 60 + (m || 0);
+  if (mins < 11 * 60 + 30) return 'mattina';
+  if (mins < 15 * 60) return 'pranzo';
+  if (mins < 19 * 60) return 'pomeriggio';
+  return 'sera';
+}
+// Pranzo maggiorato: allenamento bici/corsa/gara di mattina o in pausa pranzo (giorno "attivo" prima di pranzo)
+function isPranzoBig(dd) { return sessions(dd).some(a => ['bici','corsa','gara'].includes(a.tipo) && ['mattina','pranzo'].includes(a.momento)); }
+// Cena leggera: allenamento bici o corpo libero (qualsiasi orario) → secondo abbondante da pranzo, carbo ridotto
+function isCenaLeggera(dd) { return sessions(dd).some(a => ['bici','corpo_libero'].includes(a.tipo)); }
 function pranzoCarbItems(dd) { return isPranzoBig(dd) ? DIET.pranzo_carb_bici : DIET.pranzo_carb_normale; }
 function cenaCarbItems(dd) { return isCenaLeggera(dd) ? DIET.cena_carb_leggera : DIET.cena_carb_normale; }
 function cenaProtItems(dd) { return isCenaLeggera(dd) ? DIET.pranzo_prot : DIET.cena_all_prot; }
 function spuntinoPomItems(dd) {
-  return dd?.tipoAllenamento === 'nuoto' ? [...DIET.spuntino_pom, ...DIET.spuntino_pom_nuoto] : DIET.spuntino_pom;
+  return sessions(dd).some(a => a.tipo === 'nuoto') ? [...DIET.spuntino_pom, ...DIET.spuntino_pom_nuoto] : DIET.spuntino_pom;
 }
 
 // Mapping section → gruppi di item per radio-behavior (un solo item per gruppo)
@@ -2174,12 +2205,25 @@ function today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
 
 function loadLog() {
   try { log = JSON.parse(localStorage.getItem('dietaLog') || '{}'); } catch { log = {}; }
+  migrateTrainingData();
 }
 function saveLog() { localStorage.setItem('dietaLog', JSON.stringify(log)); touchLocal(); }
 
+// Migrazione una-tantum: vecchio schema {allenamento, tipoAllenamento, kcalBruciate} → dd.allenamenti[]
+function migrateTrainingData() {
+  for (const dd of Object.values(log)) {
+    if (!dd.allenamenti) {
+      dd.allenamenti = dd.allenamento
+        ? [{ id: 'tr_migrated_' + Math.random().toString(36).slice(2,9), tipo: dd.tipoAllenamento || null, momento: null, kcal: dd.kcalBruciate || 0 }]
+        : [];
+    }
+    delete dd.allenamento; delete dd.tipoAllenamento; delete dd.kcalBruciate;
+  }
+}
+
 function dayData(d) {
   const k = dateKey(d);
-  if (!log[k]) log[k] = { allenamento:false, tipoAllenamento:null, acqua:0, pastoLibero:false, pasti:{} };
+  if (!log[k]) log[k] = { allenamenti:[], acqua:0, pastoLibero:false, pasti:{} };
   return log[k];
 }
 
@@ -2216,27 +2260,8 @@ function renderDay() {
   const dd = dayData(currentDate);
 
   // Training
-  const tog = document.getElementById('trainingToggle');
-  tog.className = 'toggle-switch' + (dd.allenamento ? ' on' : '');
-  const ttypes = document.getElementById('trainingTypes');
-  ttypes.className = 'training-types' + (dd.allenamento ? '' : ' hidden');
-  document.querySelectorAll('.tt-btn').forEach(b => b.classList.remove('active'));
-  if (dd.tipoAllenamento) {
-    const b = document.getElementById('tt-' + dd.tipoAllenamento);
-    if (b) b.classList.add('active');
-  }
-
-  // Supplements
+  renderTrainingCard(dd);
   renderSupplCard(dd);
-
-  // Burned calories input
-  const burnedRow = document.getElementById('burnedRow');
-  if (dd.allenamento) {
-    burnedRow.classList.remove('hidden');
-    document.getElementById('burnedInput').value = dd.kcalBruciate > 0 ? dd.kcalBruciate : '';
-  } else {
-    burnedRow.classList.add('hidden');
-  }
 
   // Water
   const ml = dd.acqua || 0;
@@ -2259,7 +2284,7 @@ function renderDay() {
 
 function updateKcalCard(dd) {
   const intake = calcDayKcal(dd);
-  const burned = dd.kcalBruciate || 0;
+  const burned = totalBurned(dd);
   const total = intake - burned;   // numero grande = bilancio NETTO (cibo − bruciate)
   document.getElementById('kcalTotal').textContent = total;
   document.getElementById('kcalOf').textContent = `/ ${kcalTarget} kcal`;
@@ -2321,13 +2346,6 @@ function editTarget() {
     touchLocal();
     updateKcalCard(dayData(currentDate));
   }
-}
-
-function setBurned(val) {
-  const dd = dayData(currentDate);
-  dd.kcalBruciate = Math.max(0, Math.round(val) || 0);
-  saveLog();
-  updateKcalCard(dd);
 }
 
 function buildMeals(dd) {
@@ -2701,18 +2719,86 @@ function sanitizeMealSelections(dd) {
   }
 }
 
-function toggleTraining() {
+// Stato del form "aggiungi allenamento" (nullo = form chiuso)
+let tfState = null;
+
+function renderTrainingCard(dd) {
+  const list = document.getElementById('trainingList');
+  const items = dd.allenamenti || [];
+  list.innerHTML = items.map(a => `
+    <div class="extra-item">
+      <div class="extra-item-name">${TRAINING_LABELS[a.tipo] || a.tipo} · ${a.momento ? MOMENTI[a.momento] : '—'}${a.orario ? ` (${a.orario})` : ''}</div>
+      <div class="extra-item-kcal">${a.kcal ? a.kcal + ' kcal' : ''}</div>
+      <button class="extra-remove" onclick="removeTraining('${a.id}')">✕</button>
+    </div>`).join('');
+  const total = totalBurned(dd);
+  document.getElementById('trainingTotalKcal').textContent = total > 0 ? `🔥 ${total} kcal` : '';
+  renderTrainingForm();
+}
+
+function openTrainingForm() {
+  tfState = { tipo: null, momento: null, orario: '', kcal: '' };
+  renderTrainingForm();
+}
+function closeTrainingForm() {
+  tfState = null;
+  renderTrainingForm();
+}
+function setTfTipo(tipo) {
+  if (!tfState) return;
+  tfState.tipo = tfState.tipo === tipo ? null : tipo;
+  renderTrainingForm();
+}
+function setTfMomento(m) {
+  if (!tfState) return;
+  tfState.momento = tfState.momento === m ? null : m;
+  if (tfState.momento !== 'custom') tfState.orario = '';
+  renderTrainingForm();
+}
+function setTfOrario(v) {
+  if (!tfState) return;
+  tfState.orario = v;
+}
+function setTfKcal(v) {
+  if (!tfState) return;
+  tfState.kcal = v;
+}
+
+function renderTrainingForm() {
+  const form = document.getElementById('trainingForm');
+  if (!tfState) { form.classList.add('hidden'); return; }
+  form.classList.remove('hidden');
+  for (const t of ['bici','corsa','nuoto','corpo_libero','combinato','gara']) {
+    document.getElementById('tf-t-' + t).classList.toggle('active', tfState.tipo === t);
+  }
+  for (const m of ['mattina','pranzo','pomeriggio','sera','custom']) {
+    document.getElementById('tf-m-' + m).classList.toggle('active', tfState.momento === m || (m === 'custom' && tfState.momento === 'custom'));
+  }
+  document.getElementById('tfOrarioRow').classList.toggle('hidden', tfState.momento !== 'custom');
+}
+
+function confirmAddTraining() {
+  if (!tfState || !tfState.tipo || !tfState.momento) { alert('Seleziona tipo e momento della giornata'); return; }
+  if (tfState.momento === 'custom' && !tfState.orario) { alert('Inserisci l\'orario'); return; }
   const dd = dayData(currentDate);
-  dd.allenamento = !dd.allenamento;
-  if (!dd.allenamento) dd.tipoAllenamento = null;
+  if (!dd.allenamenti) dd.allenamenti = [];
+  const momentoFinale = tfState.momento === 'custom' ? momentoFromOrario(tfState.orario) : tfState.momento;
+  dd.allenamenti.push({
+    id: 'tr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    tipo: tfState.tipo,
+    momento: momentoFinale,
+    orario: tfState.momento === 'custom' ? tfState.orario : null,
+    kcal: Math.max(0, Math.round(+tfState.kcal) || 0),
+  });
   sanitizeMealSelections(dd);
   saveLog();
+  tfState = null;
   renderDay();
 }
 
-function selTraining(type) {
+function removeTraining(id) {
   const dd = dayData(currentDate);
-  dd.tipoAllenamento = dd.tipoAllenamento === type ? null : type;
+  dd.allenamenti = (dd.allenamenti || []).filter(a => a.id !== id);
   sanitizeMealSelections(dd);
   saveLog();
   renderDay();
@@ -2721,12 +2807,15 @@ function selTraining(type) {
 function renderSupplCard(dd) {
   const card = document.getElementById('supplCard');
   const body = document.getElementById('supplBody');
-  const tipo = dd.tipoAllenamento;
-  if (!tipo) { card.classList.add('hidden'); return; }
-  const s = TRAINING_SUPPLEMENTS[tipo] || {};
-  let html = '<strong>Salt Caps:</strong> 1 cps ogni ora di attività';
-  if (s.durante) html += `<br><strong>Durante:</strong> ${s.durante}`;
-  if (s.post)    html += `<br><strong>Post:</strong> ${s.post}`;
+  const items = dd.allenamenti || [];
+  if (!items.length) { card.classList.add('hidden'); return; }
+  const html = items.map(a => {
+    const s = TRAINING_SUPPLEMENTS[a.tipo] || {};
+    let h = `<div style="margin-bottom:6px"><strong>${TRAINING_LABELS[a.tipo] || a.tipo}${a.momento ? ' · ' + MOMENTI[a.momento] : ''}:</strong><br>Salt Caps: 1 cps ogni ora di attività`;
+    if (s.durante) h += `<br>Durante: ${s.durante}`;
+    if (s.post)    h += `<br>Post: ${s.post}`;
+    return h + '</div>';
+  }).join('');
   body.innerHTML = html;
   card.classList.remove('hidden');
 }
@@ -2998,7 +3087,7 @@ function renderCalendar() {
     const dt = new Date(calDate.getFullYear(), calDate.getMonth(), d);
     const k = dateKey(dt);
     const hasData = log[k] && (allLoggedIds(log[k]).length > 0 || (log[k].acqua||0) > 0);
-    const trained = log[k]?.allenamento;
+    const trained = (log[k]?.allenamenti || []).length > 0;
     const isToday = k === todayKey;
 
     const el = document.createElement('div');
@@ -3031,7 +3120,9 @@ function showDayDetail(dt) {
   if (!dd || (allLoggedIds(dd).length === 0 && !dd.acqua)) {
     html += '<div class="day-detail-empty">Nessun dato registrato.</div>';
   } else {
-    if (dd.allenamento) html += `<div class="day-detail-row">🏋️ <strong>Allenamento:</strong> ${TRAINING_LABELS[dd.tipoAllenamento]||'Sì'}</div>`;
+    for (const a of (dd.allenamenti || [])) {
+      html += `<div class="day-detail-row">🏋️ <strong>Allenamento:</strong> ${TRAINING_LABELS[a.tipo] || a.tipo}${a.momento ? ' · ' + MOMENTI[a.momento] : ''}${a.kcal ? ` · ${a.kcal} kcal` : ''}</div>`;
+    }
     if (dd.acqua) html += `<div class="day-detail-row">💧 <strong>Acqua:</strong> ${dd.acqua}ml</div>`;
     if (dd.pastoLibero) html += `<div class="day-detail-row">🎉 Pasto libero</div>`;
     for (const [sec, ids] of Object.entries(dd.pasti||{})) {
@@ -3152,13 +3243,10 @@ function renderGrafico() {
   const min = lg.length ? Math.min(...lg.map(d => d.kcal)) : 0;
 
   // Burned & net stats
-  const burnedDays = days7.map(d => {
-    const k = dateKey(d.date);
-    return log[k]?.kcalBruciate || 0;
-  });
-  const totalBurned = burnedDays.reduce((s, b) => s + b, 0);
+  const burnedDays = days7.map(d => totalBurned(log[dateKey(d.date)]));
+  const totalBurnedWeek = burnedDays.reduce((s, b) => s + b, 0);
   const trainingDays = burnedDays.filter(b => b > 0).length;
-  const avgBurned = trainingDays ? Math.round(totalBurned / trainingDays) : 0;
+  const avgBurned = trainingDays ? Math.round(totalBurnedWeek / trainingDays) : 0;
   const netDays = days7.filter((d, i) => d.kcal > 0 || burnedDays[i] > 0);
   const avgNet = netDays.length ? Math.round(netDays.reduce((s, d, i) => s + d.kcal - burnedDays[days7.indexOf(d)], 0) / netDays.length) : 0;
 
