@@ -760,9 +760,13 @@
     <div class="training-card">
       <div class="training-row">
         <div class="training-label">🏃 Allenamenti oggi</div>
-        <div class="training-label" id="trainingTotalKcal" style="color:var(--green);"></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="training-label" id="trainingTotalKcal" style="color:var(--green);"></div>
+          <button onclick="loadGarminFeed(true)" title="Aggiorna da Garmin" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;">🔄</button>
+        </div>
       </div>
       <div id="trainingList"></div>
+      <div id="garminSuggestions" class="hidden" style="margin-top:6px;"></div>
       <button class="add-extra-btn" onclick="openTrainingForm()">＋ Aggiungi allenamento</button>
       <div id="trainingForm" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0;">
         <div style="font-size:11px;font-weight:800;color:#9e9e9e;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Tipo</div>
@@ -1298,6 +1302,63 @@ const TRAINING_SUPPLEMENTS = {
   combinato:    { durante: null, post: 'Segui le indicazioni dello sport prevalente' },
   gara:         { durante: 'Idratazione: 500ml 2-3h prima + 250ml 20min prima + 100-150ml ogni 15-20min durante', post: 'Segui le indicazioni della disciplina principale' }
 };
+
+// ════════════════════════════════════════════════════
+// GARMIN SYNC (feed pubblico letto da garmin-sync, vedi repo dedicato)
+// ════════════════════════════════════════════════════
+const GARMIN_FEED_URL = 'https://eg99999.github.io/garmin-sync/activities.json';
+// typeKey grezzo di Garmin → tipo dell'app. Mapping vive qui (lato consumer), non nella pipeline.
+const GARMIN_TYPE_MAP = {
+  cycling:'bici', road_biking:'bici', mountain_biking:'bici', gravel_cycling:'bici',
+  cyclocross:'bici', track_cycling:'bici', indoor_cycling:'bici', virtual_ride:'bici',
+  recumbent_cycling:'bici', downhill_biking:'bici', e_bike_fitness:'bici', e_bike_mountain:'bici',
+  running:'corsa', street_running:'corsa', track_running:'corsa', trail_running:'corsa',
+  treadmill_running:'corsa', indoor_running:'corsa', virtual_run:'corsa',
+  swimming:'nuoto', lap_swimming:'nuoto', open_water_swimming:'nuoto',
+  strength_training:'corpo_libero', cardio_training:'corpo_libero', indoor_cardio:'corpo_libero',
+  elliptical:'corpo_libero', stair_climbing:'corpo_libero', rowing:'corpo_libero',
+  indoor_rowing:'corpo_libero', yoga:'corpo_libero', pilates:'corpo_libero', walking:'corpo_libero',
+  hiking:'corpo_libero',
+  multi_sport:'combinato', transition:'combinato',
+};
+function mapGarminTypeToTipo(typeKey) { return GARMIN_TYPE_MAP[typeKey] || 'corpo_libero'; }
+
+let garminFeed = null, garminFeedAt = 0, garminFeedError = false;
+async function loadGarminFeed(force) {
+  if (!force && garminFeed && Date.now() - garminFeedAt < 15 * 60 * 1000) return;
+  try {
+    const res = await fetch(GARMIN_FEED_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    garminFeed = await res.json();
+    garminFeedAt = Date.now();
+    garminFeedError = false;
+  } catch {
+    garminFeedError = true; // feed non raggiungibile: nice-to-have, non blocca nulla
+  }
+  renderTrainingCard(dayData(currentDate));
+}
+
+// Sessioni Garmin per un giorno non ancora presenti in dd.allenamenti (dedup by garminId)
+function garminSuggestionsFor(dd, dateStr) {
+  const already = new Set(sessions(dd).map(a => a.garminId).filter(Boolean));
+  return (garminFeed?.activities || []).filter(a => a.date === dateStr && !already.has(a.garminId));
+}
+
+function importGarminActivity(garminId) {
+  const a = (garminFeed?.activities || []).find(x => x.garminId === garminId);
+  if (!a) return;
+  const dd = dayData(currentDate);
+  const orario = a.startTimeLocal.slice(11, 16);
+  addTrainingSession(dd, {
+    id: 'tr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    tipo: mapGarminTypeToTipo(a.type),
+    momento: momentoFromOrario(orario),
+    orario,
+    kcal: Math.round(a.calories || 0),
+    garminId: a.garminId,
+  });
+  renderDay();
+}
 
 // Condizioni legate agli allenamenti del giorno (dd.allenamenti: [{tipo, momento, orario, kcal}])
 function sessions(dd) { return dd?.allenamenti || []; }
@@ -2200,21 +2261,41 @@ function calcDayKcal(dd) {
   return total;
 }
 
-function dateKey(d) { return d.toISOString().split('T')[0]; }
+// Chiave data basata sui componenti LOCALI (non toISOString: in fusi UTC+, la mezzanotte
+// locale corrisponde ancora al giorno precedente in UTC e sfaserebbe ogni chiave di un giorno)
+function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
 
 function loadLog() {
   try { log = JSON.parse(localStorage.getItem('dietaLog') || '{}'); } catch { log = {}; }
+  migrateDateKeys();
   migrateTrainingData();
 }
 function saveLog() { localStorage.setItem('dietaLog', JSON.stringify(log)); touchLocal(); }
+
+// Migrazione una-tantum: dateKey usava toISOString() (UTC), che in Italia (UTC+1/+2) sfasava
+// ogni chiave di un giorno indietro rispetto al giorno di calendario reale. Ogni chiave vecchia
+// va quindi spostata avanti di un giorno.
+function migrateDateKeys() {
+  if (localStorage.getItem('migr_datekey_fix') === '1') return;
+  const shifted = {};
+  for (const [oldKey, val] of Object.entries(log)) {
+    const d = new Date(oldKey + 'T00:00:00'); // parse come mezzanotte LOCALE della vecchia chiave
+    d.setDate(d.getDate() + 1);                // la vecchia chiave rappresentava sempre il giorno prima
+    const newKey = dateKey(d);
+    shifted[newKey] = Object.assign({}, shifted[newKey] || {}, val);
+  }
+  log = shifted;
+  localStorage.setItem('migr_datekey_fix', '1');
+  saveLog(); // persiste subito le chiavi corrette: il flag sopra impedirebbe un secondo tentativo altrimenti
+}
 
 // Migrazione una-tantum: vecchio schema {allenamento, tipoAllenamento, kcalBruciate} → dd.allenamenti[]
 function migrateTrainingData() {
   for (const dd of Object.values(log)) {
     if (!dd.allenamenti) {
       dd.allenamenti = dd.allenamento
-        ? [{ id: 'tr_migrated_' + Math.random().toString(36).slice(2,9), tipo: dd.tipoAllenamento || null, momento: null, kcal: dd.kcalBruciate || 0 }]
+        ? [{ id: 'tr_migrated_' + Math.random().toString(36).slice(2,9), tipo: dd.tipoAllenamento || null, momento: null, kcal: dd.kcalBruciate || 0, garminId: null }]
         : [];
     }
     delete dd.allenamento; delete dd.tipoAllenamento; delete dd.kcalBruciate;
@@ -2727,12 +2808,28 @@ function renderTrainingCard(dd) {
   const items = dd.allenamenti || [];
   list.innerHTML = items.map(a => `
     <div class="extra-item">
-      <div class="extra-item-name">${TRAINING_LABELS[a.tipo] || a.tipo} · ${a.momento ? MOMENTI[a.momento] : '—'}${a.orario ? ` (${a.orario})` : ''}</div>
+      <div class="extra-item-name">${TRAINING_LABELS[a.tipo] || a.tipo} · ${a.momento ? MOMENTI[a.momento] : '—'}${a.orario ? ` (${a.orario})` : ''}${a.garminId ? ' 📡' : ''}</div>
       <div class="extra-item-kcal">${a.kcal ? a.kcal + ' kcal' : ''}</div>
       <button class="extra-remove" onclick="removeTraining('${a.id}')">✕</button>
     </div>`).join('');
   const total = totalBurned(dd);
   document.getElementById('trainingTotalKcal').textContent = total > 0 ? `🔥 ${total} kcal` : '';
+
+  const suggEl = document.getElementById('garminSuggestions');
+  const sugg = garminSuggestionsFor(dd, dateKey(currentDate));
+  if (sugg.length) {
+    suggEl.classList.remove('hidden');
+    suggEl.innerHTML = `<div class="subsec-label">📡 Rilevati da Garmin</div>` + sugg.map(a => `
+      <div class="extra-item" style="background:#e3f2fd;border-color:#90caf9;">
+        <div class="extra-item-name">${TRAINING_LABELS[mapGarminTypeToTipo(a.type)]} · ${MOMENTI[momentoFromOrario(a.startTimeLocal.slice(11,16))]} (${a.startTimeLocal.slice(11,16)})</div>
+        <div class="extra-item-kcal">${a.calories ? Math.round(a.calories) + ' kcal' : ''}</div>
+        <button class="extra-remove" style="color:#1565c0;font-size:20px;" onclick="importGarminActivity('${a.garminId}')" title="Importa">✓</button>
+      </div>`).join('');
+  } else {
+    suggEl.classList.add('hidden');
+    suggEl.innerHTML = '';
+  }
+
   renderTrainingForm();
 }
 
@@ -2777,21 +2874,27 @@ function renderTrainingForm() {
   document.getElementById('tfOrarioRow').classList.toggle('hidden', tfState.momento !== 'custom');
 }
 
+// Percorso condiviso di scrittura di una sessione allenamento (manuale o importata da Garmin)
+function addTrainingSession(dd, session) {
+  if (!dd.allenamenti) dd.allenamenti = [];
+  dd.allenamenti.push(session);
+  sanitizeMealSelections(dd);
+  saveLog();
+}
+
 function confirmAddTraining() {
   if (!tfState || !tfState.tipo || !tfState.momento) { alert('Seleziona tipo e momento della giornata'); return; }
   if (tfState.momento === 'custom' && !tfState.orario) { alert('Inserisci l\'orario'); return; }
   const dd = dayData(currentDate);
-  if (!dd.allenamenti) dd.allenamenti = [];
   const momentoFinale = tfState.momento === 'custom' ? momentoFromOrario(tfState.orario) : tfState.momento;
-  dd.allenamenti.push({
+  addTrainingSession(dd, {
     id: 'tr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
     tipo: tfState.tipo,
     momento: momentoFinale,
     orario: tfState.momento === 'custom' ? tfState.orario : null,
     kcal: Math.max(0, Math.round(+tfState.kcal) || 0),
+    garminId: null,
   });
-  sanitizeMealSelections(dd);
-  saveLog();
   tfState = null;
   renderDay();
 }
@@ -3966,6 +4069,7 @@ loadShopConfig();
 if (shoppingList.length === 0) generateWeeklyShopping();
 renderDay();
 initSync();
+loadGarminFeed();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
