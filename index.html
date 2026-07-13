@@ -762,7 +762,8 @@
         <div class="training-label">🏃 Allenamenti oggi</div>
         <div style="display:flex;align-items:center;gap:8px;">
           <div class="training-label" id="trainingTotalKcal" style="color:var(--green);"></div>
-          <button onclick="loadGarminFeed(true)" title="Aggiorna da Garmin" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;">🔄</button>
+          <button onclick="loadGarminFeed(true)" title="Aggiorna vista dal feed già pubblicato" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;">🔄</button>
+          <button onclick="requestGarminSync()" title="Forza un nuovo pull da Garmin adesso" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;">🚀</button>
         </div>
       </div>
       <div id="trainingList"></div>
@@ -1307,6 +1308,12 @@ const TRAINING_SUPPLEMENTS = {
 // GARMIN SYNC (feed pubblico letto da garmin-sync, vedi repo dedicato)
 // ════════════════════════════════════════════════════
 const GARMIN_FEED_URL = 'https://eg99999.github.io/garmin-sync/activities.json';
+// Token GitHub fine-grained, permesso "Actions: Read and write" SOLO sul repo garmin-sync,
+// nient'altro — serve solo per far partire il workflow di sync su richiesta. Va incollato qui
+// a mano (Settings → Developer settings → Fine-grained tokens su github.com), mai da codice:
+// vedi README di garmin-sync per il procedimento passo-passo.
+const GARMIN_DISPATCH_TOKEN = '';
+const GARMIN_DISPATCH_COOLDOWN_MIN = 15;
 // typeKey grezzo di Garmin → tipo dell'app. Mapping vive qui (lato consumer), non nella pipeline.
 const GARMIN_TYPE_MAP = {
   cycling:'bici', road_biking:'bici', mountain_biking:'bici', gravel_cycling:'bici',
@@ -1336,6 +1343,41 @@ async function loadGarminFeed(force) {
     garminFeedError = true; // feed non raggiungibile: nice-to-have, non blocca nulla
   }
   renderTrainingCard(dayData(currentDate));
+}
+
+// Forza un nuovo pull da Garmin (non solo il refresh del feed già pubblicato).
+// Protetto da cooldown lato client per non rischiare rate-limit sul login Garmin.
+function requestGarminSync() {
+  const lastMs = parseInt(localStorage.getItem('garminLastManualSync') || '0');
+  const waitMs = GARMIN_DISPATCH_COOLDOWN_MIN * 60 * 1000 - (Date.now() - lastMs);
+  if (waitMs > 0) {
+    const mins = Math.ceil(waitMs / 60000);
+    alert(`⏳ Sync già richiesta di recente.\n\nAspetta ancora ~${mins} minut${mins===1?'o':'i'} prima di rifarlo — Garmin può bloccare l'accesso se lo chiediamo troppo spesso.`);
+    return;
+  }
+  localStorage.setItem('garminLastManualSync', String(Date.now()));
+
+  if (!GARMIN_DISPATCH_TOKEN) {
+    window.open('https://github.com/EG99999/garmin-sync/actions/workflows/sync.yml', '_blank');
+    return;
+  }
+  fetch('https://api.github.com/repos/EG99999/garmin-sync/actions/workflows/sync.yml/dispatches', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + GARMIN_DISPATCH_TOKEN,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ref: 'main' }),
+  }).then(res => {
+    if (res.ok) {
+      alert('🚀 Sync avviata. Richiede circa 1 minuto — tocca "🔄" tra un po\' per aggiornare i suggerimenti.');
+    } else {
+      window.open('https://github.com/EG99999/garmin-sync/actions/workflows/sync.yml', '_blank');
+    }
+  }).catch(() => {
+    window.open('https://github.com/EG99999/garmin-sync/actions/workflows/sync.yml', '_blank');
+  });
 }
 
 // Sessioni Garmin per un giorno non ancora presenti in dd.allenamenti (dedup by garminId)
@@ -3873,6 +3915,24 @@ async function cloudPut(snap){
   const r = await gFetch('PUT', snap);
   if (!r.ok) throw new Error('scrittura '+r.status);
   return true;
+}
+
+// Metriche salute Garmin (sonno, HRV, stress, peso, ecc.), scritte privatamente su OneDrive
+// dal job garmin-sync — non sul feed pubblico usato per gli allenamenti. Riusa la stessa
+// sessione OneDrive già connessa da dieta-app: nessuna nuova autenticazione da gestire qui.
+// Nessuna UI la consuma ancora: è solo il punto di lettura, pronto per quando serve.
+const GARMIN_HEALTH_CLOUD_PATH = '/me/drive/root:/GarminHealth-feed.json';
+async function fetchGarminHealth() {
+  if (!accessToken) return null; // OneDrive non connesso: stesso fallimento silenzioso del feed pubblico
+  try {
+    const url = 'https://graph.microsoft.com/v1.0' + GARMIN_HEALTH_CLOUD_PATH + ':/content';
+    let r = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+    if (r.status === 401) { await acquireToken(); r = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } }); }
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
 }
 async function doPush(snap){
   const now = new Date().toISOString();
