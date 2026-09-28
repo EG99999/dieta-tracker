@@ -115,6 +115,22 @@
     }
     .tt-btn.active { border-color: var(--green); background: var(--green-bg); color: var(--green); }
 
+    /* ── ALLENAMENTI VIEW ── */
+    .train-container { padding: 12px 14px; max-width: 600px; margin: 0 auto; }
+    .train-period { display: flex; background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 4px; margin-bottom: 12px; gap: 4px; }
+    .train-period-btn { flex: 1; padding: 9px; border: none; background: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--gray); }
+    .train-period-btn.active { background: var(--green); color: white; }
+    .hist-item { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid #f0f0f0; }
+    .hist-item:last-child { border-bottom: none; }
+    .hist-item-icon { font-size: 20px; }
+    .hist-item-main { flex: 1; min-width: 0; }
+    .hist-item-name { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+    .hist-item-meta { font-size: 11px; color: var(--gray); margin-top: 1px; }
+    .hist-item-kcal { font-size: 13px; font-weight: 800; color: var(--orange); white-space: nowrap; }
+    .plan-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--blue-bg); border-radius: 8px; border: 1.5px solid #bbdefb; margin-bottom: 6px; }
+    .plan-item.done { opacity: 0.55; }
+    .plan-item-name { flex: 1; font-size: 13px; font-weight: 600; color: #0d47a1; }
+
     /* ── WATER CARD ── */
     .water-card {
       background: var(--blue-bg); border-radius: var(--radius);
@@ -720,7 +736,11 @@
 <!-- BOTTOM NAV                                      -->
 <!-- ══════════════════════════════════════════════ -->
 <nav class="bottom-nav">
-  <button class="nav-item active" onclick="showView('oggi')" id="nav-oggi">
+  <button class="nav-item active" onclick="showView('allenamenti')" id="nav-allenamenti">
+    <span class="nav-icon">🏋️</span>
+    <span class="nav-label">Allenamenti</span>
+  </button>
+  <button class="nav-item" onclick="showView('oggi')" id="nav-oggi">
     <span class="nav-icon">📅</span>
     <span class="nav-label">Oggi</span>
   </button>
@@ -745,9 +765,66 @@
 </nav>
 
 <!-- ══════════════════════════════════════════════ -->
+<!-- VIEW: ALLENAMENTI                               -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="view-allenamenti" class="view active">
+  <div class="train-container">
+
+    <div class="train-period">
+      <button class="train-period-btn active" id="trainPeriod-7" onclick="setTrainPeriod('7')">7gg</button>
+      <button class="train-period-btn" id="trainPeriod-30" onclick="setTrainPeriod('30')">30gg</button>
+      <button class="train-period-btn" id="trainPeriod-all" onclick="setTrainPeriod('all')">Tutto</button>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">📊 Riepilogo</div>
+      <div class="chart-stats" id="trainStats"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">❤️ Statistiche Garmin</div>
+      <div id="trainHealth"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">🗓️ Piano allenamenti</div>
+      <div id="planList"></div>
+      <button class="add-extra-btn" onclick="openPlanForm()">＋ Pianifica allenamento</button>
+      <div id="planForm" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0;">
+        <div style="font-size:11px;font-weight:800;color:#9e9e9e;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Tipo</div>
+        <div class="training-types" id="pfTipoRow">
+          <button class="tt-btn" onclick="setPfTipo('bici')" id="pf-t-bici">🚴 Bici</button>
+          <button class="tt-btn" onclick="setPfTipo('corsa')" id="pf-t-corsa">🏃 Corsa</button>
+          <button class="tt-btn" onclick="setPfTipo('nuoto')" id="pf-t-nuoto">🏊 Nuoto</button>
+          <button class="tt-btn" onclick="setPfTipo('corpo_libero')" id="pf-t-corpo_libero">💪 Corpo libero</button>
+          <button class="tt-btn" onclick="setPfTipo('combinato')" id="pf-t-combinato">🔀 Combinato</button>
+          <button class="tt-btn" onclick="setPfTipo('gara')" id="pf-t-gara">🏆 Gara</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
+          <input type="date" id="pfDataInput" oninput="setPfData(this.value)"
+            style="padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:600;">
+          <input type="text" id="pfNoteInput" placeholder="Note (opzionale)" oninput="setPfNote(this.value)"
+            style="flex:1;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onclick="closePlanForm()" style="flex:1;background:var(--gray-light);color:#616161;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;">Annulla</button>
+          <button onclick="confirmAddPlan()" style="flex:1;background:var(--blue);color:white;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;">✓ Pianifica</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">📜 Storico sessioni</div>
+      <div id="trainHistList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
 <!-- VIEW: OGGI                                      -->
 <!-- ══════════════════════════════════════════════ -->
-<div id="view-oggi" class="view active">
+<div id="view-oggi" class="view">
   <div class="main-content">
 
     <!-- Rituale mattutino -->
@@ -1343,6 +1420,7 @@ async function loadGarminFeed(force) {
     garminFeedError = true; // feed non raggiungibile: nice-to-have, non blocca nulla
   }
   renderTrainingCard(dayData(currentDate));
+  if (typeof renderAllenamenti === 'function') renderAllenamenti();
 }
 
 // Forza un nuovo pull da Garmin (non solo il refresh del feed già pubblicato).
@@ -2358,6 +2436,11 @@ function showView(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
+  // La vista Allenamenti ragiona per periodo (7/30/tutto), non per singolo giorno:
+  // il selettore data dell'header non le serve.
+  const dateNav = document.querySelector('.date-nav');
+  if (dateNav) dateNav.style.display = (name === 'allenamenti') ? 'none' : 'flex';
+  if (name === 'allenamenti') renderAllenamenti();
   if (name === 'calendario') renderCalendar();
   if (name === 'avvisi') renderAlerts();
   if (name === 'grafico') renderGrafico();
@@ -3498,6 +3581,192 @@ function drawWeightChart(svg, days, W, H) {
 }
 
 // ════════════════════════════════════════════════════
+// ALLENAMENTI (vista primaria)
+// ════════════════════════════════════════════════════
+let trainPeriod = '30'; // '7' | '30' | 'all'
+let trainingPlan = [];
+
+function loadTrainingPlan() { try { trainingPlan = JSON.parse(localStorage.getItem('trainingPlan') || '[]'); } catch { trainingPlan = []; } }
+function saveTrainingPlan() { localStorage.setItem('trainingPlan', JSON.stringify(trainingPlan)); touchLocal(); }
+
+function setTrainPeriod(p) { trainPeriod = p; renderAllenamenti(); }
+function periodStartDateKey() {
+  if (trainPeriod === 'all') return null;
+  const d = new Date(today()); d.setDate(d.getDate() - (parseInt(trainPeriod) - 1));
+  return dateKey(d);
+}
+
+// Storico unificato: tutte le attivita' Garmin (feed pubblico, gia' arricchito e cumulativo
+// lato garmin-sync) + le sessioni loggate a mano senza garminId (es. corpo libero non
+// tracciato dall'orologio). Evita di dover importare manualmente ogni singola attivita'
+// Garmin solo per vederla qui: import in dd.allenamenti resta utile solo per il calcolo
+// del bilancio kcal del giorno in "Oggi".
+function allTrainingSessions() {
+  const out = [];
+  const seenGarminIds = new Set();
+  for (const a of (garminFeed?.activities || [])) {
+    seenGarminIds.add(a.garminId);
+    out.push({
+      garminId: a.garminId, date: a.date, orario: a.startTimeLocal.slice(11, 16),
+      tipo: mapGarminTypeToTipo(a.type), nome: a.name,
+      durationMin: a.durationMin, kcal: a.calories,
+      distanceKm: a.distanceKm, avgHr: a.avgHr, maxHr: a.maxHr,
+      avgSpeedKmh: a.avgSpeedKmh, elevationGainM: a.elevationGainM,
+      trainingLoad: a.trainingLoad,
+    });
+  }
+  for (const [dateStr, dd] of Object.entries(log)) {
+    for (const s of sessions(dd)) {
+      if (s.garminId && seenGarminIds.has(s.garminId)) continue; // gia' incluso dal feed Garmin
+      out.push({ garminId: s.garminId || null, date: dateStr, orario: null, tipo: s.tipo, nome: null, durationMin: null, kcal: s.kcal });
+    }
+  }
+  out.sort((a, b) => (b.date + (b.orario || '')).localeCompare(a.date + (a.orario || '')));
+  return out;
+}
+
+function computeTrainStats(items) {
+  const bySport = {};
+  let totKcal = 0, totMin = 0;
+  for (const it of items) {
+    totKcal += it.kcal || 0; totMin += it.durationMin || 0;
+    const key = it.tipo || 'altro';
+    bySport[key] = bySport[key] || { count: 0, kcal: 0, min: 0 };
+    bySport[key].count++; bySport[key].kcal += it.kcal || 0; bySport[key].min += it.durationMin || 0;
+  }
+  return { count: items.length, totKcal: Math.round(totKcal), totMin, bySport };
+}
+
+// Legge un valore provando piu' percorsi possibili nell'oggetto: le risposte grezze
+// dell'API Garmin (salvate cosi' com'sono da garmin-sync) non hanno una forma verificata
+// per ogni metrica, quindi qui si tenta un ventaglio di chiavi note e si rinuncia in
+// silenzio (mostrando "—") se nessuna combacia, invece di rompere il pannello.
+function pickPath(obj, paths) {
+  if (Array.isArray(obj)) obj = obj[0];
+  if (!obj) return null;
+  for (const p of paths) {
+    const v = p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+    if (v !== undefined && v !== null) return v;
+  }
+  return null;
+}
+
+let garminHealth = null, garminHealthLoadedAt = 0;
+async function loadGarminHealthOnce(force) {
+  if (!force && garminHealth && Date.now() - garminHealthLoadedAt < 15 * 60 * 1000) return;
+  garminHealth = await fetchGarminHealth();
+  garminHealthLoadedAt = Date.now();
+  if (typeof renderAllenamenti === 'function') renderAllenamenti();
+}
+
+function renderHealthPanel() {
+  const days = garminHealth?.days ? Object.entries(garminHealth.days).sort((a, b) => b[0].localeCompare(a[0])) : [];
+  if (!days.length) {
+    return `<div class="day-detail-empty">📡 Sonno, HRV, FC riposo, VO2max non ancora collegati.<br>Setup una-tantum: vedi README di garmin-sync.</div>`;
+  }
+  const [latestDate, latest] = days[0];
+  const rhr = pickPath(latest.restingHeartRate, ['restingHeartRate', 'allMetrics.metricsMap.WELLNESS_RESTING_HEART_RATE.0.value']);
+  const sleepSec = pickPath(latest.sleep, ['dailySleepDTO.sleepTimeSeconds']);
+  const hrv = pickPath(latest.hrv, ['hrvSummary.lastNightAvg', 'hrvSummary.weeklyAvg']);
+  const vo2max = pickPath(latest.vo2max, ['generic.vo2MaxPreciseValue', 'generic.vo2MaxValue']);
+  const weight = pickPath(latest.bodyComposition, ['weight']);
+  const cells = [
+    ['FC riposo', rhr ? Math.round(rhr) + ' bpm' : '—'],
+    ['Sonno', sleepSec ? (sleepSec / 3600).toFixed(1) + ' h' : '—'],
+    ['HRV', hrv ? Math.round(hrv) + ' ms' : '—'],
+    ['VO2max', vo2max ? Math.round(vo2max) : '—'],
+    ['Peso', weight ? (weight / 1000).toFixed(1) + ' kg' : '—'],
+    ['Giorni disponibili', days.length],
+  ];
+  return `<div class="chart-stats" style="grid-template-columns:1fr 1fr 1fr;">` +
+    cells.map(([label, value]) => `<div class="stat-cell"><div class="stat-label">${label}</div><div class="stat-value">${value}</div></div>`).join('') +
+    `</div><div style="font-size:11px;color:var(--gray);margin-top:8px;">Ultimo giorno: ${latestDate}</div>`;
+}
+
+function renderAllenamenti() {
+  ['7', '30', 'all'].forEach(p => document.getElementById('trainPeriod-' + p)?.classList.toggle('active', trainPeriod === p));
+
+  const start = periodStartDateKey();
+  let items = allTrainingSessions();
+  if (start) items = items.filter(it => it.date >= start);
+  const stats = computeTrainStats(items);
+
+  const sportCells = Object.entries(stats.bySport)
+    .sort((a, b) => b[1].min - a[1].min)
+    .map(([tipo, s]) => `<div class="stat-cell"><div class="stat-label">${TRAINING_LABELS[tipo] || tipo}</div><div class="stat-value">${s.count}× · ${Math.round(s.min)}min</div></div>`)
+    .join('');
+
+  document.getElementById('trainStats').innerHTML = `
+    <div class="stat-cell"><div class="stat-label">Sessioni</div><div class="stat-value">${stats.count}</div></div>
+    <div class="stat-cell"><div class="stat-label">Ore totali</div><div class="stat-value">${(stats.totMin / 60).toFixed(1)}</div></div>
+    <div class="stat-cell"><div class="stat-label">Kcal bruciate</div><div class="stat-value">${stats.totKcal}</div></div>
+    ${sportCells}
+  `;
+
+  document.getElementById('trainHealth').innerHTML = renderHealthPanel();
+
+  document.getElementById('trainHistList').innerHTML = items.slice(0, 80).map(it => {
+    const meta = [it.date + (it.orario ? ' · ' + it.orario : '')];
+    if (it.durationMin) meta.push(Math.round(it.durationMin) + 'min');
+    if (it.distanceKm) meta.push(it.distanceKm + 'km');
+    if (it.avgHr) meta.push('❤️' + it.avgHr);
+    if (it.elevationGainM) meta.push('⛰️' + Math.round(it.elevationGainM) + 'm');
+    return `
+    <div class="hist-item">
+      <div class="hist-item-icon">${(TRAINING_LABELS[it.tipo] || '🏋️').split(' ')[0]}</div>
+      <div class="hist-item-main">
+        <div class="hist-item-name">${it.nome || TRAINING_LABELS[it.tipo] || it.tipo}</div>
+        <div class="hist-item-meta">${meta.join(' · ')}</div>
+      </div>
+      <div class="hist-item-kcal">${it.kcal ? Math.round(it.kcal) + ' kcal' : ''}</div>
+    </div>`;
+  }).join('') || '<div class="day-detail-empty">Nessuna sessione in questo periodo.</div>';
+
+  renderTrainingPlan();
+}
+
+// ── Piano allenamenti: sessioni future proposte (in chat, da Claude) o inserite a mano ──
+let planFormState = { tipo: null, data: null, note: '' };
+
+function renderTrainingPlan() {
+  const upcoming = trainingPlan.slice().sort((a, b) => a.data.localeCompare(b.data));
+  document.getElementById('planList').innerHTML = upcoming.map(p => `
+    <div class="plan-item ${p.fatto ? 'done' : ''}">
+      <button onclick="togglePlanDone('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;">${p.fatto ? '✅' : '⬜'}</button>
+      <div class="plan-item-name">${TRAINING_LABELS[p.tipo] || p.tipo} · ${p.data}${p.note ? ' · ' + p.note : ''}</div>
+      <button class="extra-remove" onclick="removePlan('${p.id}')">×</button>
+    </div>
+  `).join('') || '<div class="day-detail-empty">Nessun allenamento pianificato.</div>';
+}
+
+function openPlanForm() {
+  planFormState = { tipo: null, data: dateKey(today()), note: '' };
+  document.getElementById('planForm').classList.remove('hidden');
+  document.getElementById('pfDataInput').value = planFormState.data;
+  document.getElementById('pfNoteInput').value = '';
+  renderPlanFormTipo();
+}
+function closePlanForm() { document.getElementById('planForm').classList.add('hidden'); }
+function setPfTipo(t) { planFormState.tipo = t; renderPlanFormTipo(); }
+function setPfData(v) { planFormState.data = v; }
+function setPfNote(v) { planFormState.note = v; }
+function renderPlanFormTipo() {
+  Object.keys(TRAINING_LABELS).forEach(t => document.getElementById('pf-t-' + t)?.classList.toggle('active', planFormState.tipo === t));
+}
+function confirmAddPlan() {
+  if (!planFormState.tipo || !planFormState.data) { alert('Seleziona tipo e data'); return; }
+  trainingPlan.push({
+    id: 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    tipo: planFormState.tipo, data: planFormState.data, note: planFormState.note || '', fatto: false,
+  });
+  saveTrainingPlan();
+  closePlanForm();
+  renderTrainingPlan();
+}
+function togglePlanDone(id) { const p = trainingPlan.find(x => x.id === id); if (p) { p.fatto = !p.fatto; saveTrainingPlan(); renderTrainingPlan(); } }
+function removePlan(id) { trainingPlan = trainingPlan.filter(x => x.id !== id); saveTrainingPlan(); renderTrainingPlan(); }
+
+// ════════════════════════════════════════════════════
 // SCORTA SETTIMANALE
 // ════════════════════════════════════════════════════
 let scorta = [];
@@ -3831,7 +4100,7 @@ function openCatalogForSpesa() {
 // ════════════════════════════════════════════════════
 // IMPOSTAZIONI + SYNC CLOUD (OneDrive / Microsoft Graph)
 // ════════════════════════════════════════════════════
-const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget','lastShoppingDate','shopConfig'];
+const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget','lastShoppingDate','shopConfig','trainingPlan'];
 const CLOUD_PATH   = '/me/drive/root:/DietaElia-backup.json';
 const SYNC_CLIENT  = '1bb6501e-437c-472e-b1cf-a1b2fc95c978';
 const SYNC_SCOPES  = ['Files.ReadWrite','User.Read'];
@@ -3876,9 +4145,10 @@ function applySnapshot(snap){
   if (!snap || !snap.data) return;
   for (const k of SYNC_KEYS){ if (snap.data[k] !== undefined) localStorage.setItem(k, snap.data[k]); }
   // ricarica stato in memoria + UI
-  loadLog(); loadCustomFoods(); loadShoppingList(); loadScorta(); loadShopConfig();
+  loadLog(); loadCustomFoods(); loadShoppingList(); loadScorta(); loadShopConfig(); loadTrainingPlan();
   kcalTarget = parseInt(localStorage.getItem('kcalTarget') || '2200');
   renderDay();
+  if (typeof renderAllenamenti === 'function') renderAllenamenti();
   if (typeof renderSpesa === 'function') renderSpesa();
   if (typeof currentSpesaTab !== 'undefined' && currentSpesaTab === 'scorta') renderScorta();
 }
@@ -4113,6 +4383,7 @@ loadCustomFoods();
 loadShoppingList();
 loadScorta();
 loadShopConfig();
+loadTrainingPlan();
 
 // Pulizia una-tantum: rimuove zucchine e pane integrale dai dati già salvati
 (function cleanupRemovedItems(){
@@ -4128,8 +4399,10 @@ loadShopConfig();
 
 if (shoppingList.length === 0) generateWeeklyShopping();
 renderDay();
+showView('allenamenti');
 initSync();
 loadGarminFeed();
+loadGarminHealthOnce();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
