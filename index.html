@@ -177,6 +177,23 @@
     .coach-inputbar textarea:focus { outline: none; border-color: var(--accent); }
     .coach-inputbar button { background: var(--ink); color: white; border: none; border-radius: 10px; padding: 0 16px; height: 40px; font-weight: 700; font-size: 13px; cursor: pointer; }
     .coach-inputbar button:disabled { opacity: 0.5; }
+    .act-overlay { position: fixed; inset: 0; z-index: 200; background: #f1f3f6; overflow-y: auto; }
+    .act-head { position: sticky; top: 0; z-index: 2; background: var(--ink); color: white; padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+    .act-head button { background: rgba(255,255,255,0.14); border: none; color: white; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .act-head div { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #actBody { padding-bottom: 40px; }
+    .act-grid { grid-template-columns: 1fr 1fr 1fr; }
+    .act-link { display: block; margin-top: 12px; text-align: center; font-size: 12px; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .zone-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 12px; }
+    .zone-lab { width: 62px; font-weight: 800; } .zone-lab span { font-weight: 500; color: var(--gray); font-size: 10px; }
+    .zone-bar { flex: 1; height: 10px; background: var(--gray-light); border-radius: 5px; overflow: hidden; } .zone-bar div { height: 100%; }
+    .zone-val { width: 92px; text-align: right; color: #334155; }
+    .kv { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px; } .kv span { color: var(--gray); } .kv b { text-align: right; }
+    .lap-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+    .lap-table th { text-align: right; color: var(--gray); font-size: 10px; text-transform: uppercase; padding: 4px 6px; }
+    .lap-table td { text-align: right; padding: 5px 6px; border-top: 1px solid #f1f5f9; }
+    .lap-table th:first-child, .lap-table td:first-child { text-align: left; }
+    .hist-item[onclick] { cursor: pointer; }
     .btn-primary { width: 100%; background: var(--ink); color: white; border: none; border-radius: var(--radius-sm); padding: 11px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.2px; }
     .week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
     .week-cell { text-align: center; padding: 8px 2px; border-radius: 8px; background: var(--gray-light); border: 1.5px solid transparent; }
@@ -810,6 +827,11 @@
   </button>
 </nav>
 
+<div id="actOverlay" class="act-overlay hidden">
+  <div class="act-head"><button onclick="closeActivity()">‹ Indietro</button><div id="actTitle"></div></div>
+  <div id="actBody"></div>
+</div>
+
 <div class="dieta-subnav" id="dietaSubnav">
   <div class="dieta-subnav-inner">
     <button class="dsub" id="dsub-oggi" onclick="showView('oggi')">Oggi</button>
@@ -838,25 +860,31 @@
     </div>
 
     <div class="train-period">
-      <button class="train-period-btn active" id="trainPeriod-7" onclick="setTrainPeriod('7')">7 giorni</button>
-      <button class="train-period-btn" id="trainPeriod-30" onclick="setTrainPeriod('30')">30 giorni</button>
-      <button class="train-period-btn" id="trainPeriod-all" onclick="setTrainPeriod('all')">Tutto</button>
+      <button class="train-period-btn active" id="ttab-sessioni" onclick="setTrainTab('sessioni')">Sessioni</button>
+      <button class="train-period-btn" id="ttab-health" onclick="setTrainTab('health')">Salute</button>
+      <button class="train-period-btn" id="ttab-records" onclick="setTrainTab('records')">Record</button>
     </div>
 
-    <div class="chart-card">
-      <div class="chart-title">Riepilogo</div>
-      <div class="chart-stats" id="trainStats"></div>
-    </div>
+    <div id="trainTabSessions">
+      <div class="train-period">
+        <button class="train-period-btn active" id="trainPeriod-7" onclick="setTrainPeriod('7')">7 giorni</button>
+        <button class="train-period-btn" id="trainPeriod-30" onclick="setTrainPeriod('30')">30 giorni</button>
+        <button class="train-period-btn" id="trainPeriod-all" onclick="setTrainPeriod('all')">Tutto</button>
+      </div>
 
-    <div class="chart-card">
-      <div class="chart-title">Salute Garmin</div>
-      <div id="trainHealth"></div>
-    </div>
+      <div class="chart-card">
+        <div class="chart-title">Riepilogo</div>
+        <div class="chart-stats" id="trainStats"></div>
+      </div>
 
-    <div class="chart-card">
-      <div class="chart-title">Storico sessioni</div>
-      <div id="trainHistList"></div>
+      <div class="chart-card">
+        <div class="chart-title">Storico sessioni</div>
+        <div id="trainHistList"></div>
+        <button class="add-extra-btn" id="histMoreBtn" onclick="moreHistory()">Mostra altre</button>
+      </div>
     </div>
+    <div id="trainTabHealth" class="hidden"></div>
+    <div id="trainTabRecords" class="hidden"></div>
 
   </div>
 </div>
@@ -3754,9 +3782,14 @@ function periodStartDateKey() {
 function allTrainingSessions() {
   const out = [];
   const seenGarminIds = new Set();
+  for (const yr of Object.keys(gaLists)) {
+    for (const a of gaLists[yr] || []) { const it = gaSessionFromList(a); seenGarminIds.add(it.garminId); out.push(it); }
+  }
   for (const a of (garminFeed?.activities || [])) {
+    if (seenGarminIds.has(a.garminId)) continue;
     seenGarminIds.add(a.garminId);
     out.push({
+      typeKey: a.type,
       garminId: a.garminId, date: a.date, orario: a.startTimeLocal.slice(11, 16),
       tipo: mapGarminTypeToTipo(a.type), nome: a.name,
       durationMin: a.durationMin, kcal: a.calories,
@@ -3787,52 +3820,6 @@ function computeTrainStats(items) {
     bySport[key].count++; bySport[key].kcal += it.kcal || 0; bySport[key].min += it.durationMin || 0;
   }
   return { count: items.length, totKcal: Math.round(totKcal), totMin, bySport };
-}
-
-// Legge un valore provando piu' percorsi possibili nell'oggetto: le risposte grezze
-// dell'API Garmin (salvate cosi' com'sono da garmin-sync) non hanno una forma verificata
-// per ogni metrica, quindi qui si tenta un ventaglio di chiavi note e si rinuncia in
-// silenzio (mostrando "—") se nessuna combacia, invece di rompere il pannello.
-function pickPath(obj, paths) {
-  if (Array.isArray(obj)) obj = obj[0];
-  if (!obj) return null;
-  for (const p of paths) {
-    const v = p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
-    if (v !== undefined && v !== null) return v;
-  }
-  return null;
-}
-
-let garminHealth = null, garminHealthLoadedAt = 0;
-async function loadGarminHealthOnce(force) {
-  if (!force && garminHealth && Date.now() - garminHealthLoadedAt < 15 * 60 * 1000) return;
-  garminHealth = await fetchGarminHealth();
-  garminHealthLoadedAt = Date.now();
-  if (typeof renderAllenamenti === 'function') renderAllenamenti();
-}
-
-function renderHealthPanel() {
-  const days = garminHealth?.days ? Object.entries(garminHealth.days).sort((a, b) => b[0].localeCompare(a[0])) : [];
-  if (!days.length) {
-    return `<div class="day-detail-empty">📡 Sonno, HRV, FC riposo, VO2max non ancora collegati.<br>Setup una-tantum: vedi README di garmin-sync.</div>`;
-  }
-  const [latestDate, latest] = days[0];
-  const rhr = pickPath(latest.restingHeartRate, ['restingHeartRate', 'allMetrics.metricsMap.WELLNESS_RESTING_HEART_RATE.0.value']);
-  const sleepSec = pickPath(latest.sleep, ['dailySleepDTO.sleepTimeSeconds']);
-  const hrv = pickPath(latest.hrv, ['hrvSummary.lastNightAvg', 'hrvSummary.weeklyAvg']);
-  const vo2max = pickPath(latest.vo2max, ['generic.vo2MaxPreciseValue', 'generic.vo2MaxValue']);
-  const weight = pickPath(latest.bodyComposition, ['weight']);
-  const cells = [
-    ['FC riposo', rhr ? Math.round(rhr) + ' bpm' : '—'],
-    ['Sonno', sleepSec ? (sleepSec / 3600).toFixed(1) + ' h' : '—'],
-    ['HRV', hrv ? Math.round(hrv) + ' ms' : '—'],
-    ['VO2max', vo2max ? Math.round(vo2max) : '—'],
-    ['Peso', weight ? (weight / 1000).toFixed(1) + ' kg' : '—'],
-    ['Giorni disponibili', days.length],
-  ];
-  return `<div class="chart-stats" style="grid-template-columns:1fr 1fr 1fr;">` +
-    cells.map(([label, value]) => `<div class="stat-cell"><div class="stat-label">${label}</div><div class="stat-value">${value}</div></div>`).join('') +
-    `</div><div style="font-size:11px;color:var(--gray);margin-top:8px;">Ultimo giorno: ${latestDate}</div>`;
 }
 
 function mondayOf(d) {
@@ -3886,17 +3873,18 @@ function renderAllenamenti() {
     ${sportCells}
   `;
 
-  document.getElementById('trainHealth').innerHTML = renderHealthPanel();
   renderTrainWeek(allTrainingSessions());
 
-  document.getElementById('trainHistList').innerHTML = items.slice(0, 80).map(it => {
+  if (trainPeriod === 'all') gaLoadOlderYears();
+  document.getElementById('histMoreBtn').classList.toggle('hidden', items.length <= histLimit);
+  document.getElementById('trainHistList').innerHTML = items.slice(0, histLimit).map(it => {
     const meta = [it.date + (it.orario ? ' · ' + it.orario : '')];
     if (it.durationMin) meta.push(Math.round(it.durationMin) + 'min');
     if (it.distanceKm) meta.push(it.distanceKm + 'km');
     if (it.avgHr) meta.push('❤️' + it.avgHr);
     if (it.elevationGainM) meta.push('⛰️' + Math.round(it.elevationGainM) + 'm');
     return `
-    <div class="hist-item">
+    <div class="hist-item" ${it.garminId ? `onclick="openActivity('${it.garminId}')"` : ''}>
       <div class="hist-item-icon">${(TRAINING_LABELS[it.tipo] || '🏋️').split(' ')[0]}</div>
       <div class="hist-item-main">
         <div class="hist-item-name">${it.nome || TRAINING_LABELS[it.tipo] || it.tipo}</div>
@@ -3907,6 +3895,7 @@ function renderAllenamenti() {
   }).join('') || '<div class="day-detail-empty">Nessuna sessione in questo periodo.</div>';
 
   renderTrainingPlan();
+  if (trainTab === 'health') renderHealthTab();
 }
 
 // ── Profilo atleta (obiettivi/vincoli) e cronologia chat coach: sincronizzati su OneDrive ──
@@ -3987,6 +3976,381 @@ function removePlan(id) {
   if (it && gcalEnabled()) gcalDeleteForItem(it).catch(() => {});
   trainingPlan = trainingPlan.filter(x => x.id !== id); saveTrainingPlan(); renderTrainingPlan();
 }
+
+// ════════════════════════════════════════════════════
+// ARCHIVIO GARMIN (OneDrive/GarminData) + scheda attività + salute + record
+// ════════════════════════════════════════════════════
+const GA_BASE = 'https://graph.microsoft.com/v1.0/me/drive/root:/GarminData/';
+const gaMem = new Map();
+let gaLists = {};       // anno -> riepiloghi attività Garmin (tutti i campi)
+let gaSummary = null;   // daily/summary.json: una riga compatta per giorno
+let gaLoading = false;
+let trainTab = 'sessioni';
+let healthRange = 90;
+let histLimit = 60;
+
+function gaIdb() {
+  return new Promise((res) => {
+    try {
+      const r = indexedDB.open('garminArchive', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('f');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => res(null);
+    } catch { res(null); }
+  });
+}
+async function gaIdbGet(k) {
+  const db = await gaIdb(); if (!db) return null;
+  return new Promise((res) => { const q = db.transaction('f').objectStore('f').get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); });
+}
+async function gaIdbPut(k, v) {
+  const db = await gaIdb(); if (!db) return;
+  try { db.transaction('f', 'readwrite').objectStore('f').put(v, k); } catch { }
+}
+async function gaGet(rel, ttlMs) {
+  const hit = gaMem.get(rel);
+  if (hit && Date.now() - hit.t < ttlMs) return hit.v;
+  const stored = await gaIdbGet(rel);
+  if (stored && Date.now() - stored.t < ttlMs) { gaMem.set(rel, stored); return stored.v; }
+  if (!accessToken) return stored ? stored.v : null;
+  try {
+    const url = GA_BASE + rel.split('/').map(encodeURIComponent).join('/') + ':/content';
+    let r = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+    if (r.status === 401) { await acquireToken(); r = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } }); }
+    if (r.status === 404) { gaMem.set(rel, { t: Date.now(), v: null }); return null; }
+    if (!r.ok) return stored ? stored.v : null;
+    const rec = { t: Date.now(), v: await r.json() };
+    gaMem.set(rel, rec); gaIdbPut(rel, rec);
+    return rec.v;
+  } catch { return stored ? stored.v : null; }
+}
+
+async function loadGarminArchive() {
+  if (gaLoading || !accessToken) return;
+  gaLoading = true;
+  try {
+    const y = new Date().getFullYear();
+    for (const yr of [y, y - 1]) { const l = await gaGet('activities/list/' + yr + '.json', 30 * 60e3); if (l) gaLists[yr] = l; }
+    gaSummary = (await gaGet('daily/summary.json', 30 * 60e3)) || gaSummary;
+  } finally { gaLoading = false; }
+  renderAllenamenti();
+}
+async function gaLoadOlderYears() {
+  const y = new Date().getFullYear();
+  let changed = false;
+  for (let yr = y - 2; yr >= 2008; yr--) {
+    if (gaLists[yr] !== undefined) continue;
+    const l = await gaGet('activities/list/' + yr + '.json', 6 * 3600e3);
+    gaLists[yr] = l || [];
+    if (l) changed = true;
+  }
+  if (changed) renderAllenamenti();
+}
+
+function gaSessionFromList(a) {
+  const st = (a.startTimeLocal || '').replace(' ', 'T');
+  const key = a.activityType && a.activityType.typeKey;
+  return {
+    garminId: String(a.activityId), date: st.slice(0, 10), orario: st.slice(11, 16),
+    tipo: mapGarminTypeToTipo(key), typeKey: key, nome: a.activityName,
+    durationMin: (a.duration || 0) / 60, kcal: a.calories,
+    distanceKm: a.distance ? +(a.distance / 1000).toFixed(2) : null,
+    avgHr: a.averageHR, maxHr: a.maxHR,
+    avgSpeedKmh: a.averageSpeed ? +(a.averageSpeed * 3.6).toFixed(1) : null,
+    maxSpeedKmh: a.maxSpeed ? +(a.maxSpeed * 3.6).toFixed(1) : null,
+    elevationGainM: a.elevationGain, trainingLoad: a.activityTrainingLoad,
+    aerobicTrainingEffect: a.aerobicTrainingEffect, anaerobicTrainingEffect: a.anaerobicTrainingEffect,
+    avgPowerW: a.avgPower, avgCadence: a.averageRunningCadenceInStepsPerMinute || a.averageBikingCadenceInRevPerMinute || null,
+  };
+}
+
+// ── formattazione ──
+const fmtN = (v, d = 0) => (v === null || v === undefined || isNaN(v)) ? '—' : Number(v).toFixed(d);
+function fmtDur(sec) {
+  if (sec === null || sec === undefined || isNaN(sec)) return '—';
+  sec = Math.round(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+}
+function sportKind(typeKey) {
+  const k = typeKey || '';
+  if (/run|walk|hik/.test(k)) return 'foot';
+  if (/swim/.test(k)) return 'swim';
+  return 'other';
+}
+function fmtSpeed(ms, kind) {
+  if (!ms || ms <= 0) return '—';
+  if (kind === 'foot') { const s = 1000 / ms; return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')} /km`.replace(':60 ', ':59 '); }
+  if (kind === 'swim') { const s = 100 / ms; return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')} /100m`; }
+  return (ms * 3.6).toFixed(1) + ' km/h';
+}
+function humanKey(k) { return k.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()).trim(); }
+
+// ── grafico a linea SVG ──
+function svgSeries(xs, ys, o) {
+  const W = 350, H = o.h || 110, P = { l: 38, r: 6, t: 8, b: 16 };
+  const pts = [];
+  const n = xs.length, step = Math.max(1, Math.floor(n / 240));
+  for (let i = 0; i < n; i += step) {
+    let sx = 0, c = 0, sy = 0;
+    for (let j = i; j < Math.min(n, i + step); j++) { if (ys[j] !== null && ys[j] !== undefined && !isNaN(ys[j])) { sy += ys[j]; c++; } sx += xs[j]; }
+    if (c) pts.push([sx / Math.min(step, n - i), sy / c]);
+  }
+  if (pts.length < 2) return '<div class="day-detail-empty">Dati insufficienti</div>';
+  let lo = Math.min(...pts.map(p => p[1])), hi = Math.max(...pts.map(p => p[1]));
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const padv = (hi - lo) * 0.08; lo -= padv; hi += padv;
+  const x0 = pts[0][0], x1 = pts[pts.length - 1][0] || 1;
+  const X = x => P.l + ((x - x0) / ((x1 - x0) || 1)) * (W - P.l - P.r);
+  const Y = y => { const f = (y - lo) / (hi - lo); return P.t + (o.invert ? f : 1 - f) * (H - P.t - P.b); };
+  const fmt = o.fmt || (v => Math.round(v));
+  let s = '';
+  [lo + padv, (lo + hi) / 2, hi - padv].forEach(v => {
+    s += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="#eef0f3"/><text x="${P.l - 4}" y="${(Y(v) + 3).toFixed(1)}" text-anchor="end" font-size="9" fill="#94a3b8">${fmt(v)}</text>`;
+  });
+  const line = pts.map(p => `${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(' ');
+  s += `<polygon points="${X(x0).toFixed(1)},${H - P.b} ${line} ${X(x1).toFixed(1)},${H - P.b}" fill="${o.color}" fill-opacity="0.10"/>`;
+  s += `<polyline points="${line}" fill="none" stroke="${o.color}" stroke-width="1.6" stroke-linejoin="round"/>`;
+  s += `<text x="${P.l}" y="${H - 3}" font-size="9" fill="#94a3b8">${o.xfmt(x0)}</text><text x="${W - P.r}" y="${H - 3}" text-anchor="end" font-size="9" fill="#94a3b8">${o.xfmt(x1)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%">${s}</svg>`;
+}
+
+// ── scheda attività ──
+function openActivity(id) {
+  const ov = document.getElementById('actOverlay');
+  ov.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  renderActivity(String(id));
+}
+function closeActivity() {
+  document.getElementById('actOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+const ACT_FIELDS = (kind, key) => [
+  ['Durata', 'duration', fmtDur], ['In movimento', 'movingDuration', fmtDur], ['Tempo trascorso', 'elapsedDuration', fmtDur],
+  ['Distanza', 'distance', v => (v / 1000).toFixed(2) + ' km'],
+  ['Velocità media', 'averageSpeed', v => fmtSpeed(v, kind)], ['Vel. media in movimento', 'averageMovingSpeed', v => fmtSpeed(v, kind)], ['Velocità max', 'maxSpeed', v => fmtSpeed(v, kind)],
+  ['FC media', 'averageHR', v => Math.round(v) + ' bpm'], ['FC max', 'maxHR', v => Math.round(v) + ' bpm'], ['FC min', 'minHR', v => Math.round(v) + ' bpm'],
+  ['Dislivello +', 'elevationGain', v => Math.round(v) + ' m'], ['Dislivello −', 'elevationLoss', v => Math.round(v) + ' m'],
+  ['Quota max', 'maxElevation', v => Math.round(v) + ' m'], ['Quota min', 'minElevation', v => Math.round(v) + ' m'],
+  ['Calorie', 'calories', v => Math.round(v) + ' kcal'],
+  ['Cadenza media', kind === 'foot' ? 'averageRunCadence' : 'averageBikeCadence', v => Math.round(v) + (kind === 'foot' ? ' spm' : ' rpm')],
+  ['Cadenza max', kind === 'foot' ? 'maxRunCadence' : 'maxBikeCadence', v => Math.round(v)],
+  ['Potenza media', 'averagePower', v => Math.round(v) + ' W'], ['Potenza normalizzata', 'normalizedPower', v => Math.round(v) + ' W'], ['Potenza max', 'maxPower', v => Math.round(v) + ' W'],
+  ['Pot. max 20 min', 'maxPowerTwentyMinutes', v => Math.round(v) + ' W'], ['FTP', 'functionalThresholdPower', v => Math.round(v) + ' W'],
+  ['Lavoro totale', 'totalWork', v => Math.round(v) + ' kJ'], ['TSS', 'trainingStressScore', v => fmtN(v, 1)], ['Intensity factor', 'intensityFactor', v => fmtN(v, 2)],
+  ['Training effect aerobico', 'trainingEffect', v => fmtN(v, 1)], ['Training effect anaerobico', 'anaerobicTrainingEffect', v => fmtN(v, 1)],
+  ['Carico allenamento', 'activityTrainingLoad', v => fmtN(v, 0)],
+  ['Temperatura media', 'averageTemperature', v => fmtN(v, 1) + ' °C'],
+  ['Minuti moderati', 'moderateIntensityMinutes', v => v], ['Minuti intensi', 'vigorousIntensityMinutes', v => v],
+  ['Sforzo percepito (RPE)', 'directWorkoutRpe', v => v / 10], ['Sensazione', 'directWorkoutFeel', v => v],
+  ['Passi', 'steps', v => v], ['Lunghezza passo media', 'strideLength', v => fmtN(v / 100, 2) + ' m'],
+  ['Oscillazione verticale', 'verticalOscillation', v => fmtN(v, 1) + ' cm'], ['Tempo di contatto', 'groundContactTime', v => Math.round(v) + ' ms'],
+  ['Rapporto verticale', 'verticalRatio', v => fmtN(v, 1) + ' %'],
+  [kind === 'swim' ? 'Bracciate totali' : 'Pedalate/movimenti totali', 'totalNumberOfStrokes', v => v], ['SWOLF medio', 'averageSwolf', v => Math.round(v)], ['Frequenza bracciata', 'averageStrokes', v => fmtN(v, 1)],
+  ['Stamina inizio', 'beginPotentialStamina', v => Math.round(v) + ' %'], ['Stamina fine', 'endPotentialStamina', v => Math.round(v) + ' %'],
+  ['Idratazione stimata', 'waterEstimated', v => Math.round(v) + ' ml'],
+  ['Bilanciamento sx', 'leftBalance', v => fmtN(v, 1) + ' %'], ['Bilanciamento dx', 'rightBalance', v => fmtN(v, 1) + ' %'],
+];
+
+function actSeries(details, kind) {
+  if (!details || !details.metricDescriptors || !details.activityDetailMetrics) return [];
+  const idx = {};
+  details.metricDescriptors.forEach((d, i) => { idx[d.key] = (d.metricsIndex !== undefined ? d.metricsIndex : i); });
+  const rows = details.activityDetailMetrics.map(r => r.metrics);
+  const col = key => (idx[key] === undefined ? null : rows.map(r => r[idx[key]]));
+  const xs = col('sumElapsedDuration') || col('sumDuration') || rows.map((_, i) => i);
+  const defs = [
+    ['Frequenza cardiaca', 'directHeartRate', '#dc2626', v => Math.round(v), false],
+    [kind === 'foot' ? 'Ritmo' : kind === 'swim' ? 'Ritmo' : 'Velocità', 'directSpeed', '#2563eb', null, kind !== 'other'],
+    ['Quota (m)', 'directElevation', '#64748b', v => Math.round(v), false],
+    ['Potenza (W)', 'directPower', '#7c3aed', v => Math.round(v), false],
+    ['Cadenza', 'directBikeCadence', '#0d9488', v => Math.round(v), false],
+    ['Cadenza', 'directRunCadence', '#0d9488', v => Math.round(v), false],
+    ['Temperatura (°C)', 'directAirTemperature', '#ea580c', v => Math.round(v), false],
+    ['Stamina (%)', 'directAvailableStamina', '#16a34a', v => Math.round(v), false],
+  ];
+  const out = [];
+  for (const [label, key, color, fmt, invert] of defs) {
+    let ys = col(key);
+    if (!ys || ys.filter(v => v !== null && v !== undefined).length < 5) continue;
+    let f = fmt;
+    if (key === 'directSpeed') {
+      if (kind === 'other') { ys = ys.map(v => v === null ? null : v * 3.6); f = v => v.toFixed(0); }
+      else { ys = ys.map(v => (v && v > 0.3) ? (kind === 'swim' ? 100 : 1000) / v : null); f = v => fmtDur(v); }
+    }
+    out.push({ label, color, invert, fmt: f, xs, ys });
+  }
+  return out;
+}
+
+function routeSvg(details) {
+  const pl = details && details.geoPolylineDTO && details.geoPolylineDTO.polyline;
+  if (!pl || pl.length < 3) return '';
+  const pts = pl.filter(p => p.lat !== undefined && p.lon !== undefined);
+  const lat0 = pts.reduce((a, p) => a + p.lat, 0) / pts.length;
+  const k = Math.cos(lat0 * Math.PI / 180);
+  const xs = pts.map(p => p.lon * k), ys = pts.map(p => -p.lat);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const W = 350, H = 220, pad = 10, sc = Math.min((W - 2 * pad) / ((x1 - x0) || 1e-9), (H - 2 * pad) / ((y1 - y0) || 1e-9));
+  const ox = (W - (x1 - x0) * sc) / 2, oy = (H - (y1 - y0) * sc) / 2;
+  const P = i => `${(ox + (xs[i] - x0) * sc).toFixed(1)},${(oy + (ys[i] - y0) * sc).toFixed(1)}`;
+  const step = Math.max(1, Math.floor(pts.length / 500));
+  const line = pts.filter((_, i) => i % step === 0).map((_, j) => P(j * step)).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="background:#f8fafc;border-radius:8px"><polyline points="${line}" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${P(0).split(',')[0]}" cy="${P(0).split(',')[1]}" r="4.5" fill="#16a34a"/><circle cx="${P(pts.length - 1).split(',')[0]}" cy="${P(pts.length - 1).split(',')[1]}" r="4.5" fill="#dc2626"/></svg>`;
+}
+
+function zonesHtml(zones, label) {
+  if (!zones || !zones.length) return '';
+  const tot = zones.reduce((a, z) => a + (z.secsInZone || 0), 0) || 1;
+  const cols = ['#94a3b8', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#111827'];
+  return `<div class="chart-card"><div class="chart-title">${label}</div>` + zones.map(z => {
+    const pct = (z.secsInZone || 0) / tot * 100;
+    return `<div class="zone-row"><div class="zone-lab">Z${z.zoneNumber}<span> ≥${Math.round(z.zoneLowBoundary)}</span></div><div class="zone-bar"><div style="width:${pct.toFixed(1)}%;background:${cols[(z.zoneNumber - 1) % cols.length]}"></div></div><div class="zone-val">${fmtDur(z.secsInZone)} · ${pct.toFixed(0)}%</div></div>`;
+  }).join('') + '</div>';
+}
+
+async function renderActivity(id) {
+  const body = document.getElementById('actBody');
+  const base = allTrainingSessions().find(s => s.garminId === id);
+  document.getElementById('actTitle').textContent = (base && base.nome) || 'Allenamento';
+  body.innerHTML = '<div class="day-detail-empty" style="padding:24px">Carico i dati…</div>';
+  const d = await gaGet('activities/detail/' + id + '.json', Infinity);
+  const link = `<a class="act-link" target="_blank" rel="noopener" href="https://connect.garmin.com/modern/activity/${id}">Apri su Garmin Connect</a>`;
+  if (!d) {
+    body.innerHTML = `<div class="train-container"><div class="chart-card"><div class="chart-title">${escHtml((base && base.nome) || 'Allenamento')}</div>
+      <div style="font-size:13px;color:#334155;line-height:1.5;">${base ? escHtml(base.date + ' ' + (base.orario || '')) + '<br>' : ''}${base ? sessionLine(base) : ''}</div>
+      <div class="day-detail-empty" style="margin-top:10px;">${accessToken ? 'Dettaglio non ancora sincronizzato nell\'archivio Garmin.' : 'Collega OneDrive (Impostazioni) per vedere tutte le statistiche.'}</div>${link}</div></div>`;
+    return;
+  }
+  const s = d.summary || {}, sd = s.summaryDTO || {};
+  const key = s.activityTypeDTO && s.activityTypeDTO.typeKey;
+  const kind = sportKind(key);
+  document.getElementById('actTitle').textContent = s.activityName || 'Allenamento';
+  const shown = new Set(); let cells = '';
+  for (const [label, k, f] of ACT_FIELDS(kind, key)) {
+    const v = sd[k]; shown.add(k);
+    if (v === null || v === undefined || v === '' || (typeof v === 'number' && v === 0 && !['elevationGain', 'elevationLoss', 'anaerobicTrainingEffect'].includes(k))) continue;
+    cells += `<div class="stat-cell"><div class="stat-label">${label}</div><div class="stat-value" style="font-size:16px">${f(v)}</div></div>`;
+  }
+  const others = Object.entries(sd).filter(([k, v]) => !shown.has(k) && v !== null && v !== '' && typeof v !== 'object')
+    .map(([k, v]) => `<div class="kv"><span>${humanKey(k)}</span><b>${typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(2)) : escHtml(v)}</b></div>`).join('');
+  let html = `<div class="train-container">
+    <div class="chart-card"><div style="font-size:12px;color:var(--gray)">${escHtml((sd.startTimeLocal || '').replace('T', ' ').slice(0, 16))} · ${escHtml(humanKey(key || ''))}${s.locationName ? ' · ' + escHtml(s.locationName) : ''}</div>
+    <div class="chart-stats act-grid" style="margin-top:10px">${cells}</div>${link}</div>`;
+  const route = routeSvg(d.details);
+  if (route) html += `<div class="chart-card"><div class="chart-title">Percorso</div>${route}</div>`;
+  for (const ser of actSeries(d.details, kind)) {
+    html += `<div class="chart-card"><div class="chart-title">${ser.label}</div>${svgSeries(ser.xs, ser.ys, { color: ser.color, invert: ser.invert, fmt: ser.fmt, xfmt: x => fmtDur(x) })}</div>`;
+  }
+  html += zonesHtml(d.hrZones, 'Zone frequenza cardiaca') + zonesHtml(d.powerZones, 'Zone di potenza');
+  const laps = (d.splits && d.splits.lapDTOs) || [];
+  if (laps.length) {
+    const hasP = laps.some(l => l.averagePower), hasC = laps.some(l => l.averageBikeCadence || l.averageRunCadence), hasE = laps.some(l => l.elevationGain), hasSw = laps.some(l => l.averageSwolf);
+    html += `<div class="chart-card"><div class="chart-title">Giri (${laps.length})</div><div style="overflow-x:auto"><table class="lap-table"><tr><th>#</th><th>Dist</th><th>Tempo</th><th>${kind === 'other' ? 'Vel' : 'Ritmo'}</th><th>FC</th>${hasP ? '<th>W</th>' : ''}${hasC ? '<th>Cad</th>' : ''}${hasE ? '<th>D+</th>' : ''}${hasSw ? '<th>SWOLF</th>' : ''}</tr>` +
+      laps.slice(0, 120).map((l, i) => `<tr><td>${i + 1}</td><td>${fmtN((l.distance || 0) / 1000, 2)}</td><td>${fmtDur(l.duration)}</td><td>${fmtSpeed(l.averageSpeed, kind)}</td><td>${fmtN(l.averageHR)}</td>${hasP ? `<td>${fmtN(l.averagePower)}</td>` : ''}${hasC ? `<td>${fmtN(l.averageBikeCadence || l.averageRunCadence)}</td>` : ''}${hasE ? `<td>${fmtN(l.elevationGain)}</td>` : ''}${hasSw ? `<td>${fmtN(l.averageSwolf)}</td>` : ''}</tr>`).join('') + '</table></div></div>';
+  }
+  const w = d.weather;
+  if (w && w.temp !== undefined && w.temp !== null) {
+    const c = v => ((v - 32) * 5 / 9).toFixed(0), wd = (w.weatherTypeDTO && w.weatherTypeDTO.desc) || '';
+    html += `<div class="chart-card"><div class="chart-title">Meteo</div><div class="chart-stats"><div class="stat-cell"><div class="stat-label">Temperatura</div><div class="stat-value" style="font-size:16px">${c(w.temp)} °C</div></div><div class="stat-cell"><div class="stat-label">Percepita</div><div class="stat-value" style="font-size:16px">${w.apparentTemp !== undefined ? c(w.apparentTemp) + ' °C' : '—'}</div></div><div class="stat-cell"><div class="stat-label">Umidità</div><div class="stat-value" style="font-size:16px">${fmtN(w.relativeHumidity)} %</div></div><div class="stat-cell"><div class="stat-label">Vento</div><div class="stat-value" style="font-size:16px">${w.windSpeed !== undefined ? Math.round(w.windSpeed * 1.609) + ' km/h ' + (w.windDirectionCompassPoint || '').toUpperCase() : '—'}</div></div></div>${wd ? `<div style="font-size:12px;color:var(--gray);margin-top:6px">${escHtml(wd)}</div>` : ''}</div>`;
+  }
+  const gear = (d.gear || []).map(g => escHtml(g.customMakeModel || [g.gearMakeName, g.gearModelName].filter(Boolean).join(' ') || g.gearTypeName)).join(', ');
+  if (gear) html += `<div class="chart-card"><div class="chart-title">Attrezzatura</div><div style="font-size:13px">${gear}</div></div>`;
+  html += `<div class="chart-card"><details><summary class="chart-title" style="cursor:pointer;margin:0">Tutti i dati (${Object.keys(sd).length})</summary><div style="margin-top:8px">${others}</div></details></div></div>`;
+  body.innerHTML = html;
+}
+
+// ── Salute (da daily/summary.json) ──
+const HEALTH_CHARTS = [
+  ['Frequenza cardiaca a riposo', 'rhr', '#dc2626', v => Math.round(v), 'bpm'],
+  ['HRV notturna', 'hrvLast', '#0d9488', v => Math.round(v), 'ms'],
+  ['Sonno (ore)', 'sleepSec', '#6366f1', v => (v).toFixed(1), 'h', v => v / 3600],
+  ['Punteggio sonno', 'sleepScore', '#8b5cf6', v => Math.round(v), ''],
+  ['Prontezza (readiness)', 'readiness', '#16a34a', v => Math.round(v), ''],
+  ['Stress medio', 'stressAvg', '#ea580c', v => Math.round(v), ''],
+  ['Body Battery max', 'bbHigh', '#0ea5e9', v => Math.round(v), ''],
+  ['Peso (kg)', 'weightG', '#64748b', v => v.toFixed(1), 'kg', v => v / 1000],
+  ['VO2max corsa', 'vo2Run', '#2563eb', v => v.toFixed(1), ''],
+  ['VO2max bici', 'vo2Bike', '#7c3aed', v => v.toFixed(1), ''],
+  ['Passi', 'steps', '#94a3b8', v => Math.round(v), ''],
+];
+function setHealthRange(n) { healthRange = n; renderHealthTab(); }
+function renderHealthTab() {
+  const el = document.getElementById('trainTabHealth');
+  if (!gaSummary) {
+    el.innerHTML = `<div class="chart-card"><div class="day-detail-empty">${accessToken ? 'Archivio salute non ancora disponibile (il backfill Garmin è in corso).' : 'Collega OneDrive (Impostazioni) per vedere i dati di salute.'}</div></div>`;
+    return;
+  }
+  const days = Object.keys(gaSummary).sort();
+  const from = shiftDateKey(dateKey(today()), -(healthRange - 1));
+  const win = days.filter(d => d >= from);
+  const latestDay = days[days.length - 1], L = gaSummary[latestDay] || {};
+  const cell = (label, v) => `<div class="stat-cell"><div class="stat-label">${label}</div><div class="stat-value" style="font-size:16px">${v}</div></div>`;
+  let html = `<div class="train-period">${[30, 90, 365].map(n => `<button class="train-period-btn ${healthRange === n ? 'active' : ''}" onclick="setHealthRange(${n})">${n === 365 ? '1 anno' : n + ' giorni'}</button>`).join('')}</div>
+    <div class="chart-card"><div class="chart-title">Ultimo giorno · ${latestDay}</div><div class="chart-stats">
+      ${cell('Prontezza', L.readiness !== undefined ? L.readiness + ' ' + (L.readinessLevel || '') : '—')}${cell('Sonno', L.sleepSec ? (L.sleepSec / 3600).toFixed(1) + ' h' + (L.sleepScore ? ' · ' + L.sleepScore : '') : '—')}${cell('HRV', L.hrvLast !== undefined ? L.hrvLast + ' ms' : '—')}
+      ${cell('FC riposo', L.rhr !== undefined ? Math.round(L.rhr) + ' bpm' : '—')}${cell('Stress', L.stressAvg !== undefined ? L.stressAvg : '—')}${cell('Body Battery', L.bbHigh !== undefined ? L.bbLow + '→' + L.bbHigh : '—')}
+      ${cell('Passi', L.steps !== undefined ? L.steps : '—')}${cell('VO2max', [L.vo2Run, L.vo2Bike].filter(Boolean).join(' / ') || '—')}${cell('HRV stato', L.hrvStatus || '—')}</div></div>`;
+  for (const [title, k, color, fmt, , conv] of HEALTH_CHARTS) {
+    const xs = [], ys = [];
+    win.forEach((d, i) => { const v = gaSummary[d][k]; if (v !== undefined && v !== null) { xs.push(i); ys.push(conv ? conv(v) : v); } });
+    if (ys.length < 3) continue;
+    const avg = ys.reduce((a, b) => a + b, 0) / ys.length;
+    html += `<div class="chart-card"><div class="chart-title">${title} <span style="font-weight:600;color:var(--gray);font-size:12px">media ${fmt(avg)}</span></div>${svgSeries(xs, ys, { color, fmt, xfmt: x => win[Math.round(x)] ? win[Math.round(x)].slice(5) : '' })}</div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ── Record e profilo sportivo ──
+const PR_LABELS = { 1: '1 km più veloce', 2: '1 miglio più veloce', 3: '5 km più veloce', 4: '10 km più veloce', 5: 'Mezza maratona', 6: 'Maratona', 7: 'Corsa più lunga', 8: 'Uscita in bici più lunga', 9: 'Massimo dislivello in bici (m)', 10: 'Potenza media massima in bici (W)', 12: 'Passi in un giorno', 13: 'Passi in una settimana', 14: 'Passi in un mese' };
+async function renderRecordsTab() {
+  const el = document.getElementById('trainTabRecords');
+  el.innerHTML = '<div class="chart-card"><div class="day-detail-empty">Carico…</div></div>';
+  const [pr, hrz, pz, ftp, lt, up, devs, gear, gstats] = await Promise.all(['personalRecords', 'heartRateZones', 'powerZones', 'cyclingFtp', 'lactateThreshold', 'userProfile', 'devices', 'gear', 'gearStats'].map(n => gaGet('profile/' + n + '.json', 6 * 3600e3)));
+  if (!pr && !hrz && !up) { el.innerHTML = `<div class="chart-card"><div class="day-detail-empty">${accessToken ? 'Profilo Garmin non ancora sincronizzato.' : 'Collega OneDrive (Impostazioni) per vedere record e profilo.'}</div></div>`; return; }
+  const cell = (label, v) => `<div class="stat-cell"><div class="stat-label">${label}</div><div class="stat-value" style="font-size:16px">${v}</div></div>`;
+  let html = '';
+  const ud = (up && up.userData) || {};
+  html += `<div class="chart-card"><div class="chart-title">Profilo sportivo</div><div class="chart-stats">
+    ${cell('VO2max corsa', fmtN(ud.vo2MaxRunning))}${cell('VO2max bici', fmtN(ud.vo2MaxCycling))}${cell('Peso', ud.weight ? (ud.weight / 1000).toFixed(1) + ' kg' : '—')}
+    ${cell('FTP bici', ftp && ftp.functionalThresholdPower ? ftp.functionalThresholdPower + ' W' : '—')}${cell('FC soglia', lt && lt.speed_and_heart_rate ? lt.speed_and_heart_rate.heartRate + ' bpm' : '—')}${cell('FTP corsa', lt && lt.power ? lt.power.functionalThresholdPower + ' W' : '—')}</div></div>`;
+  if (pr && pr.length) {
+    html += '<div class="chart-card"><div class="chart-title">Record personali</div>' + pr.filter(r => r.status === 'ACCEPTED' || !r.status).map(r => {
+      const t = r.typeId, v = r.value;
+      const val = t <= 6 ? fmtDur(v) : (t === 7 || t === 8) ? (v / 1000).toFixed(1) + ' km' : fmtN(v, 0);
+      const date = (r.actStartDateTimeInGMTFormatted || '').slice(0, 10);
+      return `<div class="hist-item" ${r.activityId ? `onclick="openActivity('${r.activityId}')" style="cursor:pointer"` : ''}><div class="hist-item-main"><div class="hist-item-name">${PR_LABELS[t] || 'Record tipo ' + t}</div><div class="hist-item-meta">${escHtml(r.activityName || '')} · ${date}</div></div><div class="hist-item-kcal" style="color:#111827">${val}</div></div>`;
+    }).join('') + '</div>';
+  }
+  if (hrz && hrz.length) {
+    html += '<div class="chart-card"><div class="chart-title">Zone frequenza cardiaca</div>' + hrz.map(z => `<div class="kv"><span>${escHtml(z.sport)} · max ${z.maxHeartRateUsed}</span><b>${[z.zone1Floor, z.zone2Floor, z.zone3Floor, z.zone4Floor, z.zone5Floor].join(' · ')}</b></div>`).join('') + '</div>';
+  }
+  if (pz && pz.length) {
+    html += '<div class="chart-card"><div class="chart-title">Zone di potenza</div>' + pz.filter(z => z.functionalThresholdPower).map(z => `<div class="kv"><span>${escHtml(z.sport)} · FTP ${Math.round(z.functionalThresholdPower)}</span><b>${[z.zone1Floor, z.zone2Floor, z.zone3Floor, z.zone4Floor, z.zone5Floor, z.zone6Floor, z.zone7Floor].filter(v => v).map(Math.round).join(' · ')}</b></div>`).join('') + '</div>';
+  }
+  if (devs && devs.length) {
+    html += '<div class="chart-card"><div class="chart-title">Dispositivi</div>' + devs.map(d => `<div class="kv"><span>${escHtml(d.productDisplayName || d.applicationKey || d.partNumber || 'Dispositivo')}</span><b>${escHtml(d.softwareVersion || d.currentFirmwareVersion || '')}</b></div>`).join('') + '</div>';
+  }
+  const gl = Array.isArray(gear) ? gear : (gear && gear.gearDTOs) || [];
+  if (gl.length) {
+    html += '<div class="chart-card"><div class="chart-title">Attrezzatura</div>' + gl.map(g => { const st = gstats && gstats[g.uuid]; const dist = st && st.totalDistance ? Math.round(st.totalDistance / 1000) + ' km' : ''; return `<div class="kv"><span>${escHtml(g.customMakeModel || [g.gearMakeName, g.gearModelName].filter(Boolean).join(' ') || g.gearTypeName)}</span><b>${dist}</b></div>`; }).join('') + '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function setTrainTab(t) {
+  trainTab = t;
+  ['sessioni', 'health', 'records'].forEach(n => {
+    const id = { sessioni: 'trainTabSessions', health: 'trainTabHealth', records: 'trainTabRecords' }[n];
+    document.getElementById(id).classList.toggle('hidden', n !== t);
+    document.getElementById('ttab-' + n).classList.toggle('active', n === t);
+  });
+  if (t === 'health') renderHealthTab();
+  if (t === 'records') renderRecordsTab();
+}
+function moreHistory() { histLimit += 60; renderAllenamenti(); }
 
 // ════════════════════════════════════════════════════
 // GOOGLE CALENDAR (Google Identity Services, scope eventi)
@@ -4198,21 +4562,12 @@ function coachChip(t) { document.getElementById('coachInput').value = t; coachSe
 
 function shiftDateKey(k, delta) { const d = new Date(k + 'T00:00:00'); d.setDate(d.getDate() + delta); return dateKey(d); }
 
-function healthScalars(day) {
-  const rhr = pickPath(day.restingHeartRate, ['restingHeartRate', 'allMetrics.metricsMap.WELLNESS_RESTING_HEART_RATE.0.value']);
-  const sleep = pickPath(day.sleep, ['dailySleepDTO.sleepTimeSeconds']);
-  const hrv = pickPath(day.hrv, ['hrvSummary.lastNightAvg', 'hrvSummary.weeklyAvg']);
-  const vo2 = pickPath(day.vo2max, ['generic.vo2MaxPreciseValue', 'generic.vo2MaxValue']);
-  const w = pickPath(day.bodyComposition, ['weight']);
-  return { fcRiposo: rhr ? Math.round(rhr) : null, sonnoOre: sleep ? +(sleep / 3600).toFixed(1) : null, hrvNotte: hrv ? Math.round(hrv) : null, vo2max: vo2 ? Math.round(vo2) : null, pesoKg: w ? +(w / 1000).toFixed(1) : null };
-}
-
 function sessionLine(a) {
   const f = [a.date + (a.orario ? ' ' + a.orario : ''), a.tipo, a.durationMin ? Math.round(a.durationMin) + 'min' : null,
     a.distanceKm ? a.distanceKm + 'km' : null, a.avgHr ? 'FC ' + a.avgHr + (a.maxHr ? '/' + a.maxHr : '') : null,
     a.elevationGainM ? 'disl ' + Math.round(a.elevationGainM) + 'm' : null, a.kcal ? Math.round(a.kcal) + 'kcal' : null,
-    a.trainingLoad ? 'TL ' + a.trainingLoad : null,
-    a.aerobicTrainingEffect ? 'TE ' + a.aerobicTrainingEffect + '/' + (a.anaerobicTrainingEffect ?? '-') : null,
+    a.trainingLoad ? 'TL ' + Math.round(a.trainingLoad) : null,
+    a.aerobicTrainingEffect ? 'TE ' + (+a.aerobicTrainingEffect).toFixed(1) + '/' + (a.anaerobicTrainingEffect !== undefined && a.anaerobicTrainingEffect !== null ? (+a.anaerobicTrainingEffect).toFixed(1) : '-') : null,
     a.avgPowerW ? a.avgPowerW + 'W' : null, a.nome ? '"' + a.nome + '"' : null];
   return f.filter(Boolean).join(' · ');
 }
@@ -4230,10 +4585,10 @@ function buildCoachSystem() {
     weeks.push(`${start}: ${inW.length} sedute, ${Math.round(inW.reduce((t, a) => t + (a.durationMin || 0), 0))} min, ${Math.round(inW.reduce((t, a) => t + (a.distanceKm || 0), 0))} km`);
   }
   const planUp = trainingPlan.filter(p => p.data >= shiftDateKey(todayK, -7)).sort((a, b) => (a.data + (a.orario || '')).localeCompare(b.data + (b.orario || '')));
-  let health = 'NON DISPONIBILI (il feed salute Garmin non è ancora collegato): non conosci sonno, HRV, FC a riposo. Dillo se serve e valuta lo stato solo da carico e da ciò che dice l\'utente.';
-  if (garminHealth?.days) {
-    const ds = Object.entries(garminHealth.days).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 7);
-    health = ds.map(([d, v]) => d + ': ' + JSON.stringify(healthScalars(v))).join('\n');
+  let health = 'NON DISPONIBILI (archivio Garmin non sincronizzato su questo dispositivo): non conosci sonno, HRV, FC a riposo. Dillo se serve e valuta lo stato solo da carico e da ciò che dice l\'utente.';
+  if (gaSummary) {
+    const ds = Object.keys(gaSummary).sort().slice(-14);
+    health = ds.map(d => d + ': ' + JSON.stringify(gaSummary[d])).join('\n');
   }
   const prof = PROFILE_FIELDS.map(f => `${f}: ${trainingProfile[f] || '(non indicato)'}`).join('\n');
   const cal = coachCalendarSummary ? coachCalendarSummary() : '';
@@ -4265,7 +4620,7 @@ ${recent.map(sessionLine).join('\n') || '(nessuna)'}
 CARICO SETTIMANALE (dalla settimana corrente indietro)
 ${weeks.join('\n')}
 
-SALUTE GARMIN ULTIMI 7 GIORNI
+SALUTE GARMIN ULTIMI 14 GIORNI (rhr=FC riposo, sleepSec=sonno, hrvLast=HRV notte, readiness=prontezza, stressAvg, bbHigh/bbLow=body battery, weightG=peso in grammi)
 ${health}
 
 PIANO (da 7 giorni fa in poi; fatto=true se completata)
@@ -4281,6 +4636,8 @@ ${dieta.join('\n') || '(nessun dato)'}`;
 const COACH_TOOLS = [
   { name: 'get_activities', description: 'Attività svolte (Garmin + manuali) in un intervallo di date, con distanza, FC, dislivello, training effect, carico.', input_schema: { type: 'object', properties: { from: { type: 'string', description: 'YYYY-MM-DD' }, to: { type: 'string', description: 'YYYY-MM-DD' } }, required: ['from', 'to'] } },
   { name: 'get_health', description: 'Metriche di salute Garmin giornaliere (FC riposo, sonno, HRV, VO2max, peso) in un intervallo di date.', input_schema: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' } }, required: ['from', 'to'] } },
+  { name: 'get_activity_detail', description: 'Dettaglio completo di UNA attività (id Garmin dagli elenchi): riepilogo con tutte le metriche, giri, zone FC/potenza, meteo, serie temporali campionate (FC, ritmo, potenza, quota, cadenza).', input_schema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
+  { name: 'get_records', description: 'Record personali, zone FC/potenza, FTP, soglia lattato, previsioni gara del profilo Garmin.', input_schema: { type: 'object', properties: {} } },
   { name: 'get_plan', description: 'Piano allenamenti completo con gli id delle sedute.', input_schema: { type: 'object', properties: {} } },
   { name: 'get_calendar', description: 'Eventi del calendario Google dell\'utente (impegni) in un intervallo di date.', input_schema: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' } }, required: ['from', 'to'] } },
   { name: 'get_diet_summary', description: 'Riepilogo dieta (kcal assunte, peso) degli ultimi N giorni.', input_schema: { type: 'object', properties: { days: { type: 'integer' } }, required: ['days'] } },
@@ -4291,12 +4648,39 @@ const COACH_TOOLS = [
 async function runCoachTool(name, input, msg) {
   const inRange = (d) => (!input.from || d >= input.from) && (!input.to || d <= input.to);
   if (name === 'get_activities') {
+    if (input.from && input.from < shiftDateKey(dateKey(today()), -400)) await gaLoadOlderYears();
     return JSON.stringify(allTrainingSessions().filter(a => inRange(a.date)).slice(0, 80));
   }
   if (name === 'get_health') {
-    if (!garminHealth?.days) return 'Metriche di salute Garmin non disponibili: il feed non è collegato.';
-    const out = Object.entries(garminHealth.days).filter(([d]) => inRange(d)).sort((a, b) => a[0].localeCompare(b[0])).map(([d, v]) => ({ data: d, ...healthScalars(v) }));
-    return JSON.stringify(out);
+    if (!gaSummary) return 'Metriche di salute Garmin non disponibili: archivio non sincronizzato.';
+    const out = Object.keys(gaSummary).filter(inRange).sort().map(d => ({ data: d, ...gaSummary[d] }));
+    return JSON.stringify(out.slice(-120));
+  }
+  if (name === 'get_activity_detail') {
+    const d = await gaGet('activities/detail/' + input.id + '.json', Infinity);
+    if (!d) return 'Dettaglio non disponibile per questa attività (non ancora sincronizzata).';
+    const sd = (d.summary && d.summary.summaryDTO) || {};
+    const kind = sportKind(d.summary && d.summary.activityTypeDTO && d.summary.activityTypeDTO.typeKey);
+    const slim = (o, keys) => Object.fromEntries(keys.filter(k => o[k] !== null && o[k] !== undefined).map(k => [k, typeof o[k] === 'number' ? +o[k].toFixed(2) : o[k]]));
+    const series = {};
+    for (const ser of actSeries(d.details, kind)) {
+      const n = ser.xs.length, st = Math.max(1, Math.floor(n / 40)), arr = [];
+      for (let i = 0; i < n; i += st) { const v = ser.ys[i]; arr.push(v === null || v === undefined ? null : +(+v).toFixed(1)); }
+      series[ser.label + (kind !== 'other' && /Ritmo/.test(ser.label) ? ' (s/km o s/100m)' : '')] = arr;
+    }
+    return JSON.stringify({
+      nome: d.summary && d.summary.activityName, tipo: d.summary && d.summary.activityTypeDTO && d.summary.activityTypeDTO.typeKey,
+      riepilogo: Object.fromEntries(Object.entries(sd).filter(([, v]) => v !== null && typeof v !== 'object' && typeof v !== 'string').map(([k, v]) => [k, typeof v === 'number' ? +v.toFixed(2) : v])),
+      giri: ((d.splits && d.splits.lapDTOs) || []).slice(0, 60).map(l => slim(l, ['distance', 'duration', 'averageSpeed', 'averageHR', 'maxHR', 'averagePower', 'averageBikeCadence', 'averageRunCadence', 'elevationGain'])),
+      zoneFC: d.hrZones, zonePotenza: d.powerZones, meteo: d.weather && slim(d.weather, ['temp', 'relativeHumidity', 'windSpeed']),
+      serieCampionate40: series, unita: 'distanze in m, durate in s, velocità in m/s, meteo in F e mph',
+    });
+  }
+  if (name === 'get_records') {
+    const names = ['personalRecords', 'heartRateZones', 'powerZones', 'cyclingFtp', 'lactateThreshold', 'racePredictions'];
+    const out = {};
+    for (const n of names) { const v = await gaGet('profile/' + n + '.json', 6 * 3600e3); if (v) out[n] = v; }
+    return Object.keys(out).length ? JSON.stringify(out).slice(0, 12000) : 'Profilo Garmin non sincronizzato.';
   }
   if (name === 'get_plan') return JSON.stringify(trainingPlan);
   if (name === 'get_calendar') {
@@ -4426,6 +4810,7 @@ async function coachSend() {
   coachChat.push(am);
   renderCoach();
   try {
+    if (!gaSummary) await loadGarminArchive();
     if (typeof coachCalendarPrefetch === 'function') await coachCalendarPrefetch();
     const messages = coachHistory();
     const system = buildCoachSystem();
@@ -4882,23 +5267,6 @@ async function cloudPut(snap){
   return true;
 }
 
-// Metriche salute Garmin (sonno, HRV, stress, peso, ecc.), scritte privatamente su OneDrive
-// dal job garmin-sync — non sul feed pubblico usato per gli allenamenti. Riusa la stessa
-// sessione OneDrive già connessa da dieta-app: nessuna nuova autenticazione da gestire qui.
-// Nessuna UI la consuma ancora: è solo il punto di lettura, pronto per quando serve.
-const GARMIN_HEALTH_CLOUD_PATH = '/me/drive/root:/GarminHealth-feed.json';
-async function fetchGarminHealth() {
-  if (!accessToken) return null; // OneDrive non connesso: stesso fallimento silenzioso del feed pubblico
-  try {
-    const url = 'https://graph.microsoft.com/v1.0' + GARMIN_HEALTH_CLOUD_PATH + ':/content';
-    let r = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
-    if (r.status === 401) { await acquireToken(); r = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } }); }
-    if (!r.ok) return null;
-    return await r.json();
-  } catch {
-    return null;
-  }
-}
 async function doPush(snap){
   const now = new Date().toISOString();
   snap.updatedAt = now;
@@ -4991,6 +5359,7 @@ async function initSync(){
     if (acc){
       msalInstance.setActiveAccount(acc);
       await acquireToken();
+      loadGarminArchive().catch(() => {});
       if (syncEnabled()) autoSync('load').catch(()=>{});
     }
   } catch(e){ /* offline o non configurato: l'app resta pienamente usabile in locale */ }
@@ -5099,7 +5468,6 @@ renderDay();
 showView('allenamenti');
 initSync();
 loadGarminFeed();
-loadGarminHealthOnce();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
