@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#2d7a3a">
+  <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Dieta Elia">
-  <title>Dieta Elia</title>
+  <meta name="apple-mobile-web-app-title" content="Coach Elia">
+  <title>Coach Elia</title>
   <link rel="manifest" href="manifest.json">
   <style>
     :root {
@@ -21,32 +21,36 @@
       --blue: #1565c0;
       --blue-bg: #e3f2fd;
       --gray: #757575;
-      --gray-light: #f5f5f5;
-      --shadow: 0 2px 8px rgba(0,0,0,0.10);
-      --radius: 14px;
-      --radius-sm: 10px;
+      --gray-light: #f3f4f6;
+      --ink: #0f172a;
+      --accent: #2563eb;
+      --accent-bg: #eff4ff;
+      --line: #e5e7eb;
+      --shadow: 0 1px 3px rgba(15,23,42,0.08), 0 0 0 1px rgba(15,23,42,0.04);
+      --radius: 10px;
+      --radius-sm: 8px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #eef1ee;
-      color: #1a1a1a;
+      background: #f1f3f6;
+      color: #111827;
       min-height: 100vh;
       padding-bottom: 72px;
     }
 
     /* ── HEADER ── */
     .app-header {
-      background: var(--green);
+      background: var(--ink);
       color: white;
-      padding: 14px 16px 10px;
+      padding: 12px 16px 10px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px rgba(15,23,42,0.35);
     }
     .header-top { display: flex; justify-content: space-between; align-items: center; }
-    .app-title { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+    .app-title { font-size: 13px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; }
     .date-nav { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
     .date-btn {
       background: rgba(255,255,255,0.22);
@@ -70,9 +74,19 @@
       cursor: pointer; color: var(--gray); border: none; background: none;
       position: relative;
     }
-    .nav-item.active { color: var(--green); }
-    .nav-icon { font-size: 22px; }
-    .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .nav-item.active { color: var(--accent); }
+    .nav-item.active::before { content: ''; position: absolute; top: -1px; left: 25%; right: 25%; height: 2px; background: var(--accent); border-radius: 0 0 2px 2px; }
+    .nav-icon { font-size: 22px; display: flex; }
+    .nav-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+
+    /* ── DIETA SUBNAV ── */
+    .dieta-subnav { display: none; padding: 12px 14px 0; max-width: 600px; margin: 0 auto; }
+    .dieta-subnav.show { display: block; }
+    .dieta-subnav-inner { display: flex; background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 3px; gap: 2px; }
+    .dsub { flex: 1; position: relative; padding: 8px 2px; border: none; background: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--gray); }
+    .dsub.active { background: var(--ink); color: white; }
+    .dsub .nav-badge { top: 1px; right: 0; }
     .nav-badge {
       position: absolute; top: 6px; right: calc(50% - 18px);
       background: var(--red); color: white;
@@ -119,7 +133,7 @@
     .train-container { padding: 12px 14px; max-width: 600px; margin: 0 auto; }
     .train-period { display: flex; background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 4px; margin-bottom: 12px; gap: 4px; }
     .train-period-btn { flex: 1; padding: 9px; border: none; background: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--gray); }
-    .train-period-btn.active { background: var(--green); color: white; }
+    .train-period-btn.active { background: var(--ink); color: white; }
     .hist-item { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid #f0f0f0; }
     .hist-item:last-child { border-bottom: none; }
     .hist-item-icon { font-size: 20px; }
@@ -130,6 +144,16 @@
     .plan-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--blue-bg); border-radius: 8px; border: 1.5px solid #bbdefb; margin-bottom: 6px; }
     .plan-item.done { opacity: 0.55; }
     .plan-item-name { flex: 1; font-size: 13px; font-weight: 600; color: #0d47a1; }
+
+    .btn-primary { width: 100%; background: var(--ink); color: white; border: none; border-radius: var(--radius-sm); padding: 11px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.2px; }
+    .week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .week-cell { text-align: center; padding: 8px 2px; border-radius: 8px; background: var(--gray-light); border: 1.5px solid transparent; }
+    .week-cell.today { border-color: var(--accent); background: var(--accent-bg); }
+    .week-dow { font-size: 10px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+    .week-num { font-size: 15px; font-weight: 800; margin: 2px 0; }
+    .week-mark { font-size: 10px; font-weight: 700; min-height: 13px; }
+    .week-mark.done { color: #15803d; }
+    .week-mark.plan { color: var(--accent); }
 
     /* ── WATER CARD ── */
     .water-card {
@@ -722,7 +746,7 @@
 <!-- ══════════════════════════════════════════════ -->
 <div class="app-header">
   <div class="header-top">
-    <div class="app-title">🥗 Dieta Elia</div>
+    <div class="app-title" id="appTitle">Coach</div>
     <button class="gear-btn" onclick="openSettings()" aria-label="Impostazioni">⚙️</button>
   </div>
   <div class="date-nav">
@@ -737,32 +761,32 @@
 <!-- ══════════════════════════════════════════════ -->
 <nav class="bottom-nav">
   <button class="nav-item active" onclick="showView('allenamenti')" id="nav-allenamenti">
-    <span class="nav-icon">🏋️</span>
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
     <span class="nav-label">Allenamenti</span>
   </button>
-  <button class="nav-item" onclick="showView('oggi')" id="nav-oggi">
-    <span class="nav-icon">📅</span>
-    <span class="nav-label">Oggi</span>
+  <button class="nav-item" onclick="showView('coach')" id="nav-coach">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    <span class="nav-label">Coach</span>
   </button>
-  <button class="nav-item" onclick="showView('calendario')" id="nav-calendario">
-    <span class="nav-icon">📆</span>
-    <span class="nav-label">Calendario</span>
+  <button class="nav-item" onclick="showView('piano')" id="nav-piano">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+    <span class="nav-label">Piano</span>
   </button>
-  <button class="nav-item" onclick="showView('avvisi')" id="nav-avvisi">
-    <span class="nav-icon">🔔</span>
-    <span class="nav-label">Avvisi</span>
-    <span id="alertBadge" class="nav-badge hidden">0</span>
-  </button>
-  <button class="nav-item" onclick="showView('grafico')" id="nav-grafico">
-    <span class="nav-icon">📊</span>
-    <span class="nav-label">Grafico</span>
-  </button>
-  <button class="nav-item" onclick="showView('spesa')" id="nav-spesa">
-    <span class="nav-icon">🛒</span>
-    <span class="nav-label">Spesa</span>
-    <span id="spesaBadge" class="nav-badge hidden">0</span>
+  <button class="nav-item" onclick="showView('oggi')" id="nav-dieta">
+    <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></span>
+    <span class="nav-label">Dieta</span>
   </button>
 </nav>
+
+<div class="dieta-subnav" id="dietaSubnav">
+  <div class="dieta-subnav-inner">
+    <button class="dsub" id="dsub-oggi" onclick="showView('oggi')">Oggi</button>
+    <button class="dsub" id="dsub-calendario" onclick="showView('calendario')">Calendario</button>
+    <button class="dsub" id="dsub-avvisi" onclick="showView('avvisi')">Avvisi<span id="alertBadge" class="nav-badge hidden">0</span></button>
+    <button class="dsub" id="dsub-grafico" onclick="showView('grafico')">Grafico</button>
+    <button class="dsub" id="dsub-spesa" onclick="showView('spesa')">Spesa<span id="spesaBadge" class="nav-badge hidden">0</span></button>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════ -->
 <!-- VIEW: ALLENAMENTI                               -->
@@ -770,24 +794,57 @@
 <div id="view-allenamenti" class="view active">
   <div class="train-container">
 
+    <div class="chart-card">
+      <div class="chart-title">Questa settimana</div>
+      <div id="trainWeek" class="week-strip"></div>
+    </div>
+
+    <div class="chart-card" id="trainNextCard">
+      <div class="chart-title">Prossima seduta</div>
+      <div id="trainNext"></div>
+      <button class="btn-primary" style="margin-top:10px;" onclick="showView('coach')">Chiedi al coach</button>
+    </div>
+
     <div class="train-period">
-      <button class="train-period-btn active" id="trainPeriod-7" onclick="setTrainPeriod('7')">7gg</button>
-      <button class="train-period-btn" id="trainPeriod-30" onclick="setTrainPeriod('30')">30gg</button>
+      <button class="train-period-btn active" id="trainPeriod-7" onclick="setTrainPeriod('7')">7 giorni</button>
+      <button class="train-period-btn" id="trainPeriod-30" onclick="setTrainPeriod('30')">30 giorni</button>
       <button class="train-period-btn" id="trainPeriod-all" onclick="setTrainPeriod('all')">Tutto</button>
     </div>
 
     <div class="chart-card">
-      <div class="chart-title">📊 Riepilogo</div>
+      <div class="chart-title">Riepilogo</div>
       <div class="chart-stats" id="trainStats"></div>
     </div>
 
     <div class="chart-card">
-      <div class="chart-title">❤️ Statistiche Garmin</div>
+      <div class="chart-title">Salute Garmin</div>
       <div id="trainHealth"></div>
     </div>
 
     <div class="chart-card">
-      <div class="chart-title">🗓️ Piano allenamenti</div>
+      <div class="chart-title">Storico sessioni</div>
+      <div id="trainHistList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- VIEW: COACH                                     -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="view-coach" class="view">
+  <div class="train-container" id="coachRoot">
+    <div class="chart-card"><div class="day-detail-empty">Coach in arrivo.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- VIEW: PIANO                                     -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="view-piano" class="view">
+  <div class="train-container">
+    <div class="chart-card">
+      <div class="chart-title">Sedute pianificate</div>
       <div id="planList"></div>
       <button class="add-extra-btn" onclick="openPlanForm()">＋ Pianifica allenamento</button>
       <div id="planForm" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0;">
@@ -811,11 +868,6 @@
           <button onclick="confirmAddPlan()" style="flex:1;background:var(--blue);color:white;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;">✓ Pianifica</button>
         </div>
       </div>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-title">📜 Storico sessioni</div>
-      <div id="trainHistList"></div>
     </div>
 
   </div>
@@ -2431,16 +2483,23 @@ function dayData(d) {
 // ════════════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════════════
+const DIETA_SUBS = ['oggi', 'calendario', 'avvisi', 'grafico', 'spesa'];
 function showView(name) {
+  const isDieta = DIETA_SUBS.includes(name);
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.dsub').forEach(n => n.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
-  document.getElementById('nav-' + name).classList.add('active');
-  // La vista Allenamenti ragiona per periodo (7/30/tutto), non per singolo giorno:
-  // il selettore data dell'header non le serve.
+  document.getElementById('nav-' + (isDieta ? 'dieta' : name)).classList.add('active');
+  if (isDieta) document.getElementById('dsub-' + name).classList.add('active');
+  document.getElementById('dietaSubnav').classList.toggle('show', isDieta);
+  document.getElementById('appTitle').textContent = isDieta ? 'Dieta' : 'Coach';
+  // Il selettore data dell'header serve solo alle viste dieta.
   const dateNav = document.querySelector('.date-nav');
-  if (dateNav) dateNav.style.display = (name === 'allenamenti') ? 'none' : 'flex';
+  if (dateNav) dateNav.style.display = isDieta ? 'flex' : 'none';
   if (name === 'allenamenti') renderAllenamenti();
+  if (name === 'piano') renderTrainingPlan();
+  if (name === 'coach' && typeof renderCoach === 'function') renderCoach();
   if (name === 'calendario') renderCalendar();
   if (name === 'avvisi') renderAlerts();
   if (name === 'grafico') renderGrafico();
@@ -3683,6 +3742,37 @@ function renderHealthPanel() {
     `</div><div style="font-size:11px;color:var(--gray);margin-top:8px;">Ultimo giorno: ${latestDate}</div>`;
 }
 
+function mondayOf(d) {
+  const x = new Date(d); x.setHours(0, 0, 0, 0);
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+function renderTrainWeek(all) {
+  const mon = mondayOf(today());
+  const todayK = dateKey(today());
+  const dows = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mon); d.setDate(d.getDate() + i);
+    const k = dateKey(d);
+    const doneMin = all.filter(a => a.date === k).reduce((t, a) => t + (a.durationMin || 0), 0);
+    const planned = trainingPlan.filter(p => p.data === k && !p.fatto);
+    const mark = doneMin ? `<div class="week-mark done">${Math.round(doneMin)}'</div>`
+      : planned.length ? `<div class="week-mark plan">${(TRAINING_LABELS[planned[0].tipo] || '').split(' ').slice(1).join(' ') || 'Piano'}</div>`
+      : '<div class="week-mark"></div>';
+    html += `<div class="week-cell ${k === todayK ? 'today' : ''}"><div class="week-dow">${dows[i]}</div><div class="week-num">${d.getDate()}</div>${mark}</div>`;
+  }
+  document.getElementById('trainWeek').innerHTML = html;
+
+  const next = trainingPlan.filter(p => !p.fatto && p.data >= todayK).sort((a, b) => (a.data + (a.orario || '')).localeCompare(b.data + (b.orario || '')))[0];
+  document.getElementById('trainNext').innerHTML = next
+    ? `<div style="font-size:15px;font-weight:700;">${TRAINING_LABELS[next.tipo] || next.tipo}${next.durataMin ? ' · ' + next.durataMin + ' min' : ''}</div>
+       <div style="font-size:12px;color:var(--gray);margin-top:2px;">${next.data}${next.orario ? ' · ' + next.orario : ''}</div>
+       ${next.descrizione || next.note ? `<div style="font-size:13px;margin-top:6px;">${escHtml(next.descrizione || next.note)}</div>` : ''}`
+    : '<div class="day-detail-empty">Nessuna seduta pianificata. Chiedi al coach di prepararti la settimana.</div>';
+}
+function escHtml(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
 function renderAllenamenti() {
   ['7', '30', 'all'].forEach(p => document.getElementById('trainPeriod-' + p)?.classList.toggle('active', trainPeriod === p));
 
@@ -3704,6 +3794,7 @@ function renderAllenamenti() {
   `;
 
   document.getElementById('trainHealth').innerHTML = renderHealthPanel();
+  renderTrainWeek(allTrainingSessions());
 
   document.getElementById('trainHistList').innerHTML = items.slice(0, 80).map(it => {
     const meta = [it.date + (it.orario ? ' · ' + it.orario : '')];
