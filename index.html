@@ -145,6 +145,38 @@
     .plan-item.done { opacity: 0.55; }
     .plan-item-name { flex: 1; font-size: 13px; font-weight: 600; color: #0d47a1; }
 
+    .pf-label { display: block; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 0 4px; }
+    .pf-input { width: 100%; padding: 9px 10px; border: 1.5px solid var(--line); border-radius: 8px; font-size: 14px; font-family: inherit; background: white; color: #111827; }
+    .pf-input:focus { outline: none; border-color: var(--accent); }
+    .coach-wrap { padding-bottom: 90px; }
+    .coach-toolbar { display: flex; justify-content: flex-end; gap: 14px; margin-bottom: 8px; }
+    .coach-link { background: none; border: none; color: var(--gray); font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline; }
+    .cmsg { max-width: 92%; margin-bottom: 10px; padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+    .cmsg.user { margin-left: auto; background: var(--ink); color: white; border-bottom-right-radius: 3px; }
+    .cmsg.assistant { background: white; box-shadow: var(--shadow); border-bottom-left-radius: 3px; }
+    .cmsg.err { background: #fef2f2; color: #991b1b; box-shadow: none; border: 1px solid #fecaca; }
+    .cmsg p { margin: 0 0 6px; } .cmsg p:last-child { margin-bottom: 0; }
+    .cmsg code { background: var(--gray-light); padding: 1px 4px; border-radius: 4px; font-size: 12px; }
+    .cmsg.user code { background: rgba(255,255,255,0.18); }
+    .cmeta { font-size: 10px; color: #94a3b8; margin-top: 6px; }
+    .cprop { margin-top: 8px; border: 1.5px solid var(--accent); background: var(--accent-bg); border-radius: 10px; padding: 10px; }
+    .cprop-title { font-size: 11px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--accent); }
+    .cprop-sum { font-size: 13px; margin: 4px 0 6px; }
+    .cprop-line { font-size: 12px; padding: 4px 0; border-top: 1px solid rgba(37,99,235,0.15); }
+    .cprop-line.del { color: #991b1b; }
+    .cprop-btns { display: flex; gap: 8px; margin-top: 8px; }
+    .cprop-btns button { flex: 1; border: none; border-radius: 8px; padding: 9px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .cprop-ok { background: var(--accent); color: white; }
+    .cprop-no { background: white; color: #475569; border: 1px solid var(--line) !important; }
+    .cprop-status { font-size: 12px; font-weight: 700; margin-top: 6px; }
+    .coach-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+    .coach-chip { background: white; border: 1.5px solid var(--line); border-radius: 18px; padding: 7px 12px; font-size: 13px; font-weight: 600; cursor: pointer; color: #334155; }
+    .coach-inputbar { display: none; position: fixed; left: 0; right: 0; bottom: 56px; z-index: 90; background: #f1f3f6; border-top: 1px solid var(--line); padding: 8px 12px; gap: 8px; align-items: flex-end; }
+    #view-coach.active .coach-inputbar { display: flex; }
+    .coach-inputbar textarea { flex: 1; resize: none; max-height: 120px; padding: 10px; border: 1.5px solid var(--line); border-radius: 10px; font-size: 14px; font-family: inherit; }
+    .coach-inputbar textarea:focus { outline: none; border-color: var(--accent); }
+    .coach-inputbar button { background: var(--ink); color: white; border: none; border-radius: 10px; padding: 0 16px; height: 40px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .coach-inputbar button:disabled { opacity: 0.5; }
     .btn-primary { width: 100%; background: var(--ink); color: white; border: none; border-radius: var(--radius-sm); padding: 11px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.2px; }
     .week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
     .week-cell { text-align: center; padding: 8px 2px; border-radius: 8px; background: var(--gray-light); border: 1.5px solid transparent; }
@@ -833,8 +865,25 @@
 <!-- VIEW: COACH                                     -->
 <!-- ══════════════════════════════════════════════ -->
 <div id="view-coach" class="view">
-  <div class="train-container" id="coachRoot">
-    <div class="chart-card"><div class="day-detail-empty">Coach in arrivo.</div></div>
+  <div class="train-container coach-wrap">
+    <div id="coachSetup" class="chart-card hidden">
+      <div class="chart-title">Collega Claude</div>
+      <div style="font-size:13px;color:#334155;line-height:1.5;">Incolla la tua API key Anthropic. Resta <b>solo su questo dispositivo</b> (non viene sincronizzata né esportata) e l'app parla direttamente con Anthropic: paghi solo i token che usi. Va inserita una volta per dispositivo.</div>
+      <input class="pf-input" id="coachKeyInput" type="password" placeholder="sk-ant-..." autocomplete="off" style="margin-top:10px;">
+      <button class="btn-primary" style="margin-top:10px;" onclick="coachSaveKey()">Salva chiave</button>
+    </div>
+    <div id="coachMain">
+      <div class="coach-toolbar">
+        <button class="coach-link" onclick="coachNewChat()">Nuova chat</button>
+        <button class="coach-link" onclick="coachChangeKey()">Chiave API</button>
+      </div>
+      <div id="coachMsgs"></div>
+      <div id="coachChips" class="coach-chips"></div>
+    </div>
+  </div>
+  <div class="coach-inputbar" id="coachInputbar">
+    <textarea id="coachInput" rows="1" placeholder="Scrivi al coach..." onkeydown="coachKey(event)"></textarea>
+    <button id="coachSendBtn" onclick="coachSend()">Invia</button>
   </div>
 </div>
 
@@ -843,6 +892,22 @@
 <!-- ══════════════════════════════════════════════ -->
 <div id="view-piano" class="view">
   <div class="train-container">
+    <div class="chart-card">
+      <div class="chart-title">Obiettivi e profilo</div>
+      <div style="font-size:12px;color:var(--gray);margin-bottom:8px;">Il coach usa queste informazioni per pianificare. Più sono precise, meglio pianifica.</div>
+      <label class="pf-label">Obiettivo principale</label>
+      <input class="pf-input" id="prof-obiettivo" placeholder="es. Mezza maratona sotto 1h45">
+      <label class="pf-label">Data evento / gara</label>
+      <input class="pf-input" id="prof-dataEvento" type="date">
+      <label class="pf-label">Disponibilità settimanale</label>
+      <textarea class="pf-input" id="prof-disponibilita" rows="2" placeholder="es. 5 giorni, max 1h30 in settimana, lungo nel weekend"></textarea>
+      <label class="pf-label">Vincoli / infortuni</label>
+      <textarea class="pf-input" id="prof-vincoli" rows="2" placeholder="es. fastidio al ginocchio dx, niente doppie sedute"></textarea>
+      <label class="pf-label">Note</label>
+      <textarea class="pf-input" id="prof-note" rows="2" placeholder="preferenze, attrezzatura, altro"></textarea>
+      <button class="btn-primary" style="margin-top:10px;" onclick="saveProfileFromForm()">Salva profilo</button>
+    </div>
+
     <div class="chart-card">
       <div class="chart-title">Sedute pianificate</div>
       <div id="planList"></div>
@@ -860,9 +925,13 @@
         <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
           <input type="date" id="pfDataInput" oninput="setPfData(this.value)"
             style="padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:600;">
-          <input type="text" id="pfNoteInput" placeholder="Note (opzionale)" oninput="setPfNote(this.value)"
-            style="flex:1;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;">
+          <input type="time" id="pfOrarioInput" oninput="setPfOrario(this.value)"
+            style="padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-weight:600;">
+          <input type="number" id="pfDurataInput" min="5" max="600" step="5" placeholder="min" oninput="setPfDurata(this.value)"
+            style="width:70px;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;">
         </div>
+        <textarea id="pfNoteInput" rows="2" placeholder="Struttura della seduta (es. 10' risc + 5x1000m Z4 rec 2' + 10' def)" oninput="setPfNote(this.value)"
+          style="width:100%;margin-top:8px;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit;"></textarea>
         <div style="display:flex;gap:8px;margin-top:10px;">
           <button onclick="closePlanForm()" style="flex:1;background:var(--gray-light);color:#616161;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;">Annulla</button>
           <button onclick="confirmAddPlan()" style="flex:1;background:var(--blue);color:white;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;">✓ Pianifica</button>
@@ -3672,6 +3741,8 @@ function allTrainingSessions() {
       distanceKm: a.distanceKm, avgHr: a.avgHr, maxHr: a.maxHr,
       avgSpeedKmh: a.avgSpeedKmh, elevationGainM: a.elevationGainM,
       trainingLoad: a.trainingLoad,
+      aerobicTrainingEffect: a.aerobicTrainingEffect, anaerobicTrainingEffect: a.anaerobicTrainingEffect,
+      maxSpeedKmh: a.maxSpeedKmh, avgPowerW: a.avgPowerW, avgCadence: a.avgCadence,
     });
   }
   for (const [dateStr, dd] of Object.entries(log)) {
@@ -3816,31 +3887,62 @@ function renderAllenamenti() {
   renderTrainingPlan();
 }
 
+// ── Profilo atleta (obiettivi/vincoli) e cronologia chat coach: sincronizzati su OneDrive ──
+let trainingProfile = {};
+let coachChat = [];
+function loadTrainingProfile() { try { trainingProfile = JSON.parse(localStorage.getItem('trainingProfile') || '{}'); } catch { trainingProfile = {}; } }
+function saveTrainingProfile() { localStorage.setItem('trainingProfile', JSON.stringify(trainingProfile)); touchLocal(); }
+function loadCoachChat() { try { coachChat = JSON.parse(localStorage.getItem('coachChat') || '[]'); } catch { coachChat = []; } }
+function saveCoachChat() { localStorage.setItem('coachChat', JSON.stringify(coachChat.slice(-60))); touchLocal(); }
+const PROFILE_FIELDS = ['obiettivo', 'dataEvento', 'disponibilita', 'vincoli', 'note'];
+function renderProfileForm() {
+  if (document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('prof-')) return;
+  PROFILE_FIELDS.forEach(f => { const el = document.getElementById('prof-' + f); if (el) el.value = trainingProfile[f] || ''; });
+}
+function saveProfileFromForm() {
+  PROFILE_FIELDS.forEach(f => { const el = document.getElementById('prof-' + f); if (el) trainingProfile[f] = el.value.trim(); });
+  saveTrainingProfile();
+  if (typeof toastSync === 'function') toastSync('Profilo salvato');
+}
+
 // ── Piano allenamenti: sessioni future proposte (in chat, da Claude) o inserite a mano ──
-let planFormState = { tipo: null, data: null, note: '' };
+let planFormState = { tipo: null, data: null, orario: '', durataMin: null, note: '' };
 
 function renderTrainingPlan() {
-  const upcoming = trainingPlan.slice().sort((a, b) => a.data.localeCompare(b.data));
-  document.getElementById('planList').innerHTML = upcoming.map(p => `
+  const list = document.getElementById('planList');
+  if (!list) return;
+  const upcoming = trainingPlan.slice().sort((a, b) => (a.data + (a.orario || '')).localeCompare(b.data + (b.orario || '')));
+  list.innerHTML = upcoming.map(p => {
+    const desc = p.descrizione || p.note || '';
+    const meta = [p.data, p.orario, p.durataMin ? p.durataMin + ' min' : ''].filter(Boolean).join(' · ');
+    return `
     <div class="plan-item ${p.fatto ? 'done' : ''}">
       <button onclick="togglePlanDone('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;">${p.fatto ? '✅' : '⬜'}</button>
-      <div class="plan-item-name">${TRAINING_LABELS[p.tipo] || p.tipo} · ${p.data}${p.note ? ' · ' + p.note : ''}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="plan-item-name">${TRAINING_LABELS[p.tipo] || p.tipo} · ${meta}</div>
+        ${desc ? `<div style="font-size:12px;color:#334155;margin-top:2px;white-space:pre-wrap;">${escHtml(desc)}</div>` : ''}
+      </div>
       <button class="extra-remove" onclick="removePlan('${p.id}')">×</button>
-    </div>
-  `).join('') || '<div class="day-detail-empty">Nessun allenamento pianificato.</div>';
+    </div>`;
+  }).join('') || '<div class="day-detail-empty">Nessun allenamento pianificato.</div>';
+  renderProfileForm();
 }
 
 function openPlanForm() {
-  planFormState = { tipo: null, data: dateKey(today()), note: '' };
+  planFormState = { tipo: null, data: dateKey(today()), orario: '', durataMin: null, note: '' };
   document.getElementById('planForm').classList.remove('hidden');
   document.getElementById('pfDataInput').value = planFormState.data;
   document.getElementById('pfNoteInput').value = '';
+  document.getElementById('pfOrarioInput').value = '';
+  document.getElementById('pfDurataInput').value = '';
   renderPlanFormTipo();
 }
 function closePlanForm() { document.getElementById('planForm').classList.add('hidden'); }
 function setPfTipo(t) { planFormState.tipo = t; renderPlanFormTipo(); }
 function setPfData(v) { planFormState.data = v; }
 function setPfNote(v) { planFormState.note = v; }
+function setPfOrario(v) { planFormState.orario = v; }
+function setPfDurata(v) { planFormState.durataMin = v ? parseInt(v) : null; }
 function renderPlanFormTipo() {
   Object.keys(TRAINING_LABELS).forEach(t => document.getElementById('pf-t-' + t)?.classList.toggle('active', planFormState.tipo === t));
 }
@@ -3848,7 +3950,8 @@ function confirmAddPlan() {
   if (!planFormState.tipo || !planFormState.data) { alert('Seleziona tipo e data'); return; }
   trainingPlan.push({
     id: 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-    tipo: planFormState.tipo, data: planFormState.data, note: planFormState.note || '', fatto: false,
+    tipo: planFormState.tipo, data: planFormState.data, orario: planFormState.orario || '', durataMin: planFormState.durataMin,
+    descrizione: planFormState.note || '', fatto: false,
   });
   saveTrainingPlan();
   closePlanForm();
@@ -3856,6 +3959,351 @@ function confirmAddPlan() {
 }
 function togglePlanDone(id) { const p = trainingPlan.find(x => x.id === id); if (p) { p.fatto = !p.fatto; saveTrainingPlan(); renderTrainingPlan(); } }
 function removePlan(id) { trainingPlan = trainingPlan.filter(x => x.id !== id); saveTrainingPlan(); renderTrainingPlan(); }
+
+// ════════════════════════════════════════════════════
+// COACH (chat con Claude, tool use, proposte da confermare)
+// ════════════════════════════════════════════════════
+const COACH_MODEL = 'claude-sonnet-5-5';
+const PLAN_TIPI = ['bici', 'corsa', 'nuoto', 'corpo_libero', 'combinato', 'gara'];
+let coachBusy = false;
+var coachCalendarSummary = null, coachCalendarFetch = null;
+
+function coachKeyGet() { return localStorage.getItem('anthropicKey') || ''; }
+function coachSaveKey() {
+  const v = document.getElementById('coachKeyInput').value.trim();
+  if (!v.startsWith('sk-ant-')) { alert('La chiave deve iniziare con sk-ant-'); return; }
+  localStorage.setItem('anthropicKey', v);
+  document.getElementById('coachKeyInput').value = '';
+  renderCoach();
+}
+function coachChangeKey() {
+  document.getElementById('coachSetup').classList.remove('hidden');
+  document.getElementById('coachKeyInput').focus();
+}
+function coachNewChat() {
+  if (coachBusy) return;
+  if (coachChat.length && !confirm('Cancellare la conversazione? Il piano e il profilo restano.')) return;
+  coachChat = []; saveCoachChat(); renderCoach();
+}
+function coachKey(e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); coachSend(); } }
+
+function mdLite(t) {
+  let h = escHtml(t);
+  h = h.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
+  const blocks = h.split(/\n{2,}/).map(b => {
+    const lines = b.split('\n');
+    if (lines.every(l => /^\s*[-•]\s+/.test(l))) return lines.map(l => '• ' + l.replace(/^\s*[-•]\s+/, '')).join('<br>');
+    return lines.join('<br>');
+  });
+  return blocks.map(b => '<p>' + b + '</p>').join('');
+}
+
+function planLineText(c, existing) {
+  const t = { ...(existing || {}), ...c };
+  const meta = [t.data, t.orario, t.durataMin ? t.durataMin + ' min' : ''].filter(Boolean).join(' · ');
+  return `${TRAINING_LABELS[t.tipo] || t.tipo || '?'} · ${meta}${t.descrizione ? ' — ' + escHtml(t.descrizione) : ''}`;
+}
+function renderProposal(msg, pi) {
+  const pr = msg.proposals[pi];
+  let lines = '';
+  if (pr.kind === 'plan') {
+    lines = pr.changes.map(c => {
+      const ex = c.id ? trainingPlan.find(x => x.id === c.id) : null;
+      if (c.action === 'delete') return `<div class="cprop-line del">Elimina: ${ex ? planLineText({}, ex) : escHtml(c.id || '')}</div>`;
+      return `<div class="cprop-line">${c.action === 'update' ? 'Modifica' : 'Aggiungi'}: ${planLineText(c, ex)}</div>`;
+    }).join('');
+  } else {
+    lines = Object.entries(pr.updates).map(([k, v]) => `<div class="cprop-line"><b>${escHtml(k)}</b>: ${escHtml(v)}</div>`).join('');
+  }
+  const foot = pr.status === 'pending'
+    ? `<div class="cprop-btns"><button class="cprop-no" onclick="coachDiscard('${msg.id}',${pi})">Scarta</button><button class="cprop-ok" onclick="coachApply('${msg.id}',${pi})">Applica</button></div>`
+    : `<div class="cprop-status" style="color:${pr.status === 'applied' ? '#15803d' : '#64748b'}">${pr.status === 'applied' ? 'Applicata' : 'Scartata'}</div>`;
+  return `<div class="cprop"><div class="cprop-title">${pr.kind === 'plan' ? 'Proposta piano' : 'Proposta profilo'}</div><div class="cprop-sum">${escHtml(pr.summary || '')}</div>${lines}${foot}</div>`;
+}
+
+function renderCoach() {
+  const hasKey = !!coachKeyGet();
+  document.getElementById('coachSetup').classList.toggle('hidden', hasKey);
+  document.getElementById('coachMain').classList.toggle('hidden', !hasKey);
+  document.getElementById('coachInputbar').style.visibility = hasKey ? 'visible' : 'hidden';
+  if (!hasKey) return;
+  const box = document.getElementById('coachMsgs');
+  box.innerHTML = coachChat.map(m => {
+    if (m.role === 'user') return `<div class="cmsg user">${mdLite(m.text)}</div>`;
+    const props = (m.proposals || []).map((_, i) => renderProposal(m, i)).join('');
+    const meta = m.usage ? `<div class="cmeta">${m.usage.in} token in · ${m.usage.out} out</div>` : '';
+    const body = m.text ? mdLite(m.text) : (m.pending ? '<span style="color:#94a3b8">Sto ragionando…</span>' : '');
+    return `<div class="cmsg assistant${m.error ? ' err' : ''}">${body}${props}${meta}</div>`;
+  }).join('');
+  document.getElementById('coachChips').innerHTML = coachChat.length ? '' :
+    ['Pianifica la mia settimana', 'Come sto messo di carico e recupero?', 'Devo allenarmi oggi o riposare?']
+      .map(t => `<button class="coach-chip" onclick="coachChip(this.textContent)">${t}</button>`).join('');
+  document.getElementById('coachSendBtn').disabled = coachBusy;
+  window.scrollTo(0, document.body.scrollHeight);
+}
+function coachChip(t) { document.getElementById('coachInput').value = t; coachSend(); }
+
+function shiftDateKey(k, delta) { const d = new Date(k + 'T00:00:00'); d.setDate(d.getDate() + delta); return dateKey(d); }
+
+function healthScalars(day) {
+  const rhr = pickPath(day.restingHeartRate, ['restingHeartRate', 'allMetrics.metricsMap.WELLNESS_RESTING_HEART_RATE.0.value']);
+  const sleep = pickPath(day.sleep, ['dailySleepDTO.sleepTimeSeconds']);
+  const hrv = pickPath(day.hrv, ['hrvSummary.lastNightAvg', 'hrvSummary.weeklyAvg']);
+  const vo2 = pickPath(day.vo2max, ['generic.vo2MaxPreciseValue', 'generic.vo2MaxValue']);
+  const w = pickPath(day.bodyComposition, ['weight']);
+  return { fcRiposo: rhr ? Math.round(rhr) : null, sonnoOre: sleep ? +(sleep / 3600).toFixed(1) : null, hrvNotte: hrv ? Math.round(hrv) : null, vo2max: vo2 ? Math.round(vo2) : null, pesoKg: w ? +(w / 1000).toFixed(1) : null };
+}
+
+function sessionLine(a) {
+  const f = [a.date + (a.orario ? ' ' + a.orario : ''), a.tipo, a.durationMin ? Math.round(a.durationMin) + 'min' : null,
+    a.distanceKm ? a.distanceKm + 'km' : null, a.avgHr ? 'FC ' + a.avgHr + (a.maxHr ? '/' + a.maxHr : '') : null,
+    a.elevationGainM ? 'disl ' + Math.round(a.elevationGainM) + 'm' : null, a.kcal ? Math.round(a.kcal) + 'kcal' : null,
+    a.trainingLoad ? 'TL ' + a.trainingLoad : null,
+    a.aerobicTrainingEffect ? 'TE ' + a.aerobicTrainingEffect + '/' + (a.anaerobicTrainingEffect ?? '-') : null,
+    a.avgPowerW ? a.avgPowerW + 'W' : null, a.nome ? '"' + a.nome + '"' : null];
+  return f.filter(Boolean).join(' · ');
+}
+
+function buildCoachSystem() {
+  const now = new Date();
+  const todayK = dateKey(today());
+  const all = allTrainingSessions();
+  const recent = all.filter(a => a.date >= shiftDateKey(todayK, -14));
+  const weeks = [];
+  for (let w = 0; w < 6; w++) {
+    const start = shiftDateKey(dateKey(mondayOf(today())), -7 * w);
+    const end = shiftDateKey(start, 6);
+    const inW = all.filter(a => a.date >= start && a.date <= end);
+    weeks.push(`${start}: ${inW.length} sedute, ${Math.round(inW.reduce((t, a) => t + (a.durationMin || 0), 0))} min, ${Math.round(inW.reduce((t, a) => t + (a.distanceKm || 0), 0))} km`);
+  }
+  const planUp = trainingPlan.filter(p => p.data >= shiftDateKey(todayK, -7)).sort((a, b) => (a.data + (a.orario || '')).localeCompare(b.data + (b.orario || '')));
+  let health = 'NON DISPONIBILI (il feed salute Garmin non è ancora collegato): non conosci sonno, HRV, FC a riposo. Dillo se serve e valuta lo stato solo da carico e da ciò che dice l\'utente.';
+  if (garminHealth?.days) {
+    const ds = Object.entries(garminHealth.days).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 7);
+    health = ds.map(([d, v]) => d + ': ' + JSON.stringify(healthScalars(v))).join('\n');
+  }
+  const prof = PROFILE_FIELDS.map(f => `${f}: ${trainingProfile[f] || '(non indicato)'}`).join('\n');
+  const cal = coachCalendarSummary ? coachCalendarSummary() : '';
+  const dieta = [];
+  for (let i = 6; i >= 0; i--) {
+    const k = shiftDateKey(todayK, -i);
+    const dd = log[k];
+    if (dd) dieta.push(`${k}: ${calcDayKcal(dd)} kcal assunte${dd.peso ? ', peso ' + dd.peso + ' kg' : ''}`);
+  }
+  return `Sei il coach di allenamento personale di Elia (endurance: bici, corsa, nuoto). Rispondi in italiano, diretto e concreto, da coach esperto.
+
+Come lavori:
+- Ragioni su carico, recupero e progressione rispetto agli obiettivi e allo stato di forma, e spieghi il perché in poche righe.
+- Non inventare dati. Se mancano informazioni (es. metriche di salute), dillo e, se serve, chiedi.
+- Oltre allo snapshot qui sotto hai tool di lettura (attività, salute, piano, calendario, dieta): usali quando servono più dettagli.
+- NON modifichi mai nulla direttamente. Per cambiare il piano usa propose_plan_changes, per il profilo propose_profile_update: l'utente vedrà una card e confermerà con un tap. Dopo aver proposto, spiega brevemente e non dire che è già applicato.
+- Ogni seduta proposta ha data, orario, durataMin e descrizione strutturata (riscaldamento, blocchi con zone/ritmi/potenze/durate, defaticamento). Rispetta impegni di calendario, disponibilità e vincoli.
+- Prima di proporre controlla il piano esistente: per modificare o togliere sedute usa update/delete con l'id, senza duplicare.
+- Risposte brevi, niente muri di testo.
+
+Data e ora attuali: ${now.toLocaleString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} (oggi = ${todayK}).
+
+PROFILO E OBIETTIVI
+${prof}
+
+ATTIVITÀ ULTIMI 14 GIORNI (dal più recente)
+${recent.map(sessionLine).join('\n') || '(nessuna)'}
+
+CARICO SETTIMANALE (dalla settimana corrente indietro)
+${weeks.join('\n')}
+
+SALUTE GARMIN ULTIMI 7 GIORNI
+${health}
+
+PIANO (da 7 giorni fa in poi; fatto=true se completata)
+${planUp.map(p => `[${p.id}] ${p.data} ${p.orario || ''} ${p.tipo} ${p.durataMin || ''}min ${p.fatto ? '(fatta)' : ''} ${p.descrizione || p.note || ''}`).join('\n') || '(vuoto)'}
+
+CALENDARIO PROSSIMI 14 GIORNI
+${cal || '(Google Calendar non collegato: non conosci gli impegni dell\'utente, chiedili se servono)'}
+
+DIETA ULTIMI 7 GIORNI
+${dieta.join('\n') || '(nessun dato)'}`;
+}
+
+const COACH_TOOLS = [
+  { name: 'get_activities', description: 'Attività svolte (Garmin + manuali) in un intervallo di date, con distanza, FC, dislivello, training effect, carico.', input_schema: { type: 'object', properties: { from: { type: 'string', description: 'YYYY-MM-DD' }, to: { type: 'string', description: 'YYYY-MM-DD' } }, required: ['from', 'to'] } },
+  { name: 'get_health', description: 'Metriche di salute Garmin giornaliere (FC riposo, sonno, HRV, VO2max, peso) in un intervallo di date.', input_schema: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' } }, required: ['from', 'to'] } },
+  { name: 'get_plan', description: 'Piano allenamenti completo con gli id delle sedute.', input_schema: { type: 'object', properties: {} } },
+  { name: 'get_calendar', description: 'Eventi del calendario Google dell\'utente (impegni) in un intervallo di date.', input_schema: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' } }, required: ['from', 'to'] } },
+  { name: 'get_diet_summary', description: 'Riepilogo dieta (kcal assunte, peso) degli ultimi N giorni.', input_schema: { type: 'object', properties: { days: { type: 'integer' } }, required: ['days'] } },
+  { name: 'propose_plan_changes', description: 'Propone modifiche al piano (add/update/delete). NON le applica: l\'utente le vede in una card e conferma. Per update/delete serve l\'id della seduta.', input_schema: { type: 'object', properties: { summary: { type: 'string', description: 'Sintesi di una riga del perché' }, changes: { type: 'array', items: { type: 'object', properties: { action: { type: 'string', enum: ['add', 'update', 'delete'] }, id: { type: 'string' }, tipo: { type: 'string', enum: PLAN_TIPI }, data: { type: 'string', description: 'YYYY-MM-DD' }, orario: { type: 'string', description: 'HH:MM' }, durataMin: { type: 'integer' }, descrizione: { type: 'string' } }, required: ['action'] } } }, required: ['summary', 'changes'] } },
+  { name: 'propose_profile_update', description: 'Propone aggiornamenti a obiettivi/profilo dell\'utente. NON li applica: serve conferma.', input_schema: { type: 'object', properties: { summary: { type: 'string' }, updates: { type: 'object', properties: { obiettivo: { type: 'string' }, dataEvento: { type: 'string' }, disponibilita: { type: 'string' }, vincoli: { type: 'string' }, note: { type: 'string' } } } }, required: ['summary', 'updates'] } },
+];
+
+function runCoachTool(name, input, msg) {
+  const inRange = (d) => (!input.from || d >= input.from) && (!input.to || d <= input.to);
+  if (name === 'get_activities') {
+    return JSON.stringify(allTrainingSessions().filter(a => inRange(a.date)).slice(0, 80));
+  }
+  if (name === 'get_health') {
+    if (!garminHealth?.days) return 'Metriche di salute Garmin non disponibili: il feed non è collegato.';
+    const out = Object.entries(garminHealth.days).filter(([d]) => inRange(d)).sort((a, b) => a[0].localeCompare(b[0])).map(([d, v]) => ({ data: d, ...healthScalars(v) }));
+    return JSON.stringify(out);
+  }
+  if (name === 'get_plan') return JSON.stringify(trainingPlan);
+  if (name === 'get_calendar') {
+    return coachCalendarFetch ? coachCalendarFetch(input.from, input.to) : 'Google Calendar non collegato.';
+  }
+  if (name === 'get_diet_summary') {
+    const n = Math.min(Math.max(input.days || 7, 1), 60);
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) { const k = shiftDateKey(dateKey(today()), -i); const dd = log[k]; if (dd) out.push({ data: k, kcal: calcDayKcal(dd), peso: dd.peso || null }); }
+    return JSON.stringify(out);
+  }
+  if (name === 'propose_plan_changes') {
+    const changes = (input.changes || []).filter(c => ['add', 'update', 'delete'].includes(c.action));
+    const bad = changes.find(c => (c.action === 'add' && (!PLAN_TIPI.includes(c.tipo) || !/^\d{4}-\d{2}-\d{2}$/.test(c.data || ''))) || (c.action !== 'add' && !trainingPlan.some(x => x.id === c.id)));
+    if (bad) return 'ERRORE: proposta non valida (add richiede tipo e data YYYY-MM-DD; update/delete richiedono un id esistente). Correggi e riprova.';
+    msg.proposals = msg.proposals || [];
+    msg.proposals.push({ kind: 'plan', summary: input.summary || '', changes, status: 'pending' });
+    return 'Proposta mostrata all\'utente, in attesa di conferma. Non è stata applicata.';
+  }
+  if (name === 'propose_profile_update') {
+    const updates = Object.fromEntries(Object.entries(input.updates || {}).filter(([k]) => PROFILE_FIELDS.includes(k)));
+    if (!Object.keys(updates).length) return 'ERRORE: nessun campo valido.';
+    msg.proposals = msg.proposals || [];
+    msg.proposals.push({ kind: 'profile', summary: input.summary || '', updates, status: 'pending' });
+    return 'Proposta mostrata all\'utente, in attesa di conferma. Non è stata applicata.';
+  }
+  return 'ERRORE: tool sconosciuto ' + name;
+}
+
+function coachFindProposal(msgId, pi) { const m = coachChat.find(x => x.id === msgId); return m ? [m, m.proposals[pi]] : [null, null]; }
+function coachDiscard(msgId, pi) {
+  const [, pr] = coachFindProposal(msgId, pi);
+  if (pr && pr.status === 'pending') { pr.status = 'discarded'; saveCoachChat(); renderCoach(); }
+}
+async function coachApply(msgId, pi) {
+  const [, pr] = coachFindProposal(msgId, pi);
+  if (!pr || pr.status !== 'pending') return;
+  if (pr.kind === 'plan') {
+    const touched = [];
+    for (const c of pr.changes) {
+      if (c.action === 'add') {
+        const it = { id: 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), tipo: c.tipo, data: c.data, orario: c.orario || '', durataMin: c.durataMin || null, descrizione: c.descrizione || '', fatto: false, origine: 'coach' };
+        trainingPlan.push(it); touched.push(it);
+      } else if (c.action === 'update') {
+        const it = trainingPlan.find(x => x.id === c.id);
+        if (it) { ['tipo', 'data', 'orario', 'durataMin', 'descrizione'].forEach(k => { if (c[k] !== undefined) it[k] = c[k]; }); touched.push(it); }
+      } else if (c.action === 'delete') {
+        const it = trainingPlan.find(x => x.id === c.id);
+        if (it) { if (typeof gcalDeleteForItem === 'function') await gcalDeleteForItem(it); trainingPlan = trainingPlan.filter(x => x.id !== c.id); }
+      }
+    }
+    saveTrainingPlan();
+    if (typeof gcalSyncItems === 'function') await gcalSyncItems(touched);
+    renderTrainingPlan(); renderAllenamenti();
+  } else {
+    Object.assign(trainingProfile, pr.updates);
+    saveTrainingProfile(); renderProfileForm();
+  }
+  pr.status = 'applied';
+  saveCoachChat(); renderCoach();
+}
+
+async function coachStream(body, onText) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': coachKeyGet(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ ...body, model: COACH_MODEL, max_tokens: 16000, stream: true, thinking: { type: 'adaptive' }, output_config: { effort: 'medium' } }),
+  });
+  if (!res.ok) {
+    let detail = ''; try { detail = (await res.json()).error?.message || ''; } catch { }
+    const hint = res.status === 401 ? ' (chiave API non valida)' : res.status === 429 ? ' (limite di richieste raggiunto, riprova tra poco)' : '';
+    throw new Error('Errore ' + res.status + hint + (detail ? ': ' + detail : ''));
+  }
+  const blocks = []; let stop = null; const usage = { in: 0, out: 0 };
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '';
+  const handle = (ev) => {
+    if (ev.type === 'message_start') usage.in = ev.message.usage?.input_tokens || 0;
+    else if (ev.type === 'content_block_start') { const b = { ...ev.content_block }; if (b.type === 'tool_use') { b.input = {}; b._json = ''; } blocks[ev.index] = b; }
+    else if (ev.type === 'content_block_delta') {
+      const b = blocks[ev.index], d = ev.delta;
+      if (d.type === 'text_delta') { b.text = (b.text || '') + d.text; onText(d.text); }
+      else if (d.type === 'input_json_delta') b._json += d.partial_json;
+      else if (d.type === 'thinking_delta') b.thinking = (b.thinking || '') + d.thinking;
+      else if (d.type === 'signature_delta') b.signature = (b.signature || '') + d.signature;
+    }
+    else if (ev.type === 'content_block_stop') { const b = blocks[ev.index]; if (b && b.type === 'tool_use') { try { b.input = b._json ? JSON.parse(b._json) : {}; } catch { b.input = {}; b._bad = true; } delete b._json; } }
+    else if (ev.type === 'message_delta') { stop = ev.delta.stop_reason || stop; usage.out = ev.usage?.output_tokens || usage.out; }
+    else if (ev.type === 'error') throw new Error(ev.error?.message || 'errore in streaming');
+  };
+  for (; ;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+      const line = chunk.split('\n').find(l => l.startsWith('data: '));
+      if (line) handle(JSON.parse(line.slice(6)));
+    }
+  }
+  return { content: blocks.filter(Boolean), stop_reason: stop, usage };
+}
+
+function coachHistory() {
+  const msgs = [];
+  for (const m of coachChat) {
+    if (m.error || (!m.text && !(m.proposals || []).length)) continue;
+    let text = m.text || '';
+    (m.proposals || []).forEach(pr => { text += `\n[Proposta ${pr.kind}: ${pr.status === 'applied' ? 'APPLICATA dall\'utente' : pr.status === 'discarded' ? 'SCARTATA dall\'utente' : 'in attesa di conferma'} — ${pr.summary || ''}]`; });
+    if (msgs.length && msgs[msgs.length - 1].role === m.role) msgs[msgs.length - 1].content += '\n\n' + text;
+    else msgs.push({ role: m.role, content: text });
+  }
+  while (msgs.length && msgs[0].role !== 'user') msgs.shift();
+  return msgs.slice(-24);
+}
+
+async function coachSend() {
+  if (coachBusy) return;
+  const ta = document.getElementById('coachInput');
+  const text = ta.value.trim();
+  if (!text) return;
+  ta.value = '';
+  coachBusy = true;
+  const stamp = () => 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+  coachChat.push({ id: stamp(), role: 'user', text });
+  const am = { id: stamp(), role: 'assistant', text: '', pending: true, proposals: [], usage: null };
+  coachChat.push(am);
+  renderCoach();
+  try {
+    if (typeof coachCalendarPrefetch === 'function') await coachCalendarPrefetch();
+    const messages = coachHistory();
+    const system = buildCoachSystem();
+    const usage = { in: 0, out: 0 };
+    for (let iter = 0; iter < 8; iter++) {
+      const r = await coachStream({ system, messages, tools: COACH_TOOLS }, (t) => { am.text += t; am.pending = false; renderCoach(); });
+      usage.in += r.usage.in; usage.out += r.usage.out;
+      messages.push({ role: 'assistant', content: r.content.filter(b => !(b.type === 'text' && !b.text)).map(b => b.type === 'text' ? { type: 'text', text: b.text || '' } : b.type === 'tool_use' ? { type: 'tool_use', id: b.id, name: b.name, input: b.input } : b.type === 'thinking' ? { type: 'thinking', thinking: b.thinking || '', signature: b.signature || '' } : b) });
+      if (r.stop_reason === 'tool_use') {
+        const results = r.content.filter(b => b.type === 'tool_use').map(b => ({
+          type: 'tool_result', tool_use_id: b.id,
+          content: b._bad ? 'ERRORE: input non valido (JSON troncato). Riprova con meno elementi.' : String(runCoachTool(b.name, b.input, am)),
+        }));
+        messages.push({ role: 'user', content: results });
+        if (am.text && !am.text.endsWith('\n')) am.text += '\n\n';
+        renderCoach();
+        continue;
+      }
+      if (r.stop_reason === 'max_tokens') am.text += '\n\n(risposta troncata: chiedimi di continuare)';
+      if (r.stop_reason === 'refusal') am.text += '\n\n(la richiesta è stata rifiutata dai controlli di sicurezza)';
+      break;
+    }
+    am.usage = usage;
+  } catch (e) {
+    am.error = true; am.text = (am.text ? am.text + '\n\n' : '') + e.message;
+  }
+  am.pending = false;
+  coachBusy = false;
+  saveCoachChat();
+  renderCoach();
+}
 
 // ════════════════════════════════════════════════════
 // SCORTA SETTIMANALE
@@ -4191,7 +4639,7 @@ function openCatalogForSpesa() {
 // ════════════════════════════════════════════════════
 // IMPOSTAZIONI + SYNC CLOUD (OneDrive / Microsoft Graph)
 // ════════════════════════════════════════════════════
-const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget','lastShoppingDate','shopConfig','trainingPlan'];
+const SYNC_KEYS    = ['dietaLog','customFoods','shoppingList','scorta','kcalTarget','lastShoppingDate','shopConfig','trainingPlan','trainingProfile','coachChat'];
 const CLOUD_PATH   = '/me/drive/root:/DietaElia-backup.json';
 const SYNC_CLIENT  = '1bb6501e-437c-472e-b1cf-a1b2fc95c978';
 const SYNC_SCOPES  = ['Files.ReadWrite','User.Read'];
@@ -4236,7 +4684,7 @@ function applySnapshot(snap){
   if (!snap || !snap.data) return;
   for (const k of SYNC_KEYS){ if (snap.data[k] !== undefined) localStorage.setItem(k, snap.data[k]); }
   // ricarica stato in memoria + UI
-  loadLog(); loadCustomFoods(); loadShoppingList(); loadScorta(); loadShopConfig(); loadTrainingPlan();
+  loadLog(); loadCustomFoods(); loadShoppingList(); loadScorta(); loadShopConfig(); loadTrainingPlan(); loadTrainingProfile(); loadCoachChat();
   kcalTarget = parseInt(localStorage.getItem('kcalTarget') || '2200');
   renderDay();
   if (typeof renderAllenamenti === 'function') renderAllenamenti();
@@ -4475,6 +4923,8 @@ loadShoppingList();
 loadScorta();
 loadShopConfig();
 loadTrainingPlan();
+loadTrainingProfile();
+loadCoachChat();
 
 // Pulizia una-tantum: rimuove zucchine e pane integrale dai dati già salvati
 (function cleanupRemovedItems(){
