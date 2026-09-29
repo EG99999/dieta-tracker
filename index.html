@@ -194,6 +194,8 @@
     .lap-table td { text-align: right; padding: 5px 6px; border-top: 1px solid #f1f5f9; }
     .lap-table th:first-child, .lap-table td:first-child { text-align: left; }
     .hist-item[onclick] { cursor: pointer; }
+    .wo-steps { font-size: 11.5px; line-height: 1.55; white-space: pre-wrap; color: #334155; background: rgba(255,255,255,0.7); border-radius: 6px; padding: 6px 8px; margin-top: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .cprop-garmin { font-size: 11px; font-weight: 700; color: #15803d; margin-top: 4px; }
     .btn-primary { width: 100%; background: var(--ink); color: white; border: none; border-radius: var(--radius-sm); padding: 11px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.2px; }
     .week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
     .week-cell { text-align: center; padding: 8px 2px; border-radius: 8px; background: var(--gray-light); border: 1.5px solid transparent; }
@@ -3896,6 +3898,7 @@ function renderAllenamenti() {
 
   renderTrainingPlan();
   if (trainTab === 'health') renderHealthTab();
+  renderTrainingPlan();
 }
 
 // ── Profilo atleta (obiettivi/vincoli) e cronologia chat coach: sincronizzati su OneDrive ──
@@ -3931,7 +3934,9 @@ function renderTrainingPlan() {
       <button onclick="togglePlanDone('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;">${p.fatto ? '✅' : '⬜'}</button>
       <div style="flex:1;min-width:0;">
         <div class="plan-item-name">${TRAINING_LABELS[p.tipo] || p.tipo} · ${meta}</div>
+        ${p.titolo ? `<div style="font-size:12px;font-weight:700;margin-top:2px;">${escHtml(p.titolo)}</div>` : ''}
         ${desc ? `<div style="font-size:12px;color:#334155;margin-top:2px;white-space:pre-wrap;">${escHtml(desc)}</div>` : ''}
+        ${p.struttura ? `<details style="margin-top:4px;"><summary style="font-size:12px;font-weight:700;cursor:pointer;color:var(--accent);">Struttura ${gaSync[p.id] && gaSync[p.id].scheduledId ? '· su Garmin ✓' : '· da inviare a Garmin'}</summary><div class="wo-steps">${escHtml(woText(p.struttura))}</div></details>` : ''}
       </div>
       <button class="extra-remove" onclick="removePlan('${p.id}')">×</button>
     </div>`;
@@ -4032,6 +4037,7 @@ async function loadGarminArchive() {
     const y = new Date().getFullYear();
     for (const yr of [y, y - 1]) { const l = await gaGet('activities/list/' + yr + '.json', 30 * 60e3); if (l) gaLists[yr] = l; }
     gaSummary = (await gaGet('daily/summary.json', 30 * 60e3)) || gaSummary;
+    gaSync = (await gaGet('workouts_sync.json', 2 * 60e3)) || gaSync;
   } finally { gaLoading = false; }
   renderAllenamenti();
 }
@@ -4431,7 +4437,7 @@ function gcalEventBody(it) {
   const label = (TRAINING_LABELS[it.tipo] || it.tipo).split(' ').slice(1).join(' ') || it.tipo;
   return {
     summary: 'Allenamento: ' + label + (it.durataMin ? ' ' + it.durataMin + "'" : ''),
-    description: it.descrizione || it.note || '',
+    description: [it.descrizione || it.note || '', woText(it.struttura)].filter(Boolean).join('\n\n'),
     start: { dateTime: loc(start), timeZone: tz }, end: { dateTime: loc(end), timeZone: tz },
     extendedProperties: { private: { dietaPlanId: it.id } },
   };
@@ -4483,6 +4489,63 @@ async function coachCalendarFetch(from, to) {
 // ════════════════════════════════════════════════════
 const COACH_MODEL = 'claude-sonnet-5-5';
 const PLAN_TIPI = ['bici', 'corsa', 'nuoto', 'corpo_libero', 'combinato', 'gara'];
+// ── Allenamenti strutturati (stessi passi del builder Garmin) ──
+const WO_KINDS = ['warmup', 'interval', 'recovery', 'rest', 'cooldown', 'repeat'];
+const WO_TARGETS = ['none', 'pace', 'heart_rate', 'heart_rate_zone', 'power', 'power_zone', 'cadence'];
+const WO_SPORT_OF_TIPO = { corsa: 'running', bici: 'cycling', nuoto: 'swimming' };
+let gaSync = {};
+
+function woValidate(st, tipo) {
+  if (!st || typeof st !== 'object') return 'struttura mancante';
+  if (!['running', 'cycling', 'swimming'].includes(st.sport)) return 'sport deve essere running, cycling o swimming';
+  if (tipo && WO_SPORT_OF_TIPO[tipo] !== st.sport) return 'la struttura vale solo per tipo corsa (running), bici (cycling) o nuoto (swimming) coerente col tipo della seduta';
+  const walk = (steps, depth) => {
+    if (!Array.isArray(steps) || !steps.length) return 'lista passi vuota';
+    if (depth > 2) return 'troppi livelli di ripetizioni';
+    for (const x of steps) {
+      if (!WO_KINDS.includes(x.kind)) return 'kind non valido: ' + x.kind;
+      if (x.kind === 'repeat') {
+        if (!(x.repeat >= 1 && x.repeat <= 99)) return 'repeat deve essere 1-99';
+        const e = walk(x.steps, depth + 1); if (e) return e; continue;
+      }
+      const end = x.end || 'lap';
+      if (!['time', 'distance', 'lap'].includes(end)) return 'end deve essere time, distance o lap';
+      if (end !== 'lap' && !(x.value > 0)) return 'value deve essere > 0 (secondi per time, metri per distance)';
+      const t = x.target || 'none';
+      if (!WO_TARGETS.includes(t)) return 'target non valido: ' + t;
+      if (t === 'pace') {
+        const lim = st.sport === 'swimming' ? [40, 400] : [120, 900];
+        if (!(x.low >= lim[0] && x.low <= lim[1]) || (x.high !== undefined && !(x.high >= lim[0] && x.high <= lim[1]))) return 'pace in secondi per ' + (st.sport === 'swimming' ? '100 m' : 'km') + ' (es. 4:15/km = 255)';
+      }
+      if (/_zone$/.test(t) && !(x.low >= 1 && x.low <= 7)) return 'zona deve essere 1-7 in low';
+      if (['heart_rate', 'power', 'cadence'].includes(t) && !(x.low > 0)) return t + ' richiede low e high';
+    }
+    return null;
+  };
+  return walk(st.steps, 0);
+}
+function woPace(sec) { sec = Math.round(sec); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+function woStepText(x, sport) {
+  const K = { warmup: 'Riscaldamento', interval: 'Intervallo', recovery: 'Recupero', rest: 'Riposo', cooldown: 'Defaticamento' };
+  const end = x.end || 'lap';
+  const dur = end === 'distance' ? (x.value >= 1000 ? (x.value / 1000) + ' km' : x.value + ' m') : end === 'time' ? fmtDur(x.value) : 'fino al lap';
+  const t = x.target || 'none';
+  const hi = x.high !== undefined ? x.high : x.low;
+  const tg = t === 'pace' ? `${woPace(Math.min(x.low, hi))}–${woPace(Math.max(x.low, hi))}${sport === 'swimming' ? '/100m' : '/km'}`
+    : t === 'heart_rate_zone' ? 'zona FC ' + x.low : t === 'power_zone' ? 'zona potenza ' + x.low
+    : t === 'heart_rate' ? `${x.low}–${hi} bpm` : t === 'power' ? `${x.low}–${hi} W` : t === 'cadence' ? `${x.low}–${hi} giri/min` : '';
+  return `${K[x.kind] || x.kind} ${dur}${tg ? ' @ ' + tg : ''}${x.note ? ' — ' + x.note : ''}`;
+}
+function woLines(steps, sport, ind = '') {
+  const out = [];
+  for (const x of steps || []) {
+    if (x.kind === 'repeat') { out.push(`${ind}${x.repeat}×`); out.push(...woLines(x.steps, sport, ind + '   ')); }
+    else out.push(ind + woStepText(x, sport));
+  }
+  return out;
+}
+function woText(st) { return st ? woLines(st.steps, st.sport).join('\n') : ''; }
+
 let coachBusy = false;
 
 function coachKeyGet() { return localStorage.getItem('anthropicKey') || ''; }
@@ -4527,7 +4590,8 @@ function renderProposal(msg, pi) {
     lines = pr.changes.map(c => {
       const ex = c.id ? trainingPlan.find(x => x.id === c.id) : null;
       if (c.action === 'delete') return `<div class="cprop-line del">Elimina: ${ex ? planLineText({}, ex) : escHtml(c.id || '')}</div>`;
-      return `<div class="cprop-line">${c.action === 'update' ? 'Modifica' : 'Aggiungi'}: ${planLineText(c, ex)}</div>`;
+      const stt = c.struttura ? `<div class="wo-steps">${escHtml(woText(c.struttura))}</div><div class="cprop-garmin">Andrà anche su Garmin come allenamento strutturato</div>` : '';
+      return `<div class="cprop-line">${c.action === 'update' ? 'Modifica' : 'Aggiungi'}: ${planLineText(c, ex)}${stt}</div>`;
     }).join('');
   } else {
     lines = Object.entries(pr.updates).map(([k, v]) => `<div class="cprop-line"><b>${escHtml(k)}</b>: ${escHtml(v)}</div>`).join('');
@@ -4605,7 +4669,7 @@ Come lavori:
 - Non inventare dati. Se mancano informazioni (es. metriche di salute), dillo e, se serve, chiedi.
 - Oltre allo snapshot qui sotto hai tool di lettura (attività, salute, piano, calendario, dieta): usali quando servono più dettagli.
 - NON modifichi mai nulla direttamente. Per cambiare il piano usa propose_plan_changes, per il profilo propose_profile_update: l'utente vedrà una card e confermerà con un tap. Dopo aver proposto, spiega brevemente e non dire che è già applicato.
-- Ogni seduta proposta ha data, orario, durataMin e descrizione strutturata (riscaldamento, blocchi con zone/ritmi/potenze/durate, defaticamento). Rispetta impegni di calendario, disponibilità e vincoli.
+- Ogni seduta proposta ha data, orario, durataMin, titolo e descrizione. Per OGNI seduta di corsa, bici o nuoto con parti definite compila anche il campo struttura: i passi come nel builder di allenamenti Garmin (warmup, interval, recovery, rest, cooldown, repeat con passi annidati), ciascuno con durata (time in secondi) o distanza (distance in metri) e target di ritmo (pace, secondi/km), frequenza cardiaca (bpm o zona), potenza (W o zona) o cadenza. Dopo la conferma la seduta arriva in automatico su Garmin (orologio/Edge) con tutti gli avvisi a schermo. Usa zone e soglie reali dell'atleta (sezione ZONE E SOGLIE, o get_records) invece di valori a caso; controlla che la somma dei passi coincida con durataMin. Rispetta impegni di calendario, disponibilità e vincoli.
 - Prima di proporre controlla il piano esistente: per modificare o togliere sedute usa update/delete con l'id, senza duplicare.
 - Risposte brevi, niente muri di testo.
 
@@ -4613,6 +4677,9 @@ Data e ora attuali: ${now.toLocaleString('it-IT', { weekday: 'long', year: 'nume
 
 PROFILO E OBIETTIVI
 ${prof}
+
+ZONE E SOGLIE GARMIN
+${coachZonesText || '(non disponibili: usa get_records o chiedi all\'utente)'}
 
 ATTIVITÀ ULTIMI 14 GIORNI (dal più recente)
 ${recent.map(sessionLine).join('\n') || '(nessuna)'}
@@ -4624,13 +4691,24 @@ SALUTE GARMIN ULTIMI 14 GIORNI (rhr=FC riposo, sleepSec=sonno, hrvLast=HRV notte
 ${health}
 
 PIANO (da 7 giorni fa in poi; fatto=true se completata)
-${planUp.map(p => `[${p.id}] ${p.data} ${p.orario || ''} ${p.tipo} ${p.durataMin || ''}min ${p.fatto ? '(fatta)' : ''} ${p.descrizione || p.note || ''}`).join('\n') || '(vuoto)'}
+${planUp.map(p => `[${p.id}] ${p.data} ${p.orario || ''} ${p.tipo} ${p.durataMin || ''}min ${p.fatto ? '(fatta)' : ''} ${p.titolo || ''} ${p.descrizione || p.note || ''}${p.struttura ? ' | STRUTTURA: ' + woLines(p.struttura.steps, p.struttura.sport).join('; ').replace(/\s+/g, ' ') : ''}${gaSync[p.id] && gaSync[p.id].scheduledId ? ' (su Garmin)' : ''}`).join('\n') || '(vuoto)'}
 
 CALENDARIO PROSSIMI 14 GIORNI
 ${cal || '(Google Calendar non collegato: non conosci gli impegni dell\'utente, chiedili se servono)'}
 
 DIETA ULTIMI 7 GIORNI
 ${dieta.join('\n') || '(nessun dato)'}`;
+}
+
+let coachZonesText = '';
+async function coachZonesLoad() {
+  const [hrz, pz, lt, ftp] = await Promise.all(['heartRateZones', 'powerZones', 'lactateThreshold', 'cyclingFtp'].map(n => gaGet('profile/' + n + '.json', 6 * 3600e3)));
+  const out = [];
+  (hrz || []).forEach(z => out.push(`FC ${z.sport}: max ${z.maxHeartRateUsed}, soglia ${z.lactateThresholdHeartRateUsed}, limiti inferiori zone Z1-Z5: ${[z.zone1Floor, z.zone2Floor, z.zone3Floor, z.zone4Floor, z.zone5Floor].join('/')} bpm`));
+  (pz || []).filter(z => z.sport === 'CYCLING' || z.sport === 'RUNNING').forEach(z => out.push(`Potenza ${z.sport}: FTP ${Math.round(z.functionalThresholdPower)} W, limiti inferiori zone: ${[z.zone1Floor, z.zone2Floor, z.zone3Floor, z.zone4Floor, z.zone5Floor, z.zone6Floor, z.zone7Floor].map(Math.round).join('/')} W`));
+  if (lt && lt.speed_and_heart_rate) out.push(`Soglia lattato: ${lt.speed_and_heart_rate.heartRate} bpm (corsa), velocita ${(lt.speed_and_heart_rate.speed * 10).toFixed(2)} m/s`);
+  if (ftp && ftp.functionalThresholdPower) out.push(`FTP bici attuale: ${ftp.functionalThresholdPower} W`);
+  coachZonesText = out.join('\n');
 }
 
 const COACH_TOOLS = [
@@ -4641,7 +4719,7 @@ const COACH_TOOLS = [
   { name: 'get_plan', description: 'Piano allenamenti completo con gli id delle sedute.', input_schema: { type: 'object', properties: {} } },
   { name: 'get_calendar', description: 'Eventi del calendario Google dell\'utente (impegni) in un intervallo di date.', input_schema: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' } }, required: ['from', 'to'] } },
   { name: 'get_diet_summary', description: 'Riepilogo dieta (kcal assunte, peso) degli ultimi N giorni.', input_schema: { type: 'object', properties: { days: { type: 'integer' } }, required: ['days'] } },
-  { name: 'propose_plan_changes', description: 'Propone modifiche al piano (add/update/delete). NON le applica: l\'utente le vede in una card e conferma. Per update/delete serve l\'id della seduta.', input_schema: { type: 'object', properties: { summary: { type: 'string', description: 'Sintesi di una riga del perché' }, changes: { type: 'array', items: { type: 'object', properties: { action: { type: 'string', enum: ['add', 'update', 'delete'] }, id: { type: 'string' }, tipo: { type: 'string', enum: PLAN_TIPI }, data: { type: 'string', description: 'YYYY-MM-DD' }, orario: { type: 'string', description: 'HH:MM' }, durataMin: { type: 'integer' }, descrizione: { type: 'string' } }, required: ['action'] } } }, required: ['summary', 'changes'] } },
+  { name: 'propose_plan_changes', description: 'Propone modifiche al piano (add/update/delete). NON le applica: l\'utente le vede in una card e conferma. Per update/delete serve l\'id della seduta.', input_schema: { type: 'object', properties: { summary: { type: 'string', description: 'Sintesi di una riga del perché' }, changes: { type: 'array', items: { type: 'object', properties: { action: { type: 'string', enum: ['add', 'update', 'delete'] }, id: { type: 'string' }, tipo: { type: 'string', enum: PLAN_TIPI }, data: { type: 'string', description: 'YYYY-MM-DD' }, orario: { type: 'string', description: 'HH:MM' }, durataMin: { type: 'integer' }, descrizione: { type: 'string' }, titolo: { type: 'string', description: 'Nome breve della seduta, es. Ripetute 5x1000' }, struttura: { type: 'object', description: 'Allenamento STRUTTURATO che va in automatico su Garmin (solo corsa/bici/nuoto). Obbligatorio per ogni seduta di corsa, bici o nuoto con parti definite (riscaldamento, ripetute, blocchi a ritmo/potenza, defaticamento). Ricalca il builder Garmin.', properties: { sport: { type: 'string', enum: ['running', 'cycling', 'swimming'] }, steps: { type: 'array', items: { type: 'object', properties: { kind: { type: 'string', enum: WO_KINDS }, end: { type: 'string', enum: ['time', 'distance', 'lap'], description: 'come termina il passo' }, value: { type: 'number', description: 'secondi se time, metri se distance' }, target: { type: 'string', enum: WO_TARGETS }, low: { type: 'number', description: 'pace: secondi/km (nuoto: secondi/100m) del limite; heart_rate: bpm; power: W; cadence; *_zone: numero zona' }, high: { type: 'number', description: 'limite opposto del range (pace: secondi/km piu lenti)' }, note: { type: 'string' }, repeat: { type: 'integer', description: 'solo kind=repeat: numero ripetizioni' }, steps: { type: 'array', description: 'solo kind=repeat: passi del gruppo (stessa forma)', items: { type: 'object' } } }, required: ['kind'] } } }, required: ['sport', 'steps'] } }, required: ['action'] } } }, required: ['summary', 'changes'] } },
   { name: 'propose_profile_update', description: 'Propone aggiornamenti a obiettivi/profilo dell\'utente. NON li applica: serve conferma.', input_schema: { type: 'object', properties: { summary: { type: 'string' }, updates: { type: 'object', properties: { obiettivo: { type: 'string' }, dataEvento: { type: 'string' }, disponibilita: { type: 'string' }, vincoli: { type: 'string' }, note: { type: 'string' } } } }, required: ['summary', 'updates'] } },
 ];
 
@@ -4694,6 +4772,8 @@ async function runCoachTool(name, input, msg) {
   }
   if (name === 'propose_plan_changes') {
     const changes = (input.changes || []).filter(c => ['add', 'update', 'delete'].includes(c.action));
+    const badStr = changes.find(c => c.struttura && woValidate(c.struttura, c.tipo || (trainingPlan.find(x => x.id === c.id) || {}).tipo));
+    if (badStr) return 'ERRORE struttura: ' + woValidate(badStr.struttura, badStr.tipo || (trainingPlan.find(x => x.id === badStr.id) || {}).tipo) + '. Correggi e riprova.';
     const bad = changes.find(c => (c.action === 'add' && (!PLAN_TIPI.includes(c.tipo) || !/^\d{4}-\d{2}-\d{2}$/.test(c.data || ''))) || (c.action !== 'add' && !trainingPlan.some(x => x.id === c.id)));
     if (bad) return 'ERRORE: proposta non valida (add richiede tipo e data YYYY-MM-DD; update/delete richiedono un id esistente). Correggi e riprova.';
     msg.proposals = msg.proposals || [];
@@ -4722,11 +4802,11 @@ async function coachApply(msgId, pi) {
     const touched = [];
     for (const c of pr.changes) {
       if (c.action === 'add') {
-        const it = { id: 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), tipo: c.tipo, data: c.data, orario: c.orario || '', durataMin: c.durataMin || null, descrizione: c.descrizione || '', fatto: false, origine: 'coach' };
+        const it = { id: 'pl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), tipo: c.tipo, data: c.data, orario: c.orario || '', durataMin: c.durataMin || null, descrizione: c.descrizione || '', titolo: c.titolo || '', struttura: c.struttura || null, fatto: false, origine: 'coach' };
         trainingPlan.push(it); touched.push(it);
       } else if (c.action === 'update') {
         const it = trainingPlan.find(x => x.id === c.id);
-        if (it) { ['tipo', 'data', 'orario', 'durataMin', 'descrizione'].forEach(k => { if (c[k] !== undefined) it[k] = c[k]; }); touched.push(it); }
+        if (it) { ['tipo', 'data', 'orario', 'durataMin', 'descrizione', 'titolo', 'struttura'].forEach(k => { if (c[k] !== undefined) it[k] = c[k]; }); touched.push(it); }
       } else if (c.action === 'delete') {
         const it = trainingPlan.find(x => x.id === c.id);
         if (it) { if (typeof gcalDeleteForItem === 'function') await gcalDeleteForItem(it); trainingPlan = trainingPlan.filter(x => x.id !== c.id); }
@@ -4811,6 +4891,7 @@ async function coachSend() {
   renderCoach();
   try {
     if (!gaSummary) await loadGarminArchive();
+    await coachZonesLoad().catch(() => {});
     if (typeof coachCalendarPrefetch === 'function') await coachCalendarPrefetch();
     const messages = coachHistory();
     const system = buildCoachSystem();
