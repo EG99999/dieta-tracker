@@ -4563,7 +4563,7 @@ function coachChip(t) { document.getElementById('coachInput').value = t; coachSe
 function shiftDateKey(k, delta) { const d = new Date(k + 'T00:00:00'); d.setDate(d.getDate() + delta); return dateKey(d); }
 
 function sessionLine(a) {
-  const f = [a.date + (a.orario ? ' ' + a.orario : ''), a.tipo, a.durationMin ? Math.round(a.durationMin) + 'min' : null,
+  const f = [(a.garminId ? '[' + a.garminId + '] ' : '') + a.date + (a.orario ? ' ' + a.orario : ''), a.tipo, a.durationMin ? Math.round(a.durationMin) + 'min' : null,
     a.distanceKm ? a.distanceKm + 'km' : null, a.avgHr ? 'FC ' + a.avgHr + (a.maxHr ? '/' + a.maxHr : '') : null,
     a.elevationGainM ? 'disl ' + Math.round(a.elevationGainM) + 'm' : null, a.kcal ? Math.round(a.kcal) + 'kcal' : null,
     a.trainingLoad ? 'TL ' + Math.round(a.trainingLoad) : null,
